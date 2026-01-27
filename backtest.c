@@ -5,9 +5,6 @@
 #define PRICES_FILE "prices.txt"
 
 void getPrices(char * ticker, unsigned priceAmount, float * prices){
-    if(priceAmount > PRICES_MAX){
-        printf("ERROR: exceeding max prices.\n");
-    }
 
     char command[50];
     printf("Downloading %u %s prices... \n", priceAmount, ticker);

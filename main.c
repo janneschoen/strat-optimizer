@@ -3,15 +3,15 @@
 #include <stdlib.h>
 
 #define TICKER "AAPL"
-#define NUM_PRICES 300
+#define NUM_PRICES 1000
 
 int main(){
     loadHeading();
+    clear();
 
     unsigned priceAmount = NUM_PRICES;
     float prices[priceAmount];
-    //getPrices(TICKER, priceAmount, prices);
-
+    getPrices(TICKER, priceAmount, prices);
 
     strat_t maxStrat;
     unsigned stratTypeID;
@@ -25,11 +25,14 @@ int main(){
         scanf(" %u", &stratTypeID);
     } while(stratTypeID >= NUM_STRAT_TYPES);
 
-    clear();
-    printf("End of testing range?\n");
+
     for(unsigned i = 0; i < stratTypes[stratTypeID].numParams; i++){
-        printf("%u - %s\n", i, stratTypes[stratTypeID].paramNames[i]);
-        scanf("%u", &maxStrat.params[i]);
+        do{
+            clear();
+            printf("End of testing range?\n");
+            printf("%s: ", stratTypes[stratTypeID].paramNames[i]);
+            scanf("%u", &maxStrat.params[i]);
+        } while(maxStrat.params[i] < 2);
     }
 
     clear();
@@ -45,7 +48,7 @@ int main(){
 
     genStrats(stratTypeID, 0, strategies, numStrats, &maxStrat, &stratsMade);
     testStrats(stratTypeID, strategies, numStrats, prices, priceAmount);
-
+    findBestStrat(stratTypeID, strategies, numStrats);
 
     free(strategies);
     return 0;

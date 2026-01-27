@@ -1,7 +1,6 @@
 #ifndef FUNCTIONS_H
 #define FUNCTIONS_H
 
-#define PRICES_MAX 600
 #define MAX_PARAMS 3
 #define NUM_STRAT_TYPES 1
 

@@ -34,9 +34,9 @@ void findBestStrat(unsigned stratTypeID, strat_t * strategies, unsigned numStrat
             bestStrat = strategies[i];
         }
     }
-    printf("Best Backtested Strategy\n");
-    printf("Profit: %.2f percent / y\n", bestStrat.performance * 100);
+    printf("Best test: [ ");
     for(unsigned i = 0; i < stratTypes[stratTypeID].numParams; i++){
-        printf("p%u: %u\n", i, bestStrat.params[i]);
+        printf(" %u ", bestStrat.params[i]);
     }
+    printf("] | Profit %.2f%% / year\n", bestStrat.performance * 100);
 }
