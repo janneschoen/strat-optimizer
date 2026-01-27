@@ -27,16 +27,16 @@ float getPos(unsigned stratTypeID, strat_t * strategy, unsigned day, float * pri
 
 // stratType0 : Simple Moving Average
 float genSignal0(unsigned day, strat_t * strategy, float * prices){
-    unsigned shortPriceSum = 0;
+    float shortPriceSum = 0;
     for(unsigned i = 0; i < strategy->params[0]; i++){
         shortPriceSum += prices[day-i];
     }
-    unsigned longPriceSum = 0;
+    float longPriceSum = 0;
     for(unsigned i = 0; i < strategy->params[1]; i++){
         longPriceSum += prices[day-i];
     }
-    float sma = (float)shortPriceSum / strategy->params[0];
-    float lma = (float)longPriceSum / strategy->params[1];
+    float sma = shortPriceSum / strategy->params[0];
+    float lma = longPriceSum / strategy->params[1];
     if(sma > lma){
         // 20% overshoot, 40% tol = 50% posSize (0.2 / 0.4 = 0.5)
         float posTolRatio = ((sma-lma) / lma) / ((float)strategy->params[2] / 100);
