@@ -5,11 +5,20 @@
 #define PRICES_FILE "prices.txt"
 
 void getPrices(char * ticker, unsigned priceAmount, float * prices){
+    unsigned download;
+    printf("Local or new prices?\n");
+    printf("0 - local\n");
+    printf("1 - new\n");
+    do{
+        scanf("%u", &download);
+    } while(download > 1);
 
-    char command[50];
-    printf("Downloading %u %s prices... \n", priceAmount, ticker);
-    sprintf(command, "python getPrices.py %s %u", ticker, priceAmount);
-    system(command);
+    if(download){
+        char command[50];
+        printf("Downloading %u %s prices... \n", priceAmount, ticker);
+        sprintf(command, "python getPrices.py %s %u", ticker, priceAmount);
+        system(command);
+    }
 
     FILE * file;
     file = fopen(PRICES_FILE, "r");

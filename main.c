@@ -50,6 +50,8 @@ int main(){
     testStrats(stratTypeID, strategies, numStrats, prices, priceAmount);
     findBestStrat(stratTypeID, strategies, numStrats);
 
+    visualise(stratTypeID, strategies, numStrats);
+
     free(strategies);
     return 0;
 }

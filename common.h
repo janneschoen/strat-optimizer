@@ -28,6 +28,7 @@ float genSignal0(unsigned day, strat_t * strategy, float * prices);
 
 
 // graphics
+void visualise(unsigned stratTypeID, strat_t * strategies, unsigned numStrats);
 void loadHeading();
 void clear();
 void loadingBar(unsigned done, unsigned goal);

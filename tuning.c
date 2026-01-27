@@ -2,6 +2,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+void visualise(unsigned stratTypeID, strat_t * strategies, unsigned numStrats){
+    FILE * file;
+    file = fopen("strategies.txt", "w");
+    for(unsigned i = 0; i < numStrats; i++){
+        for(unsigned j = 0; j < stratTypes[stratTypeID].numParams; j++){
+            fprintf(file, "%u ", strategies[i].params[j]);
+        }
+        fprintf(file, "%f\n", strategies[i].performance);
+    }
+    fclose(file);
+    char command[50];
+    sprintf(command, "python plotting.py %u %u", numStrats, stratTypes[stratTypeID].numParams);
+    system(command);
+}
+
 void genStrats(unsigned stratTypeID, unsigned param, strat_t * strategies, unsigned numStrats, strat_t * strategy, unsigned * stratsMade){
     if(param == stratTypes[stratTypeID].numParams){
         strategies[*stratsMade] = * strategy; 
