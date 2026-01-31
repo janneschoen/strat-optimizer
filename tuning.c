@@ -31,16 +31,9 @@ void genStrats(unsigned stratTypeID, unsigned param, strat_t * strategies, unsig
 }
 
 void testStrats(unsigned stratTypeID, strat_t * strategies, unsigned numStrats, float * prices, unsigned priceAmount, unsigned start){
-    printf("Testing %u strategies... \n", numStrats);
     for(unsigned i = 0; i < numStrats; i++){
         strategies[i].performance = backtest(stratTypeID, &strategies[i], prices, priceAmount, start);
-        if((i+1) % 20000 == 0){
-            float progress = (float)(i+1) / numStrats * 100;
-            printf("\r%.1f%%", progress);
-            fflush(stdout);
-        }
     }
-    printf("\r");
 }
 
 strat_t findBestStrat(strat_t * strategies, unsigned numStrats){

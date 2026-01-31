@@ -38,7 +38,6 @@ float genSignal0(unsigned day, strat_t * strategy, float * prices){
     float sma = shortPriceSum / strategy->params[0];
     float lma = longPriceSum / strategy->params[1];
     if(sma > lma){
-        // 20% overshoot, 40% tol = 50% posSize (0.2 / 0.4 = 0.5)
         float posTolRatio = ((sma-lma) / lma) / ((float)strategy->params[2] / 100);
         
         if(posTolRatio > 1){
