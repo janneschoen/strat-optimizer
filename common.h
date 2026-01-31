@@ -32,16 +32,17 @@ void visualise(unsigned stratTypeID, strat_t * strategies, unsigned numStrats);
 void loadHeading();
 void clear();
 void loadingBar(unsigned done, unsigned goal);
-
+void showSpecs(unsigned stratTypeID, strat_t * maxStrat, unsigned btLength, unsigned priceAmount, char * ticker);
+void showStrat(unsigned stratTypeID, strat_t * strategy);
 
 // backtesting
 void getPrices(char * ticker, unsigned priceAmount, float * prices);
-float backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned days);
+float backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned priceAmount, unsigned start);
 
 // tuning
 void genStrats(unsigned stratTypeID, unsigned param, strat_t * strategies, unsigned numStrats, strat_t * strategy, unsigned * stratsMade);
-void testStrats(unsigned stratTypeID, strat_t * strategies, unsigned numStrats, float * prices, unsigned priceAmount);
-void findBestStrat(unsigned stratTypeID, strat_t * strategies, unsigned numStrats);
+void testStrats(unsigned stratTypeID, strat_t * strategies, unsigned numStrats, float * prices, unsigned priceAmount, unsigned start);
+strat_t findBestStrat(strat_t * strategies, unsigned numStrats);
 
 void doRegression(unsigned stratTypeID, strat_t * strategies, unsigned numStrats, strat_t * predStrats, unsigned degree);
 
