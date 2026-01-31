@@ -12,8 +12,16 @@ void getPrices(char * ticker, unsigned priceAmount, float * prices){
 
     FILE * file;
     file = fopen(PRICES_FILE, "r");
+    unsigned zerosCounted = 0;
     for(unsigned i = 0; i < priceAmount; i++){
         fscanf(file, "%f", &prices[i]);
+        if(prices[i] == 0){
+            zerosCounted ++;
+        }
+    }
+    if(zerosCounted == priceAmount){
+        printf("ERROR: No valid prices.\n");
+        exit(1);
     }
     fclose(file);
 }

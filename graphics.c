@@ -42,6 +42,7 @@ void clear(){
 }
 
 void loadingBar(unsigned done, unsigned goal){
+    clear();
     float progress = (float)done / goal;
     unsigned simpleProgress = (unsigned)(progress * BAR_LENGTH);
     printf("[");
@@ -52,6 +53,7 @@ void loadingBar(unsigned done, unsigned goal){
         printf("-");
     }
     printf("] %.2f%%\n", progress*100);
+    printf("( %u / %u )\n", done, goal);
 }
 
 void spaces(unsigned amount){

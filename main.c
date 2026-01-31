@@ -3,6 +3,8 @@
 #include <stdlib.h>
 
 #define MAX_TICKER 5
+#define RESULTS_FILE "results.out"
+
 // Arguments: stratTypeID, p0, p1, p2, btLength, ticker
 
 int main(){
@@ -50,7 +52,16 @@ int main(){
 
     strat_t bestStrat = findBestStrat(strategies, numStrats);
 
-    printf("%f\n", bestStrat.performance);
+    FILE * file = fopen(RESULTS_FILE, "a");
+    fprintf(file, "%u ", stratTypeID);
+    for(unsigned i = 0; i < stratTypes[stratTypeID].numParams; i++){
+        fprintf(file, "%u ", bestStrat.params[i]);
+    }
+    fprintf(file, "%u ", btLength);
+    fprintf(file, "%s ", ticker);
+    fprintf(file, "%f", bestStrat.performance);
+    fprintf(file, "\n");
+    fclose(file);
 
     free(strategies);
     return 0;
