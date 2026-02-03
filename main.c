@@ -2,36 +2,42 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define MAX_TICKER 5
+#define NUM_ARGUMENTS 7
 #define RESULTS_FILE "results.out"
 
-// Arguments: stratTypeID, p0, p1, p2, btLength, ticker
+// Arguments: main, stratTypeID, p0, p1, p2, btLength, ticker
 
-int main(){
+int main(int argc, char * argv[]){
 
-    unsigned stratTypeID;
-    scanf(" %u", &stratTypeID);
-    if(stratTypeID >= NUM_STRAT_TYPES){
-        printf("ERROR: StratTypeID doesn't exist.\n");
+    if(argc != NUM_ARGUMENTS){
+        printf("ERROR: Requires %u arguments, got %u.\n", NUM_ARGUMENTS, argc);
         exit(1);
     }
 
+    unsigned argID = 1;
+
+    unsigned stratTypeID = strtoul(argv[argID], NULL, 10);
+
+    if(stratTypeID > NUM_STRAT_TYPES - 1){
+        printf("ERROR: Invalid strategytype '%u'.\n", stratTypeID);
+        exit(1);
+    }
+    argID ++;
+
     strat_t maxStrat;
     for(unsigned i = 0; i < stratTypes[stratTypeID].numParams; i++){
-        scanf("%u", &maxStrat.params[i]);
-        if(maxStrat.params[i] == 0){
-            printf("ERROR: Param can't be 0.\n");
-            exit(1);
-        }
+        maxStrat.params[i] = strtoul(argv[argID], NULL, 10);
+        argID ++;
     }
 
-    unsigned btLength;
-    scanf(" %u", &btLength);
+
+    unsigned btLength = strtoul(argv[argID], NULL, 10);
+    argID ++;
+
+    char * ticker = argv[argID];
+    argID ++;
 
     unsigned maxLookback = getLookback(stratTypeID, &maxStrat);
-
-    char ticker[MAX_TICKER];
-    scanf(" %s", ticker);
 
     unsigned priceAmount = btLength + maxLookback;
     float prices[priceAmount];
@@ -52,7 +58,9 @@ int main(){
 
     strat_t bestStrat = findBestStrat(strategies, numStrats);
 
-    FILE * file = fopen(RESULTS_FILE, "a");
+    printf("Best backtested performance: %.2f %% / y\n", bestStrat.performance*100);
+
+    /*FILE * file = fopen(RESULTS_FILE, "a");
     fprintf(file, "%u ", stratTypeID);
     for(unsigned i = 0; i < stratTypes[stratTypeID].numParams; i++){
         fprintf(file, "%u ", bestStrat.params[i]);
@@ -61,7 +69,7 @@ int main(){
     fprintf(file, "%s ", ticker);
     fprintf(file, "%f", bestStrat.performance);
     fprintf(file, "\n");
-    fclose(file);
+    fclose(file);*/
 
     free(strategies);
     return 0;
