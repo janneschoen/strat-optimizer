@@ -30,7 +30,6 @@ int main(int argc, char * argv[]){
         argID ++;
     }
 
-
     unsigned btLength = strtoul(argv[argID], NULL, 10);
     argID ++;
 

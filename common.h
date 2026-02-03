@@ -1,8 +1,8 @@
 #ifndef FUNCTIONS_H
 #define FUNCTIONS_H
 
-#define PRICES_FILE "prices.temp"
-#define STRAT_FILE "strategies.temp"
+#define PRICES_FILE "temp/prices.temp"
+#define STRAT_FILE "temp/strategies.temp"
 #define GETPRICES_PY "getPrices.py"
 #define PLOTTING_PY "plotting.py"
 

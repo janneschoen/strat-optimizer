@@ -4,7 +4,7 @@ from datetime import datetime
 from datetime import timedelta as td
 import os
 
-FILENAME = "prices.temp"
+FILENAME = "temp/prices.temp"
 
 ticker = sys.argv[1]
 priceAmount = int(sys.argv[2])
