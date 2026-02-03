@@ -2,12 +2,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#define PRICES_FILE "prices.txt"
+
 
 void getPrices(char * ticker, unsigned priceAmount, float * prices){
 
     char command[50];
-    sprintf(command, "python getPrices.py %s %u", ticker, priceAmount);
+    sprintf(command, "python %s %s %u", GETPRICES_PY, ticker, priceAmount);
     system(command);
 
     FILE * file;
@@ -33,7 +33,7 @@ float backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigne
     for(unsigned i = start; i < priceAmount; i++){
         if(prices[i] > 0){
             networth = cash + assets * prices[i];
-            posSize = getPos(stratTypeID, strategy, i, prices);
+            posSize = stratTypes[stratTypeID].getSignal(i, strategy, prices);
             assets = (posSize * networth) / prices[i];
             cash = networth - posSize * networth;
         }

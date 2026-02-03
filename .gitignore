@@ -1,5 +1,3 @@
-algorithm
-strategies.txt
-prices.txt
-*.in
+[!^.]*
+*.temp
 *.out

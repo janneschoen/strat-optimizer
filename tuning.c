@@ -2,9 +2,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+
 void visualise(unsigned stratTypeID, strat_t * strategies, unsigned numStrats){
     FILE * file;
-    file = fopen("strategies.txt", "w");
+    file = fopen(STRAT_FILE, "w");
     for(unsigned i = 0; i < numStrats; i++){
         for(unsigned j = 0; j < stratTypes[stratTypeID].numParams; j++){
             fprintf(file, "%u ", strategies[i].params[j]);
@@ -13,7 +14,7 @@ void visualise(unsigned stratTypeID, strat_t * strategies, unsigned numStrats){
     }
     fclose(file);
     char command[50];
-    sprintf(command, "python plotting.py %u %u", numStrats, stratTypes[stratTypeID].numParams);
+    sprintf(command, "python %s %u %u", PLOTTING_PY, numStrats, stratTypes[stratTypeID].numParams);
     system(command);
 }
 

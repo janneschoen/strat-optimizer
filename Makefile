@@ -1,5 +1,5 @@
 FILES = main.c strategy.c backtest.c tuning.c regression.c graphics.c
-TARGET = algorithm
+TARGET = quant5k
 
 IDIR = .
 

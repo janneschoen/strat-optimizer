@@ -4,7 +4,7 @@ import numpy as np
 import sys
 import os
 
-path = 'strategies.txt'
+path = 'strategies.temp'
 
 vectors = []
 

@@ -1,8 +1,13 @@
 #ifndef FUNCTIONS_H
 #define FUNCTIONS_H
 
-#define MAX_PARAMS 3
-#define NUM_STRAT_TYPES 1
+#define PRICES_FILE "prices.temp"
+#define STRAT_FILE "strategies.temp"
+#define GETPRICES_PY "getPrices.py"
+#define PLOTTING_PY "plotting.py"
+
+#define MAX_PARAMS 4
+#define NUM_STRAT_TYPES 2
 
 
 // strat things
@@ -11,20 +16,18 @@ typedef struct{
     float performance;
 } strat_t;
 
+typedef float (*getSigFun)(unsigned day, strat_t * strategy, float * prices);
+
 typedef struct{
     char * name;
     unsigned numParams;
     char * paramNames[MAX_PARAMS];
+    getSigFun getSignal;
 } stratType_t;
 
 extern const stratType_t stratTypes[NUM_STRAT_TYPES];
 
 unsigned getLookback(unsigned stratTypeID, strat_t * strategy);
-
-float getPos(unsigned stratTypeID, strat_t * strategy, unsigned day, float * prices);
-float genSignal0(unsigned day, strat_t * strategy, float * prices);
-
-// struct oder array aus funktionen ??
 
 
 // graphics

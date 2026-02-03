@@ -4,6 +4,8 @@ from datetime import datetime
 from datetime import timedelta as td
 import os
 
+FILENAME = "prices.temp"
+
 ticker = sys.argv[1]
 priceAmount = int(sys.argv[2])
 
@@ -31,6 +33,6 @@ prices = []
 for date in sorted(priceData.keys()):
     prices.append(priceData[date])
 
-with open('prices.txt', 'w') as file:
+with open(FILENAME, 'w') as file:
     for price in prices:
         file.write(f"{price}\n")
