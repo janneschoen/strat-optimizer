@@ -37,8 +37,8 @@ void clear(){
     for(unsigned i = 0; i < SCREENROWS; i++){    
         printf("\033[F\033[2K");
     }
-    printHeading();
-    printf("\n\n");
+    //printHeading();
+    //printf("\n\n");
 }
 
 void loadingBar(unsigned done, unsigned goal){
@@ -52,8 +52,7 @@ void loadingBar(unsigned done, unsigned goal){
     for(unsigned i = 0; i < BAR_LENGTH-simpleProgress; i++){
         printf("-");
     }
-    printf("] %.2f%%\n", progress*100);
-    printf("( %u / %u )\n", done, goal);
+    printf("] %.2f\n", progress);
 }
 
 void spaces(unsigned amount){
