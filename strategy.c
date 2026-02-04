@@ -16,6 +16,8 @@ unsigned getLookback(unsigned stratTypeID, strat_t * strategy){
         case 0:
             return strategy->params[0] > strategy->params[1] ?
             strategy->params[0] : strategy->params[1];
+        case 1:
+            return getLookback(0, strategy) + strategy->params[3];
         default:
             exit(1);
     }
@@ -34,12 +36,12 @@ float getSignal0(unsigned day, strat_t * strategy, float * prices){
     float sma = shortPriceSum / strategy->params[0];
     float lma = longPriceSum / strategy->params[1];
     if(sma > lma){
-        float posTolRatio = ((sma-lma) / lma) / ((float)strategy->params[2] / 100);
+        float size = ((sma-lma) / lma) / ((float)strategy->params[2] / 100);
         
-        if(posTolRatio > 1){
+        if(size > 1){
             return 1;
         } else{
-            return(posTolRatio);
+            return(size);
         }
     } else{
         return 0;

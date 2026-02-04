@@ -91,12 +91,9 @@ void showSpecs(unsigned stratTypeID, strat_t * maxStrat, unsigned btLength, unsi
 }
 
 void showStrat(unsigned stratTypeID, strat_t * strategy){
+    printf("[");
     for(unsigned i = 0; i < stratTypes[stratTypeID].numParams; i++){
-        spaces(5);
-        printf("- %s: %u\n", stratTypes[stratTypeID].paramNames[i], strategy->params[i]);
+        printf(" %u ", strategy->params[i]);
     }
-    printf("\n");
-    line(HEADING_WIDTH/4, 1);
-    printf("Result: %.2f%% / year\n", strategy->performance);
-    line(HEADING_WIDTH/4, 1);
+    printf("] %.2f\n", strategy->performance);
 }
