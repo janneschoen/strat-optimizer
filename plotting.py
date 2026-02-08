@@ -16,7 +16,6 @@ with open(path, 'r', encoding="utf-8") as file:
             vectors.append(vector)
 
 vectors = (np.array(vectors)).astype(float)
-
 dimensions = len(vectors[0])
 
 if dimensions == 4:

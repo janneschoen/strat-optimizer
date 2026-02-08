@@ -3,6 +3,26 @@
 #include <stdlib.h>
 #include <math.h>
 
+#define RISK_FREE_RATE 0.02
+
+float backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned priceAmount, unsigned start){
+    float cash = 100;
+    float assets = 0;
+    float networth, posSize;
+    for(unsigned i = start; i < priceAmount; i++){
+        if(prices[i] > 0){
+            networth = cash + assets * prices[i];
+            posSize = stratTypes[stratTypeID].getSignal(i, strategy, prices);
+            assets = (posSize * networth) / prices[i];
+            cash = networth - posSize * networth;
+        }
+    }
+    double totalPerf = (networth - 100) / 100;
+    double period = 365 / (float)(priceAmount-start);
+    double ppy = pow((1 + totalPerf), period) - 1;
+
+    return (ppy);
+}
 
 void getPrices(char * ticker, unsigned priceAmount, float * prices){
 
@@ -24,23 +44,4 @@ void getPrices(char * ticker, unsigned priceAmount, float * prices){
         exit(1);
     }
     fclose(file);
-}
-
-float backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned priceAmount, unsigned start){
-    float cash = 100;
-    float assets = 0;
-    float networth, posSize;
-    for(unsigned i = start; i < priceAmount; i++){
-        if(prices[i] > 0){
-            networth = cash + assets * prices[i];
-            posSize = stratTypes[stratTypeID].getSignal(i, strategy, prices);
-            assets = (posSize * networth) / prices[i];
-            cash = networth - posSize * networth;
-        }
-    }
-    double totalPerf = (networth - 100) / 100;
-    double period = 365 / (float)priceAmount;
-    double ppy = pow((1 + totalPerf), period) - 1;
-
-    return (ppy);
 }

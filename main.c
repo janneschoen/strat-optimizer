@@ -128,7 +128,7 @@ int main(int argc, char * argv[]){
     printf("Optimal Strat (via recursive halving):\n");
     showStrat(0, &optimalStrat);
 
-    //visualise(stratTypeID, strategies, numStrats);
+    visualise(stratTypeID, strategies, numStrats);
 
     free(strategies);
     return 0;
