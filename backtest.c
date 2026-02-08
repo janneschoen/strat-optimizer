@@ -10,15 +10,13 @@ float backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigne
     float assets = 0;
     float networth, posSize;
     for(unsigned i = start; i < priceAmount; i++){
-        if(prices[i] > 0){
-            networth = cash + assets * prices[i];
-            posSize = stratTypes[stratTypeID].getSignal(i, strategy, prices);
-            assets = (posSize * networth) / prices[i];
-            cash = networth - posSize * networth;
-        }
+        networth = cash + assets * prices[i];
+        posSize = stratTypes[stratTypeID].getSignal(i, strategy, prices);
+        assets = (posSize * networth) / prices[i];
+        cash = networth - posSize * networth;
     }
     double totalPerf = (networth - 100) / 100;
-    double period = 365 / (float)(priceAmount-start);
+    double period = 252 / (float)(priceAmount-start);
     double ppy = pow((1 + totalPerf), period) - 1;
 
     return (ppy);
@@ -32,16 +30,13 @@ void getPrices(char * ticker, unsigned priceAmount, float * prices){
 
     FILE * file;
     file = fopen(PRICES_FILE, "r");
-    unsigned zerosCounted = 0;
+
     for(unsigned i = 0; i < priceAmount; i++){
-        fscanf(file, "%f", &prices[i]);
-        if(prices[i] == 0){
-            zerosCounted ++;
+        if (fscanf(file, "%f", &prices[i]) != 1) {
+            printf("ERROR: Prices could not be properly downloaded.\n");
+            fclose(file);
+            exit(1);
         }
-    }
-    if(zerosCounted == priceAmount){
-        printf("ERROR: No valid prices.\n");
-        exit(1);
     }
     fclose(file);
 }

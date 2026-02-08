@@ -58,7 +58,6 @@ int main(int argc, char * argv[]){
     genStrats(stratTypeID, 0, strategies, numStrats, &maxStrat, &stratsMade);
     testStrats(stratTypeID, strategies, numStrats, prices, priceAmount, maxLookback);
 
-
     strat_t bestStrat = findBestStrat(strategies, numStrats);
 
     clear();
@@ -66,33 +65,6 @@ int main(int argc, char * argv[]){
     printf("Best backtest:\n");
     showStrat(stratTypeID, &bestStrat);
 
-    strat_t weightedStrat;
-    weightedStrat.performance = 0;
-    for(unsigned i = 0; i < stratTypes[stratTypeID].numParams; i++){
-        weightedStrat.params[i] = 0;
-    }
-    float perfSum = 0;
-    for(unsigned i = 0; i < numStrats; i++){
-        perfSum += strategies[i].performance;
-    }
-    for(unsigned i = 0; i < stratTypes[stratTypeID].numParams; i++){
-        float compiledParam = 0;
-        for(unsigned j = 0; j < numStrats; j++){
-            compiledParam += strategies[j].params[i] * strategies[j].performance;
-        }
-        weightedStrat.params[i] = (unsigned)(compiledParam / perfSum);
-    }
-    unsigned matchFound = 0;
-    for(unsigned i = 0; i < numStrats && !matchFound; i++){
-        for(unsigned j = 0; j < stratTypes[stratTypeID].numParams; j++){
-            if(weightedStrat.params[j] != strategies[i].params[j]){
-                break;
-            } else if(j == stratTypes[stratTypeID].numParams - 1){
-                weightedStrat.performance = strategies[i].performance;
-                matchFound = 1;
-            }
-        }
-    }
 
     unsigned lowerHalf[2] = {0, numStrats/2};
     unsigned upperHalf[2] = {lowerHalf[1], numStrats};
@@ -121,8 +93,10 @@ int main(int argc, char * argv[]){
 
     if(strategies[upperHalf[0]].performance > strategies[upperHalf[1]].performance){
         optimalStrat = strategies[upperHalf[0]];
+        //printf("id: %u\n", upperHalf[0]);
     } else{
         optimalStrat = strategies[upperHalf[1]];
+        //printf("id: %u\n", upperHalf[1]);
     }
 
     printf("Optimal Strat (via recursive halving):\n");

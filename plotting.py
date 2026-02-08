@@ -16,6 +16,8 @@ with open(path, 'r', encoding="utf-8") as file:
             vectors.append(vector)
 
 vectors = (np.array(vectors)).astype(float)
+#vectors[id][2] = 100
+
 dimensions = len(vectors[0])
 
 if dimensions == 4:
