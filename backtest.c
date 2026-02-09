@@ -5,14 +5,17 @@
 
 #define RISK_FREE_RATE 0.02
 
-float backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned priceAmount, unsigned start){
+float backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned priceAmount, unsigned start, unsigned testMode){
     float cash = 100;
     float assets = 0;
-    float networth, posSize, prevNetworth;
+    float networth, posSize;
 
     unsigned numDailyReturns = priceAmount-start-1;
     double dailyReturns[numDailyReturns];
-    for(unsigned i = 0; i < numDailyReturns; i++){
+
+    float networthValues[priceAmount-start];
+    for(unsigned i = 0; i < priceAmount-start; i++){
+        networthValues[i] = NAN;
         dailyReturns[i] = NAN;
     }
 
@@ -21,11 +24,19 @@ float backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigne
         posSize = stratTypes[stratTypeID].getSignal(i, strategy, prices);
         assets = (posSize * networth) / prices[i];
         cash = networth - posSize * networth;
-        
-        if(i > start){
-            dailyReturns[i-start-1] = (networth-prevNetworth) / prevNetworth;
+
+        networthValues[i-start] = networth;
+    }
+    if(testMode){
+        FILE * file = fopen(CHART_FILE, "w");
+        for(unsigned i = 0; i < priceAmount-start; i++){
+            fprintf(file, "%f\n", networthValues[i]);
         }
-        prevNetworth = networth;
+        fclose(file);
+    }
+
+    for(unsigned i = 0; i < priceAmount-start-1; i++){
+        dailyReturns[i] = (networthValues[i+1]-networthValues[i]) / networthValues[i];
     }
 
     double meanDailyReturn = 0;
@@ -47,10 +58,11 @@ float backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigne
     double period = (float)(priceAmount-start) / 252;
 
     float baseCase = pow((1 + RISK_FREE_RATE), period) - 1;
-
     float sharpeRatio = (profit - baseCase) / stdDeviation;
 
-    //double ppy = pow((1 + profit), 1.0/period) - 1;
+    if(stdDeviation == 0){
+        return(0);
+    }
 
     return (sharpeRatio);
 }

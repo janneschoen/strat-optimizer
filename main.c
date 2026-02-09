@@ -2,10 +2,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define NUM_ARGUMENTS 4
-#define RESULTS_FILE "results.out"
+#define NUM_ARGUMENTS 5
 
-// Arguments: main, stratTypeID, p0, p1, p2, btLength, ticker
+// Arguments: main, testMode, stratTypeID, p0, p1, p2, btLength, ticker
 
 int main(int argc, char * argv[]){
     if(argc == 1){
@@ -14,6 +13,9 @@ int main(int argc, char * argv[]){
     }
 
     unsigned argID = 1;
+
+    unsigned testMode = strtoul(argv[argID], NULL, 10);
+    argID ++;
 
     unsigned stratTypeID = strtoul(argv[argID], NULL, 10);
     argID ++;
@@ -45,6 +47,14 @@ int main(int argc, char * argv[]){
     float prices[priceAmount];
     getPrices(ticker, priceAmount, prices);
 
+    if(testMode){
+        maxStrat.performance = backtest(stratTypeID, &maxStrat, prices, priceAmount, maxLookback, 1);
+        showStrat(stratTypeID, &maxStrat);
+        char command[50];
+        sprintf(command, "python %s", CHART_PY);
+        system(command);
+        return 0;
+    }
 
     unsigned numStrats = maxStrat.params[0];
     for(unsigned i = 1; i < stratTypes[0].numParams; i++){
@@ -100,7 +110,7 @@ int main(int argc, char * argv[]){
     }
 
     printf("Optimal Strat (via recursive halving):\n");
-    showStrat(0, &optimalStrat);
+    showStrat(stratTypeID, &optimalStrat);
 
     visualise(stratTypeID, strategies, numStrats);
 

@@ -3,8 +3,11 @@
 
 #define PRICES_FILE "temp/prices.temp"
 #define STRAT_FILE "temp/strategies.temp"
+#define CHART_FILE "temp/networth.temp"
+
 #define GETPRICES_PY "getPrices.py"
 #define PLOTTING_PY "plotting.py"
+#define CHART_PY "chart.py"
 
 #define MAX_PARAMS 4
 #define NUM_STRAT_TYPES 2
@@ -40,7 +43,7 @@ void showStrat(unsigned stratTypeID, strat_t * strategy);
 
 // backtesting
 void getPrices(char * ticker, unsigned priceAmount, float * prices);
-float backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned priceAmount, unsigned start);
+float backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned priceAmount, unsigned start, unsigned testMode);
 
 // tuning
 void genStrats(unsigned stratTypeID, unsigned param, strat_t * strategies, unsigned numStrats, strat_t * strategy, unsigned * stratsMade);
