@@ -19,7 +19,8 @@ try:
         end = day,
         auto_adjust = True))['Close'][ticker].to_dict()
 except:
-    print("WARNING: Couldn't download prices.\n")
+    with open(FILENAME, 'w') as file:
+        file.write(f"ERROR\n")
     exit(1)
 
 #pricesDownloaded = len(priceData.values())

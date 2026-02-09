@@ -7,7 +7,6 @@ float getSignal1(unsigned day, strat_t * strategy, float * prices);
 
 const stratType_t stratTypes[NUM_STRAT_TYPES] ={
     {"Simple Moving Average", 3, {"SMA Length", "LMA Length", "Sensitivity"}, getSignal0},
-    {"Intelligent SMA", 4, {"SMA Length", "LMA Length", "Sensitivity", "Mini-BT Length"}, getSignal1}
 };
 
 
@@ -48,7 +47,7 @@ float getSignal0(unsigned day, strat_t * strategy, float * prices){
     }
 }
 
-float getSignal1(unsigned day, strat_t * strategy, float * prices){
+/*float getSignal1(unsigned day, strat_t * strategy, float * prices){
     printf("Nothing yet.\n");
     exit(1);
-}
+}*/
