@@ -4,6 +4,7 @@
 #include <math.h>
 
 #define RISK_FREE_RATE 0.02
+#define TRADING_DAYS 252
 
 float backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned priceAmount, unsigned start, unsigned testMode){
     float cash = 100;
@@ -51,14 +52,12 @@ float backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigne
     }
     variance /= numDailyReturns;
 
-    double stdDeviation = pow(variance, 0.5);
+    double stdDeviation = pow(variance, 0.5) * pow(TRADING_DAYS, 0.5);
 
-    double profit = (networth - 100) / 100;
+    double period = TRADING_DAYS / (float)(priceAmount-start);
+    double annProfit = pow(((networth - 100) / 100), period);
 
-    double period = (float)(priceAmount-start) / 252;
-
-    float baseCase = pow((1 + RISK_FREE_RATE), period) - 1;
-    float sharpeRatio = (profit - baseCase) / stdDeviation;
+    float sharpeRatio = (annProfit - RISK_FREE_RATE) / stdDeviation;
 
     if(stdDeviation == 0){
         return(0);
