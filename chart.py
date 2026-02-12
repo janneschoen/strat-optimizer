@@ -13,8 +13,9 @@ with open(networthPath, 'r', encoding="utf-8") as file:
         networthValues.append(float(line.strip()))
 
 with open(pricePath, 'r', encoding="utf-8") as file:
-    lines = (file.readlines())[-len(networthValues):]
-    for price in lines:
+    lines = file.readlines()
+    priceLines = lines[:len(networthValues)]
+    for price in priceLines:
         prices.append(float(price.strip()))
 
 normFactor = prices[0] / 100

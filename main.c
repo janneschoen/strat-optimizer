@@ -78,7 +78,7 @@ int main(int argc, char * argv[]){
 
     strat_t bestStrat = findBestStrat(strategies, numStrats);
 
-    clear();
+    //clear();
 
     printf("Best backtest:\n");
     showStrat(stratTypeID, &bestStrat);

@@ -19,7 +19,7 @@ typedef struct{
     float performance;
 } strat_t;
 
-typedef float (*getSigFun)(unsigned day, strat_t * strategy, float * prices);
+typedef int (*getSigFun)(unsigned day, strat_t * strategy, float * prices);
 
 typedef struct{
     char * name;
