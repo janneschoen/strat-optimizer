@@ -1,6 +1,7 @@
 #include "common.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 #define NUM_ARGUMENTS 5
 
@@ -56,12 +57,19 @@ int main(int argc, char * argv[]){
         return 0;
     }
 
-    unsigned numStrats = maxStrat.params[0];
-    for(unsigned i = 1; i < stratTypes[0].numParams; i++){
-        numStrats *= maxStrat.params[i];
+    unsigned numStrats = 1;
+    for(unsigned i = 0; i < stratTypes[stratTypeID].numParams; i++){
+        if(stratTypes[stratTypeID].minParams[i] != 0){
+            numStrats *= maxStrat.params[i];
+        } else{
+            numStrats *= maxStrat.params[i] + 1;
+        }
     }
 
     strat_t * strategies = (strat_t *)malloc(numStrats * sizeof(strat_t));
+    for(unsigned i = 0; i < numStrats; i++){
+        strategies[i].performance = NAN;
+    }
 
     unsigned stratsMade = 0;
 

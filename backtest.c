@@ -11,13 +11,15 @@ float backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigne
     float assets = 0;
     float networth, posSize;
 
-    unsigned numDailyReturns = priceAmount-start-1;
+    unsigned numDailyReturns = priceAmount - start - 1;
     double dailyReturns[numDailyReturns];
-
     float networthValues[priceAmount-start];
+
     for(unsigned i = 0; i < priceAmount-start; i++){
         networthValues[i] = NAN;
-        dailyReturns[i] = NAN;
+        if(i < numDailyReturns){
+            dailyReturns[i] = NAN;
+        }
     }
 
     for(unsigned i = start; i < priceAmount; i++){
@@ -28,6 +30,7 @@ float backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigne
 
         networthValues[i-start] = networth;
     }
+
     if(testMode){
         FILE * file = fopen(CHART_FILE, "w");
         for(unsigned i = 0; i < priceAmount-start; i++){
@@ -53,15 +56,15 @@ float backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigne
     variance /= numDailyReturns;
 
     double stdDeviation = pow(variance, 0.5) * pow(TRADING_DAYS, 0.5);
-
     double period = TRADING_DAYS / (float)(priceAmount-start);
-    double annProfit = pow(((networth - 100) / 100), period);
+    
+    double annProfit = pow(1 + ((networth - 100) / 100), period) - 1;
 
-    float sharpeRatio = (annProfit - RISK_FREE_RATE) / stdDeviation;
-
-    if(stdDeviation == 0){
+    if(annProfit == 0){
         return(0);
     }
+
+    float sharpeRatio = (annProfit - RISK_FREE_RATE) / stdDeviation;
 
     return (sharpeRatio);
 }

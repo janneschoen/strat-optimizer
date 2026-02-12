@@ -25,6 +25,7 @@ typedef struct{
     char * name;
     unsigned numParams;
     char * paramNames[MAX_PARAMS];
+    unsigned minParams[MAX_PARAMS];
     getSigFun getSignal;
 } stratType_t;
 

@@ -23,7 +23,7 @@ void genStrats(unsigned stratTypeID, unsigned param, strat_t * strategies, unsig
         strategies[*stratsMade] = * strategy; 
         (*stratsMade) ++;
     } else{
-        for(unsigned i = 1; i <= strategy->params[param]; i++){
+        for(unsigned i = stratTypes[stratTypeID].minParams[param]; i <= strategy->params[param]; i++){
             strat_t stratCpy = *strategy;
             stratCpy.params[param] = i;
             genStrats(stratTypeID, param + 1, strategies, numStrats, &stratCpy, stratsMade);

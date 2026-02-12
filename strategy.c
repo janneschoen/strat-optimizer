@@ -6,7 +6,7 @@ float getSignal0(unsigned day, strat_t * strategy, float * prices);
 float getSignal1(unsigned day, strat_t * strategy, float * prices);
 
 const stratType_t stratTypes[NUM_STRAT_TYPES] ={
-    {"Simple Moving Average", 3, {"SMA Length", "LMA Length", "Sensitivity"}, getSignal0},
+    {"Simple Moving Average", 3, {"SMA Length", "LMA Length", "Sensitivity"}, {1,1,0}, getSignal0},
 };
 
 
@@ -35,6 +35,10 @@ float getSignal0(unsigned day, strat_t * strategy, float * prices){
     float sma = shortPriceSum / strategy->params[0];
     float lma = longPriceSum / strategy->params[1];
     if(sma > lma){
+        if(strategy->params[2] == 0){
+            return 1;
+        }
+
         float size = ((sma-lma) / lma) / ((float)strategy->params[2] / 100);
         
         if(size > 1){
