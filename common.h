@@ -11,6 +11,7 @@
 
 #define MAX_PARAMS 4
 #define NUM_STRAT_TYPES 2
+#define SHARPE 1
 
 
 // strat things
@@ -40,7 +41,7 @@ void loadHeading();
 void clear();
 void loadingBar(unsigned done, unsigned goal);
 void showSpecs(unsigned stratTypeID, strat_t * maxStrat, unsigned btLength, unsigned priceAmount, char * ticker);
-void showStrat(unsigned stratTypeID, strat_t * strategy);
+void showStrat(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned priceAmount);
 
 // backtesting
 void getPrices(char * ticker, unsigned priceAmount, float * prices);

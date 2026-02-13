@@ -8,6 +8,7 @@
 #define TRADING_DAYS 252
 #define LOWER_SHARPE_LIMIT -5
 
+
 float backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned priceAmount, unsigned start, unsigned testMode){
 
     unsigned liquidation = priceAmount - start;
@@ -112,7 +113,11 @@ float backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigne
         sharpeRatio = LOWER_SHARPE_LIMIT;
     }
 
-    return (sharpeRatio);
+    if(SHARPE){
+        return(sharpeRatio);
+    } else{
+        return(annProfit);
+    }
 }
 
 void getPrices(char * ticker, unsigned priceAmount, float * prices){

@@ -50,7 +50,7 @@ int main(int argc, char * argv[]){
 
     if(testMode){
         maxStrat.performance = backtest(stratTypeID, &maxStrat, prices, priceAmount, maxLookback, 1);
-        showStrat(stratTypeID, &maxStrat);
+        showStrat(stratTypeID, &maxStrat, prices, priceAmount);
         char command[50];
         sprintf(command, "python %s", CHART_PY);
         system(command);
@@ -75,20 +75,30 @@ int main(int argc, char * argv[]){
 
     genStrats(stratTypeID, 0, strategies, numStrats, &maxStrat, &stratsMade);
     testStrats(stratTypeID, strategies, numStrats, prices, priceAmount, maxLookback);
-
-    strat_t bestStrat = findBestStrat(strategies, numStrats);
-
+    
     clear();
 
+    printf("%s - %s\n", ticker, stratTypes[stratTypeID].name);
+    printf("Goal: ");
+    if(SHARPE){
+        printf("Sharpe-Ratio\n");
+    } else{
+        printf("Annual Profit\n");
+    }
+    printf("\n");
+
+    strat_t bestStrat = findBestStrat(strategies, numStrats);
     printf("Best backtest:\n");
-    showStrat(stratTypeID, &bestStrat);
+    showStrat(stratTypeID, &bestStrat, prices, priceAmount);
+
+    printf("\n");
 
     strat_t optimalStrat = findOptimalStrat(stratTypeID, strategies, numStrats);
+    printf("Approx. optimum:\n");
+    showStrat(stratTypeID, &optimalStrat, prices, priceAmount);
 
-    printf("Optimal Strat (via recursive halving):\n");
-    showStrat(stratTypeID, &optimalStrat);
 
-    visualise(stratTypeID, strategies, numStrats);
+    //isualise(stratTypeID, strategies, numStrats);
 
     free(strategies);
     return 0;
