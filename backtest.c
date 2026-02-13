@@ -27,8 +27,15 @@ float backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigne
     int position;
 
     for(unsigned i = start; i < priceAmount; i++){
-        position = stratTypes[stratTypeID].getSignal(i, strategy, prices);
+        if(shorts > 0){
+            networth = shorts * (2 * shortEntry - prices[i]);
+        } else if(longs > 0){
+            networth = longs * prices[i];
+        } else{
+            networth = cash;
+        }
 
+        position = stratTypes[stratTypeID].getSignal(i, strategy, prices);
         switch(position){
             case -1:
                 if(shorts == 0){
@@ -51,6 +58,7 @@ float backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigne
                 break;
             default:
                 printf("ERROR.\n");
+                exit(1);
         }
 
         if(shorts > 0){

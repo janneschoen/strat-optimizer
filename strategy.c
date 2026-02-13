@@ -24,16 +24,19 @@ unsigned getLookback(unsigned stratTypeID, strat_t * strategy){
 
 // stratType0 : Simple Moving Average
 int getSignal0(unsigned day, strat_t * strategy, float * prices){
+    
     float shortPriceSum = 0;
     for(unsigned i = 0; i < strategy->params[0]; i++){
         shortPriceSum += prices[day-i];
     }
+    float sma = shortPriceSum / strategy->params[0];
+
     float longPriceSum = 0;
     for(unsigned i = 0; i < strategy->params[1]; i++){
         longPriceSum += prices[day-i];
     }
-    float sma = shortPriceSum / strategy->params[0];
     float lma = longPriceSum / strategy->params[1];
+
 
     if(fabs((sma-lma)/lma) <= (float)strategy->params[2]/100){
         return 0;

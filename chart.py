@@ -28,9 +28,9 @@ plt.figure(figsize=(10, 5))
 plt.plot(networthValues, linestyle='-', color='green')
 plt.plot(prices, linestyle='-', color='black')
 
-plt.title('networth and normed price / time')
+plt.title('value over time')
 plt.xlabel('time')
-plt.ylabel('networth')
+plt.ylabel('networth (green), asset (black)')
 
 plt.grid()
 
