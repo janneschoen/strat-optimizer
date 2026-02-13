@@ -4,42 +4,85 @@
 #include <math.h>
 
 #define RISK_FREE_RATE 0.02
+#define TRADING_FEE 1 // trade republic: 1€ per trade
 #define TRADING_DAYS 252
+#define LOWER_SHARPE_LIMIT -5
+
 
 float backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned priceAmount, unsigned start, unsigned testMode){
-    float cash = 100;
-    float assets = 0;
-    float networth, posSize;
 
-    unsigned numDailyReturns = priceAmount - start - 1;
+    unsigned liquidation = priceAmount - start;
+    unsigned numDailyReturns = liquidation - 1;
     double dailyReturns[numDailyReturns];
-    float networthValues[priceAmount-start];
+    float networthValues[liquidation];
 
-    for(unsigned i = 0; i < priceAmount-start; i++){
+    for(unsigned i = 0; i < liquidation; i++){
         networthValues[i] = NAN;
         if(i < numDailyReturns){
             dailyReturns[i] = NAN;
         }
     }
 
+    float cash = 100, longs = 0, shorts = 0;
+    float shortEntry, networth = cash;
+    int position;
+
     for(unsigned i = start; i < priceAmount; i++){
-        networth = cash + assets * prices[i];
-        posSize = stratTypes[stratTypeID].getSignal(i, strategy, prices);
-        assets = (posSize * networth) / prices[i];
-        cash = networth - posSize * networth;
+        position = stratTypes[stratTypeID].getSignal(i, strategy, prices);
+
+        switch(position){
+            case -1:
+                if(shorts == 0){
+                    shortEntry = prices[i];
+                    shorts = (networth - TRADING_FEE)  / prices[i];
+                    cash = 0, longs = 0;
+                }
+                break;
+            case 1:
+                if(longs == 0){
+                    longs = (networth - TRADING_FEE) / prices[i];
+                    cash = 0, shorts = 0;
+                }
+                break;
+            case 0:
+                if(longs != 0 || shorts != 0){
+                    cash = networth - TRADING_FEE;
+                    longs = 0, shorts = 0;
+                }
+                break;
+            default:
+                printf("ERROR.\n");
+        }
+
+        if(shorts > 0){
+            networth = shorts * (2 * shortEntry - prices[i]);
+        } else if(longs > 0){
+            networth = longs * prices[i];
+        } else{
+            networth = cash;
+        }
+
+        if(networth <= 0){
+            networth = 0;
+            networthValues[i-start] = 0;
+            liquidation = i-start;
+            break;
+        }
 
         networthValues[i-start] = networth;
     }
 
+    numDailyReturns = liquidation - 1;
+
     if(testMode){
         FILE * file = fopen(CHART_FILE, "w");
-        for(unsigned i = 0; i < priceAmount-start; i++){
+        for(unsigned i = 0; i < liquidation; i++){
             fprintf(file, "%f\n", networthValues[i]);
         }
         fclose(file);
     }
 
-    for(unsigned i = 0; i < priceAmount-start-1; i++){
+    for(unsigned i = 0; i < numDailyReturns; i++){
         dailyReturns[i] = (networthValues[i+1]-networthValues[i]) / networthValues[i];
     }
 
@@ -66,7 +109,15 @@ float backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigne
 
     float sharpeRatio = (annProfit - RISK_FREE_RATE) / stdDeviation;
 
-    return (sharpeRatio);
+    if(sharpeRatio < LOWER_SHARPE_LIMIT){
+        sharpeRatio = LOWER_SHARPE_LIMIT;
+    }
+
+    if(SHARPE){
+        return(sharpeRatio);
+    } else{
+        return(annProfit);
+    }
 }
 
 void getPrices(char * ticker, unsigned priceAmount, float * prices){

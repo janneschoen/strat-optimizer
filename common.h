@@ -11,6 +11,7 @@
 
 #define MAX_PARAMS 4
 #define NUM_STRAT_TYPES 2
+#define SHARPE 1
 
 
 // strat things
@@ -19,7 +20,7 @@ typedef struct{
     float performance;
 } strat_t;
 
-typedef float (*getSigFun)(unsigned day, strat_t * strategy, float * prices);
+typedef int (*getSigFun)(unsigned day, strat_t * strategy, float * prices);
 
 typedef struct{
     char * name;
@@ -40,7 +41,7 @@ void loadHeading();
 void clear();
 void loadingBar(unsigned done, unsigned goal);
 void showSpecs(unsigned stratTypeID, strat_t * maxStrat, unsigned btLength, unsigned priceAmount, char * ticker);
-void showStrat(unsigned stratTypeID, strat_t * strategy);
+void showStrat(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned priceAmount);
 
 // backtesting
 void getPrices(char * ticker, unsigned priceAmount, float * prices);
@@ -50,6 +51,7 @@ float backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigne
 void genStrats(unsigned stratTypeID, unsigned param, strat_t * strategies, unsigned numStrats, strat_t * strategy, unsigned * stratsMade);
 void testStrats(unsigned stratTypeID, strat_t * strategies, unsigned numStrats, float * prices, unsigned priceAmount, unsigned start);
 strat_t findBestStrat(strat_t * strategies, unsigned numStrats);
+strat_t findOptimalStrat(unsigned stratTypeID, strat_t * strategies, unsigned numStrats);
 
 void doRegression(unsigned stratTypeID, strat_t * strategies, unsigned numStrats, strat_t * predStrats, unsigned degree);
 

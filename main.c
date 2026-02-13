@@ -50,7 +50,7 @@ int main(int argc, char * argv[]){
 
     if(testMode){
         maxStrat.performance = backtest(stratTypeID, &maxStrat, prices, priceAmount, maxLookback, 1);
-        showStrat(stratTypeID, &maxStrat);
+        showStrat(stratTypeID, &maxStrat, prices, priceAmount);
         char command[50];
         sprintf(command, "python %s", CHART_PY);
         system(command);
@@ -75,52 +75,30 @@ int main(int argc, char * argv[]){
 
     genStrats(stratTypeID, 0, strategies, numStrats, &maxStrat, &stratsMade);
     testStrats(stratTypeID, strategies, numStrats, prices, priceAmount, maxLookback);
-
-    strat_t bestStrat = findBestStrat(strategies, numStrats);
-
+    
     clear();
 
-    printf("Best backtest:\n");
-    showStrat(stratTypeID, &bestStrat);
-
-
-    unsigned lowerHalf[2] = {0, numStrats/2};
-    unsigned upperHalf[2] = {lowerHalf[1], numStrats};
-    
-    while(lowerHalf[0] != lowerHalf[1] || upperHalf[0] == upperHalf[1]){
-        float lowerSum = 0;
-        float upperSum = 0;
-        for(unsigned i = lowerHalf[0]; i < lowerHalf[1]; i++){
-            lowerSum += strategies[i].performance;
-        }
-        for(unsigned i = upperHalf[0]; i < upperHalf[1]; i++){
-            upperSum += strategies[i].performance;
-        }
-
-        if(upperSum > lowerSum){
-            lowerHalf[0] = upperHalf[0];
-            lowerHalf[1] = (upperHalf[1] + upperHalf[0]) / 2;
-            upperHalf[0] = lowerHalf[1];
-        } else{
-            upperHalf[1] = lowerHalf[1];
-            upperHalf[0] = (lowerHalf[1] + lowerHalf[0]) / 2;
-            lowerHalf[1] = upperHalf[0];
-        }
-    }
-    strat_t optimalStrat;
-
-    if(strategies[upperHalf[0]].performance > strategies[upperHalf[1]].performance){
-        optimalStrat = strategies[upperHalf[0]];
-        //printf("id: %u\n", upperHalf[0]);
+    printf("%s - %s\n", ticker, stratTypes[stratTypeID].name);
+    printf("Goal: ");
+    if(SHARPE){
+        printf("Sharpe-Ratio\n");
     } else{
-        optimalStrat = strategies[upperHalf[1]];
-        //printf("id: %u\n", upperHalf[1]);
+        printf("Annual Profit\n");
     }
+    printf("\n");
 
-    printf("Optimal Strat (via recursive halving):\n");
-    showStrat(stratTypeID, &optimalStrat);
+    strat_t bestStrat = findBestStrat(strategies, numStrats);
+    printf("Best backtest:\n");
+    showStrat(stratTypeID, &bestStrat, prices, priceAmount);
 
-    visualise(stratTypeID, strategies, numStrats);
+    printf("\n");
+
+    strat_t optimalStrat = findOptimalStrat(stratTypeID, strategies, numStrats);
+    printf("Approx. optimum:\n");
+    showStrat(stratTypeID, &optimalStrat, prices, priceAmount);
+
+
+    //isualise(stratTypeID, strategies, numStrats);
 
     free(strategies);
     return 0;
