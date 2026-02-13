@@ -5,11 +5,10 @@
 
 #define RISK_FREE_RATE 0.02
 #define TRADING_FEE 1 // trade republic: 1€ per trade
-#define TRADING_DAYS 252
 #define LOWER_SHARPE_LIMIT -5
 
 
-float backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned priceAmount, unsigned start, unsigned testMode){
+float backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned priceAmount, unsigned start, unsigned testMode, unsigned fullYear){
 
     unsigned liquidation = priceAmount - start;
     unsigned numDailyReturns = liquidation - 1;
@@ -98,8 +97,10 @@ float backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigne
     }
     variance /= numDailyReturns;
 
-    double stdDeviation = pow(variance, 0.5) * pow(TRADING_DAYS, 0.5);
-    double period = TRADING_DAYS / (float)(priceAmount-start);
+    unsigned tradingDays = fullYear ? 365 : 252;
+
+    double stdDeviation = pow(variance, 0.5) * pow(tradingDays, 0.5);
+    double period = tradingDays / (float)(priceAmount-start);
     
     double annProfit = pow(1 + ((networth - 100) / 100), period) - 1;
 

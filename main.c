@@ -3,9 +3,9 @@
 #include <stdlib.h>
 #include <math.h>
 
-#define NUM_ARGUMENTS 5
+#define NUM_ARGUMENTS 7
 
-// Arguments: main, testMode, stratTypeID, p0, p1, p2, btLength, ticker
+// Arguments: main, testMode, visualisation, stratTypeID, p0, p1, p2, btLength, ticker, fullYear
 
 int main(int argc, char * argv[]){
     if(argc == 1){
@@ -18,8 +18,12 @@ int main(int argc, char * argv[]){
     unsigned testMode = strtoul(argv[argID], NULL, 10);
     argID ++;
 
+    unsigned visualisation = strtoul(argv[argID], NULL, 10);
+    argID ++;
+
     unsigned stratTypeID = strtoul(argv[argID], NULL, 10);
     argID ++;
+
     if(stratTypeID > NUM_STRAT_TYPES - 1){
         printf("ERROR: Invalid strategytype '%u'.\n", stratTypeID);
         exit(1);
@@ -42,6 +46,9 @@ int main(int argc, char * argv[]){
     char * ticker = argv[argID];
     argID ++;
 
+    unsigned fullYear = strtoul(argv[argID], NULL, 10);
+    argID ++;
+
     unsigned maxLookback = getLookback(stratTypeID, &maxStrat);
 
     unsigned priceAmount = btLength + maxLookback;
@@ -49,11 +56,22 @@ int main(int argc, char * argv[]){
     getPrices(ticker, priceAmount, prices);
 
     if(testMode){
-        maxStrat.performance = backtest(stratTypeID, &maxStrat, prices, priceAmount, maxLookback, 1);
+        printf("%s | %s", ticker, stratTypes[stratTypeID].name);
+        printf(" | %s days\n", fullYear ? "365" : "252");
+        printf("Goal: ");
+        if(SHARPE){
+            printf("Sharpe-Ratio\n");
+        } else{
+            printf("Annual Profit\n");
+        }
+        printf("\n");
+        maxStrat.performance = backtest(stratTypeID, &maxStrat, prices, priceAmount, maxLookback, 1, fullYear);
         showStrat(stratTypeID, &maxStrat, prices, priceAmount);
-        char command[50];
-        sprintf(command, "python %s", CHART_PY);
-        system(command);
+        if(visualisation){
+            char command[50];
+            sprintf(command, "python %s", CHART_PY);
+            system(command);
+        }
         return 0;
     }
 
@@ -74,7 +92,7 @@ int main(int argc, char * argv[]){
     unsigned stratsMade = 0;
 
     genStrats(stratTypeID, 0, strategies, numStrats, &maxStrat, &stratsMade);
-    testStrats(stratTypeID, strategies, numStrats, prices, priceAmount, maxLookback);
+    testStrats(stratTypeID, strategies, numStrats, prices, priceAmount, maxLookback, fullYear);
     
     clear();
 
@@ -97,8 +115,9 @@ int main(int argc, char * argv[]){
     printf("Approx. optimum:\n");
     showStrat(stratTypeID, &optimalStrat, prices, priceAmount);
 
-
-    //isualise(stratTypeID, strategies, numStrats);
+    if(visualisation){
+        visualise(stratTypeID, strategies, numStrats);
+    }
 
     free(strategies);
     return 0;

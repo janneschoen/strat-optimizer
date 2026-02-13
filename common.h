@@ -10,7 +10,7 @@
 #define CHART_PY "chart.py"
 
 #define MAX_PARAMS 4
-#define NUM_STRAT_TYPES 2
+#define NUM_STRAT_TYPES 1
 #define SHARPE 1
 
 
@@ -45,11 +45,11 @@ void showStrat(unsigned stratTypeID, strat_t * strategy, float * prices, unsigne
 
 // backtesting
 void getPrices(char * ticker, unsigned priceAmount, float * prices);
-float backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned priceAmount, unsigned start, unsigned testMode);
+float backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned priceAmount, unsigned start, unsigned testMode, unsigned fullYear);
 
 // tuning
 void genStrats(unsigned stratTypeID, unsigned param, strat_t * strategies, unsigned numStrats, strat_t * strategy, unsigned * stratsMade);
-void testStrats(unsigned stratTypeID, strat_t * strategies, unsigned numStrats, float * prices, unsigned priceAmount, unsigned start);
+void testStrats(unsigned stratTypeID, strat_t * strategies, unsigned numStrats, float * prices, unsigned priceAmount, unsigned start, unsigned fullYear);
 strat_t findBestStrat(strat_t * strategies, unsigned numStrats);
 strat_t findOptimalStrat(unsigned stratTypeID, strat_t * strategies, unsigned numStrats);
 

@@ -31,9 +31,9 @@ void genStrats(unsigned stratTypeID, unsigned param, strat_t * strategies, unsig
     }
 }
 
-void testStrats(unsigned stratTypeID, strat_t * strategies, unsigned numStrats, float * prices, unsigned priceAmount, unsigned start){
+void testStrats(unsigned stratTypeID, strat_t * strategies, unsigned numStrats, float * prices, unsigned priceAmount, unsigned start, unsigned fullYear){
     for(unsigned i = 0; i < numStrats; i++){
-        strategies[i].performance = backtest(stratTypeID, &strategies[i], prices, priceAmount, start, 0);
+        strategies[i].performance = backtest(stratTypeID, &strategies[i], prices, priceAmount, start, 0, fullYear);
         if(i % 2500 == 0){
             loadingBar(i, numStrats);
         }
