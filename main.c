@@ -66,7 +66,7 @@ int main(int argc, char * argv[]){
         }
         printf("\n");
         maxStrat.performance = backtest(stratTypeID, &maxStrat, prices, priceAmount, maxLookback, 1, fullYear);
-        showStrat(stratTypeID, &maxStrat, prices, priceAmount);
+        showStrat(stratTypeID, &maxStrat);
         if(visualisation){
             char command[50];
             sprintf(command, "python %s", CHART_PY);
@@ -107,13 +107,13 @@ int main(int argc, char * argv[]){
 
     strat_t bestStrat = findBestStrat(strategies, numStrats);
     printf("Best backtest:\n");
-    showStrat(stratTypeID, &bestStrat, prices, priceAmount);
+    showStrat(stratTypeID, &bestStrat);
 
     printf("\n");
 
     strat_t optimalStrat = findOptimalStrat(stratTypeID, strategies, numStrats);
     printf("Approx. optimum:\n");
-    showStrat(stratTypeID, &optimalStrat, prices, priceAmount);
+    showStrat(stratTypeID, &optimalStrat);
 
     if(visualisation){
         visualise(stratTypeID, strategies, numStrats);

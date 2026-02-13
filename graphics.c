@@ -90,20 +90,10 @@ void showSpecs(unsigned stratTypeID, strat_t * maxStrat, unsigned btLength, unsi
     line(HEADING_WIDTH/2, 0);
 }
 
-void showStrat(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned priceAmount){
+void showStrat(unsigned stratTypeID, strat_t * strategy){
     printf("[");
     for(unsigned i = 0; i < stratTypes[stratTypeID].numParams; i++){
         printf(" %u ", strategy->params[i]);
     }
     printf("] %.2f\n", strategy->performance);
-    int position = stratTypes[stratTypeID].getSignal(priceAmount-1, strategy, prices);
-    printf("Today: ");
-    if(position == 1){
-        printf("LONG\n");
-    } else if(position == 0){
-        printf("NEUTRAL\n");
-    } else{
-        printf("SHORT\n");
-    }
-
 }

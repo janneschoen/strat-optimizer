@@ -41,7 +41,7 @@ void loadHeading();
 void clear();
 void loadingBar(unsigned done, unsigned goal);
 void showSpecs(unsigned stratTypeID, strat_t * maxStrat, unsigned btLength, unsigned priceAmount, char * ticker);
-void showStrat(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned priceAmount);
+void showStrat(unsigned stratTypeID, strat_t * strategy);
 
 // backtesting
 void getPrices(char * ticker, unsigned priceAmount, float * prices);
