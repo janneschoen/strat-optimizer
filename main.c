@@ -112,8 +112,12 @@ int main(int argc, char * argv[]){
     printf("\n");
 
     strat_t optimalStrat = findOptimalStrat(stratTypeID, strategies, numStrats);
-    printf("Approx. optimum:\n");
+    printf("Approx. optimum 1: (param-based halving)\n");
     showStrat(stratTypeID, &optimalStrat);
+
+    strat_t optimalStrat2 = findOptimalStrat2(stratTypeID, strategies, numStrats);
+    printf("Approx. optimum 2: (slicing)\n");
+    showStrat(stratTypeID, &optimalStrat2);
 
     if(visualisation){
         visualise(stratTypeID, strategies, numStrats);

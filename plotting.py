@@ -23,8 +23,8 @@ dimensions = len(vectors[0])
 if dimensions == 4:
     x = vectors[:, 0]
     y = vectors[:, 1]
-    z = vectors[:, 3]
-    colors = vectors[:, 2]
+    z = vectors[:, 2]
+    colors = vectors[:, 3]
 
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
@@ -32,12 +32,12 @@ if dimensions == 4:
     scatter = ax.scatter(x, y, z, c=colors, cmap='viridis')
 
     cbar = plt.colorbar(scatter)
-    cbar.set_label('Parameter 3')
+    cbar.set_label('Performance')
 
     ax.set_title('Strategy Performance (3 Parameters)')
     ax.set_xlabel('Parameter 1')
     ax.set_ylabel('Parameter 2')
-    ax.set_zlabel('Results')
+    ax.set_zlabel('Parameter 3')
 
 elif dimensions == 3:
     x = vectors[:, 0]
