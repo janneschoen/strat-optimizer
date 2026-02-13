@@ -78,44 +78,12 @@ int main(int argc, char * argv[]){
 
     strat_t bestStrat = findBestStrat(strategies, numStrats);
 
-    //clear();
+    clear();
 
     printf("Best backtest:\n");
     showStrat(stratTypeID, &bestStrat);
 
-
-    unsigned lowerHalf[2] = {0, numStrats/2};
-    unsigned upperHalf[2] = {lowerHalf[1], numStrats};
-    
-    while(lowerHalf[0] != lowerHalf[1] || upperHalf[0] == upperHalf[1]){
-        float lowerSum = 0;
-        float upperSum = 0;
-        for(unsigned i = lowerHalf[0]; i < lowerHalf[1]; i++){
-            lowerSum += strategies[i].performance;
-        }
-        for(unsigned i = upperHalf[0]; i < upperHalf[1]; i++){
-            upperSum += strategies[i].performance;
-        }
-
-        if(upperSum > lowerSum){
-            lowerHalf[0] = upperHalf[0];
-            lowerHalf[1] = (upperHalf[1] + upperHalf[0]) / 2;
-            upperHalf[0] = lowerHalf[1];
-        } else{
-            upperHalf[1] = lowerHalf[1];
-            upperHalf[0] = (lowerHalf[1] + lowerHalf[0]) / 2;
-            lowerHalf[1] = upperHalf[0];
-        }
-    }
-    strat_t optimalStrat;
-
-    if(strategies[upperHalf[0]].performance > strategies[upperHalf[1]].performance){
-        optimalStrat = strategies[upperHalf[0]];
-        //printf("id: %u\n", upperHalf[0]);
-    } else{
-        optimalStrat = strategies[upperHalf[1]];
-        //printf("id: %u\n", upperHalf[1]);
-    }
+    strat_t optimalStrat = findOptimalStrat(stratTypeID, strategies, numStrats);
 
     printf("Optimal Strat (via recursive halving):\n");
     showStrat(stratTypeID, &optimalStrat);

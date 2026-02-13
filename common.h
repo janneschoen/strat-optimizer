@@ -50,6 +50,7 @@ float backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigne
 void genStrats(unsigned stratTypeID, unsigned param, strat_t * strategies, unsigned numStrats, strat_t * strategy, unsigned * stratsMade);
 void testStrats(unsigned stratTypeID, strat_t * strategies, unsigned numStrats, float * prices, unsigned priceAmount, unsigned start);
 strat_t findBestStrat(strat_t * strategies, unsigned numStrats);
+strat_t findOptimalStrat(unsigned stratTypeID, strat_t * strategies, unsigned numStrats);
 
 void doRegression(unsigned stratTypeID, strat_t * strategies, unsigned numStrats, strat_t * predStrats, unsigned degree);
 

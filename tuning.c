@@ -49,3 +49,68 @@ strat_t findBestStrat(strat_t * strategies, unsigned numStrats){
     }
     return bestStrat;
 }
+
+strat_t findOptimalStrat(unsigned stratTypeID, strat_t * strategies, unsigned numStrats){
+    unsigned numParams = stratTypes[stratTypeID].numParams;
+    unsigned maxParams[numParams];
+    for(unsigned i = 0; i < numParams; i++){
+        maxParams[i] = strategies[numStrats-1].params[i];
+    }
+    unsigned optimalParams[numParams];
+    for(unsigned i = 0; i < numParams; i++){
+        unsigned lowerHalf[2] = {stratTypes[stratTypeID].minParams[i], maxParams[i]/2};
+        unsigned upperHalf[2] = {lowerHalf[1], maxParams[i]};
+
+        while(!(lowerHalf[0] == lowerHalf[1] || upperHalf[0] == upperHalf[1])){
+
+            float lowerSum = 0, upperSum = 0;
+
+            for(unsigned j = 0; j < numStrats; j++){
+                unsigned param = strategies[j].params[i];
+                if(param >= lowerHalf[0] && param < lowerHalf[1]){
+                    lowerSum += strategies[j].performance;
+                } else if(param >= upperHalf[0] && param < upperHalf[1]){
+                    upperSum += strategies[j].performance;
+                }
+            }
+
+            if(lowerSum > upperSum){
+                lowerHalf[1] = (lowerHalf[1] + lowerHalf[0]) / 2;
+                upperHalf[1] = upperHalf[0];
+                upperHalf[0] = lowerHalf[1];
+            } else{
+                upperHalf[0] = (upperHalf[0] + upperHalf[1]) / 2;
+                lowerHalf[0] = lowerHalf[1];
+                lowerHalf[1] = upperHalf[0];
+            }
+
+        }
+        float perf1 = 0, perf2 = 0;
+        for(unsigned j = 0; j < numStrats; j++){
+            if(strategies[j].params[i] == upperHalf[0]){
+                perf1 = strategies[j].performance;
+            } else if(strategies[j].params[i] == upperHalf[1]){
+                perf2 = strategies[j].performance;
+            }
+        }
+
+        optimalParams[i] = perf1 > perf2 ? upperHalf[0] : upperHalf[1];
+
+    }
+
+    unsigned index = 0;
+    for(unsigned i = 0; i < numStrats; i++){
+        unsigned matching = 0;
+        for(unsigned j = 0; j < numParams; j++){
+            if(strategies[i].params[j] == optimalParams[j]){
+                matching ++;
+                if(matching == numParams){
+                    index = i;
+                }
+            } else{
+                break;
+            }
+        }
+    }
+    return strategies[index];
+}
