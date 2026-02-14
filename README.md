@@ -1,5 +1,5 @@
 
-# Strat-Optimizer
+# Strategy Optimizer
 
 The program is backtesting trading strategies with different parameters, and tries to give a recommendation about which parameters to use in future trading decisions.
 
@@ -13,23 +13,16 @@ A single test gives the user more information about the development of the portf
 ### Range testing
 Expected arguments:
 
-1. 0 (for standard mode)
-2. Strategy Type ID
-3. Upper limit of parameter testing range (10 -> 1-10 will be tested)
-4. Length of backtest
-5. Asset ticker
+1. 0 (for range mode)
+2. Visualisations (0 / 1)
+3. Strategy Type ID
+4. Upper limit of parameter testing range (10 -> 1-10 will be tested)
+5. Length of backtest
+6. Asset ticker
+7. Full year? (365 or 252 days) (1 / 0)
 
-Example use case:
-./quant5k 0 0 50 50 5 500 PLTR
+Example range test:
+./stratOpt 0 0 0 50 50 5 500 PLTR 0
 
-### Single test
-Expected Arguments:
-1. 1 (for testing mode)
-2. Strategy Type ID
-3. Parameters
-4. Length of backtest
-5. Asset ticker
-Arguments: main, testMode, stratTypeID, p0, p1, p2, btLength, ticker
-
-Example use case:
-./quant5k 1 0 29 40 1 500 PLTR
+Example single test:
+./stratOpt 1 0 0 29 40 3 500 BTC-USD 1

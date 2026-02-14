@@ -1,5 +1,5 @@
 FILES = main.c strategy.c backtest.c tuning.c regression.c graphics.c
-TARGET = quant5k
+TARGET = stratOpt
 
 IDIR = .
 
