@@ -10,19 +10,31 @@ When testing a range, the program will backtest all parameter combinations in th
 
 A single test gives the user more information about the development of the portfolio value during the backtest.
 
-### Range testing
-Expected arguments:
+### Expected Arguments
 
-1. 0 (for range mode)
-2. Visualisations (0 / 1)
-3. Strategy Type ID
-4. Upper limit of parameter testing range (10 -> 1-10 will be tested)
-5. Length of backtest
-6. Asset ticker
-7. Full year? (365 or 252 days) (1 / 0)
+In order:
 
-Example range test:
-./stratOpt 0 0 0 50 50 5 500 PLTR 0
+- ID of strategy type
+- strategy parameters (or upper range limits)
+- backtesting length
+- asset ticker
+- 252 or 365 days (0 / 1)
+
+- range or single test (0 / 1)
+- goal: annual profit or sharpe (0 / 1)
+- visualisation (0 / 1)
+
+### Example use cases
+
+./stratOpt 0 50 50 10 500 PLTR 0 0 1 1
+This will backtest the strategy type 0 on Palantir stock.
+Each backtest will be 500 time units, and weekends / holidays won't be counted.
+All parameter combinations up to [50, 50, 10] will be tested.
+The strategy will be optimized for sharpe ratio, and the results will be visualised.
 
 Example single test:
-./stratOpt 1 0 0 29 40 3 500 BTC-USD 1
+./stratOpt 0 23 41 4 600 BTC-USD 1 1 0 0
+This will backtest the strategytype 0 on Bitcoin-USD.
+The backtest will be 600 time units, with trades all year.
+Only the single parameter combination [23, 41, 4] will be tested.
+The annual profit will be looked at, and the backtest will not be visualised.

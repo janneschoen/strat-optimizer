@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #ifndef FUNCTIONS_H
 #define FUNCTIONS_H
 
@@ -11,9 +12,14 @@
 
 #define MAX_PARAMS 4
 #define NUM_STRAT_TYPES 1
-#define SHARPE 0
 
-// strat things
+typedef struct{
+    bool sharpe;
+    bool fullYear;
+    bool singleTest;
+    bool visualisation;
+} execMode_t;
+
 typedef struct{
     unsigned params[MAX_PARAMS];
     float performance;
@@ -39,16 +45,15 @@ void visualise(unsigned stratTypeID, strat_t * strategies, unsigned numStrats);
 void loadHeading();
 void clear();
 void loadingBar(unsigned done, unsigned goal);
-void showSpecs(unsigned stratTypeID, strat_t * maxStrat, unsigned btLength, unsigned priceAmount, char * ticker);
 void showStrat(unsigned stratTypeID, strat_t * strategy);
 
 // backtesting
 void getPrices(char * ticker, unsigned priceAmount, float * prices);
-float backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned priceAmount, unsigned start, unsigned testMode, unsigned fullYear);
+float backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned priceAmount, unsigned start, execMode_t * config);
 
 // tuning
 void genStrats(unsigned stratTypeID, unsigned param, strat_t * strategies, unsigned numStrats, strat_t * strategy, unsigned * stratsMade);
-void testStrats(unsigned stratTypeID, strat_t * strategies, unsigned numStrats, float * prices, unsigned priceAmount, unsigned start, unsigned fullYear);
+void testStrats(unsigned stratTypeID, strat_t * strategies, unsigned numStrats, float * prices, unsigned priceAmount, unsigned start, execMode_t * config);
 
 strat_t findBestStrat(strat_t * strategies, unsigned numStrats);
 strat_t findOptimalStrat(unsigned stratTypeID, strat_t * strategies, unsigned numStrats);

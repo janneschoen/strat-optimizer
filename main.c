@@ -3,9 +3,9 @@
 #include <stdlib.h>
 #include <math.h>
 
-#define NUM_ARGUMENTS 7
+#define NUM_ARGUMENTS 8
 
-// Arguments: main, testMode, visualisation, stratTypeID, p0, p1, p2, btLength, ticker, fullYear
+// Arguments: stratTypeID, p0, p1, p2, btLength, ticker, fullYear, testMode, sharpe, visualisation
 
 int main(int argc, char * argv[]){
     if(argc == 1){
@@ -14,12 +14,6 @@ int main(int argc, char * argv[]){
     }
 
     unsigned argID = 1;
-
-    unsigned testMode = strtoul(argv[argID], NULL, 10);
-    argID ++;
-
-    unsigned visualisation = strtoul(argv[argID], NULL, 10);
-    argID ++;
 
     unsigned stratTypeID = strtoul(argv[argID], NULL, 10);
     argID ++;
@@ -46,7 +40,14 @@ int main(int argc, char * argv[]){
     char * ticker = argv[argID];
     argID ++;
 
-    unsigned fullYear = strtoul(argv[argID], NULL, 10);
+    execMode_t config;
+    config.fullYear = strtoul(argv[argID], NULL, 10);
+    argID ++;
+    config.singleTest = strtoul(argv[argID], NULL, 10);
+    argID ++;
+    config.sharpe = strtoul(argv[argID], NULL, 10);
+    argID ++;
+    config.visualisation = strtoul(argv[argID], NULL, 10);
     argID ++;
 
     unsigned maxLookback = getLookback(stratTypeID, &maxStrat);
@@ -55,19 +56,20 @@ int main(int argc, char * argv[]){
     float prices[priceAmount];
     getPrices(ticker, priceAmount, prices);
 
-    if(testMode){
+    if(config.singleTest){
         printf("%s | %s", ticker, stratTypes[stratTypeID].name);
-        printf(" | %s days\n", fullYear ? "365" : "252");
+        printf(" | %s days\n", config.fullYear ? "365" : "252");
         printf("Goal: ");
-        if(SHARPE){
+        if(config.sharpe){
             printf("Sharpe-Ratio\n");
         } else{
             printf("Annual Profit\n");
         }
         printf("\n");
-        maxStrat.performance = backtest(stratTypeID, &maxStrat, prices, priceAmount, maxLookback, 1, fullYear);
+        maxStrat.performance = backtest(stratTypeID, &maxStrat, prices, priceAmount, maxLookback, &config);
         showStrat(stratTypeID, &maxStrat);
-        if(visualisation){
+
+        if(config.visualisation){
             char command[50];
             sprintf(command, "python %s", CHART_PY);
             system(command);
@@ -92,13 +94,14 @@ int main(int argc, char * argv[]){
     unsigned stratsMade = 0;
 
     genStrats(stratTypeID, 0, strategies, numStrats, &maxStrat, &stratsMade);
-    testStrats(stratTypeID, strategies, numStrats, prices, priceAmount, maxLookback, fullYear);
+    testStrats(stratTypeID, strategies, numStrats, prices, priceAmount, maxLookback, &config);
     
     clear();
 
-    printf("%s - %s\n", ticker, stratTypes[stratTypeID].name);
+    printf("%s | %s", ticker, stratTypes[stratTypeID].name);
+    printf(" | %s days\n", config.fullYear ? "365" : "252");
     printf("Goal: ");
-    if(SHARPE){
+    if(config.sharpe){
         printf("Sharpe-Ratio\n");
     } else{
         printf("Annual Profit\n");
@@ -109,19 +112,19 @@ int main(int argc, char * argv[]){
     printf("Best backtest:\n");
     showStrat(stratTypeID, &bestStrat);
 
-    strat_t optimalStrat = findOptimalStrat(stratTypeID, strategies, numStrats);
+    /*strat_t optimalStrat = findOptimalStrat(stratTypeID, strategies, numStrats);
     printf("Optimum (param-based halving):\n");
     showStrat(stratTypeID, &optimalStrat);
 
     strat_t optimalStrat2 = findOptimalStrat2(stratTypeID, strategies, numStrats);
     printf("Optimum (slicing):\n");
-    showStrat(stratTypeID, &optimalStrat2);
+    showStrat(stratTypeID, &optimalStrat2);*/
 
     strat_t optimalStrat3 = findOptimalStrat3(stratTypeID, strategies, numStrats);
     printf("Optimum (multi-dimensional halving):\n");
     showStrat(stratTypeID, &optimalStrat3);
 
-    if(visualisation){
+    if(config.visualisation){
         visualise(stratTypeID, strategies, numStrats);
     }
 

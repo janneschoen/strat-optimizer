@@ -8,7 +8,7 @@
 #define LOWER_SHARPE_LIMIT -5
 
 
-float backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned priceAmount, unsigned start, unsigned testMode, unsigned fullYear){
+float backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned priceAmount, unsigned start, execMode_t * config){
 
     unsigned liquidation = priceAmount - start;
     unsigned numDailyReturns = liquidation - 1;
@@ -81,7 +81,7 @@ float backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigne
 
     numDailyReturns = liquidation - 1;
 
-    if(testMode){
+    if(config->singleTest){
         FILE * file = fopen(CHART_FILE, "w");
         for(unsigned i = 0; i < liquidation; i++){
             fprintf(file, "%f\n", networthValues[i]);
@@ -89,41 +89,41 @@ float backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigne
         fclose(file);
     }
 
-    for(unsigned i = 0; i < numDailyReturns; i++){
-        dailyReturns[i] = (networthValues[i+1]-networthValues[i]) / networthValues[i];
-    }
-
-    double meanDailyReturn = 0;
-    for(unsigned i = 0; i < numDailyReturns; i++){
-        meanDailyReturn += dailyReturns[i];
-    }
-    meanDailyReturn /= numDailyReturns;
-
-    double variance = 0;
-    for(unsigned i = 0; i < numDailyReturns; i++){
-        variance += pow((dailyReturns[i] - meanDailyReturn), 2);
-    }
-    variance /= numDailyReturns;
-
-    unsigned tradingDays = fullYear ? 365 : 252;
-
-    double stdDeviation = pow(variance, 0.5) * pow(tradingDays, 0.5);
+    unsigned tradingDays = config->fullYear ? 365 : 252;
     double period = tradingDays / (float)(priceAmount-start);
-    
     double annProfit = pow(1 + ((networth - 100) / 100), period) - 1;
 
-    if(annProfit == 0){
-        return(0);
-    }
+    if(config->sharpe){
 
-    float sharpeRatio = (annProfit - RISK_FREE_RATE) / stdDeviation;
+        for(unsigned i = 0; i < numDailyReturns; i++){
+            dailyReturns[i] = (networthValues[i+1]-networthValues[i]) / networthValues[i];
+        }
 
-    if(sharpeRatio < LOWER_SHARPE_LIMIT){
-        sharpeRatio = LOWER_SHARPE_LIMIT;
-    }
+        double meanDailyReturn = 0;
+        for(unsigned i = 0; i < numDailyReturns; i++){
+            meanDailyReturn += dailyReturns[i];
+        }
+        meanDailyReturn /= numDailyReturns;
 
-    if(SHARPE){
+        double variance = 0;
+        for(unsigned i = 0; i < numDailyReturns; i++){
+            variance += pow((dailyReturns[i] - meanDailyReturn), 2);
+        }
+        variance /= numDailyReturns;
+
+        double stdDeviation = pow(variance, 0.5) * pow(tradingDays, 0.5);
+
+        if(annProfit == 0){
+            return(0);
+        }
+
+        float sharpeRatio = (annProfit - RISK_FREE_RATE) / stdDeviation;
+
+        if(sharpeRatio < LOWER_SHARPE_LIMIT){
+            sharpeRatio = LOWER_SHARPE_LIMIT;
+        }
         return(sharpeRatio);
+
     } else{
         return(annProfit);
     }
