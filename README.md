@@ -1,5 +1,5 @@
 
-# QUANT5000
+# Strat-Optimizer
 
 The program is backtesting trading strategies with different parameters, and tries to give a recommendation about which parameters to use in future trading decisions.
 
