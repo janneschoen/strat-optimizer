@@ -1,4 +1,4 @@
-FILES = main.c strategy.c backtest.c tuning.c regression.c graphics.c
+FILES = main.c strategy.c backtest.c tuning.c graphics.c
 TARGET = stratOpt
 
 IDIR = .

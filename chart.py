@@ -18,10 +18,13 @@ with open(pricePath, 'r', encoding="utf-8") as file:
     for price in priceLines:
         prices.append(float(price.strip()))
 
-normFactor = prices[0] / 100
+normValue = networthValues[0]
+for a in range(len(networthValues)):
+    networthValues[a] /= normValue
 
+normValue = prices[0]
 for a in range(len(prices)):
-   prices[a] /= normFactor
+   prices[a] /= normValue
 
 plt.figure(figsize=(10, 5))
 

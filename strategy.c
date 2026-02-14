@@ -9,6 +9,12 @@ const stratType_t stratTypes[NUM_STRAT_TYPES] ={
     {"Simple Moving Average", 3, {"SMA Length", "LMA Length", "Sensitivity"}, {1,1,0}, getSignal0},
 };
 
+const char * perfTypes[] = {
+    "Annualized Profit",
+    "Sharpe Ratio"
+};
+
+
 
 unsigned getLookback(unsigned stratTypeID, strat_t * strategy){
     switch(stratTypeID){

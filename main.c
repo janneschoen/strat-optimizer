@@ -3,9 +3,9 @@
 #include <stdlib.h>
 #include <math.h>
 
-#define NUM_ARGUMENTS 8
+#define NUM_ARGUMENTS 7
 
-// Arguments: stratTypeID, p0, p1, p2, btLength, ticker, fullYear, testMode, sharpe, visualisation
+// Arguments: stratTypeID, p0, p1, p2, btLength, ticker, fullYear, testMode, visualisation
 
 int main(int argc, char * argv[]){
     if(argc == 1){
@@ -45,8 +45,6 @@ int main(int argc, char * argv[]){
     argID ++;
     config.singleTest = strtoul(argv[argID], NULL, 10);
     argID ++;
-    config.sharpe = strtoul(argv[argID], NULL, 10);
-    argID ++;
     config.visualisation = strtoul(argv[argID], NULL, 10);
     argID ++;
 
@@ -59,14 +57,8 @@ int main(int argc, char * argv[]){
     if(config.singleTest){
         printf("%s | %s", ticker, stratTypes[stratTypeID].name);
         printf(" | %s days\n", config.fullYear ? "365" : "252");
-        printf("Goal: ");
-        if(config.sharpe){
-            printf("Sharpe-Ratio\n");
-        } else{
-            printf("Annual Profit\n");
-        }
-        printf("\n");
-        maxStrat.performance = backtest(stratTypeID, &maxStrat, prices, priceAmount, maxLookback, &config);
+        
+        backtest(stratTypeID, &maxStrat, prices, priceAmount, maxLookback, &config);
         showStrat(stratTypeID, &maxStrat);
 
         if(config.visualisation){
@@ -88,7 +80,9 @@ int main(int argc, char * argv[]){
 
     strat_t * strategies = (strat_t *)malloc(numStrats * sizeof(strat_t));
     for(unsigned i = 0; i < numStrats; i++){
-        strategies[i].performance = NAN;
+        for(unsigned j = 0; j < NUM_PERF_TYPES; j++){
+            strategies[i].performance[j] = NAN;
+        }
     }
 
     unsigned stratsMade = 0;
@@ -99,33 +93,30 @@ int main(int argc, char * argv[]){
     clear();
 
     printf("%s | %s", ticker, stratTypes[stratTypeID].name);
-    printf(" | %s days\n", config.fullYear ? "365" : "252");
-    printf("Goal: ");
-    if(config.sharpe){
-        printf("Sharpe-Ratio\n");
-    } else{
-        printf("Annual Profit\n");
+    printf(" | %s | %u days\n\n", config.fullYear ? "full year" : "252 trading days", btLength);
+
+    /*printf("Backtest winners\n");
+    strat_t bestStrats[NUM_PERF_TYPES];
+    for(unsigned i = 0; i < NUM_PERF_TYPES; i++){
+        bestStrats[i] = findBestStrat(strategies, numStrats, i);
+        printf("%s:\n", perfTypes[i]);
+        showStrat(stratTypeID, &bestStrats[i]);
+    }*/
+
+    printf("Optimal\n");
+    strat_t optimalStrats[NUM_PERF_TYPES];
+    for(unsigned i = 0; i < NUM_PERF_TYPES; i++){
+        optimalStrats[i] = findOptimalStrat(stratTypeID, strategies, numStrats, i);
+        printf("%s:\n", perfTypes[i]);
+        showStrat(stratTypeID, &optimalStrats[i]);
     }
-    printf("\n");
 
-    strat_t bestStrat = findBestStrat(strategies, numStrats);
-    printf("Best backtest:\n");
-    showStrat(stratTypeID, &bestStrat);
-
-    /*strat_t optimalStrat = findOptimalStrat(stratTypeID, strategies, numStrats);
-    printf("Optimum (param-based halving):\n");
-    showStrat(stratTypeID, &optimalStrat);
-
-    strat_t optimalStrat2 = findOptimalStrat2(stratTypeID, strategies, numStrats);
-    printf("Optimum (slicing):\n");
-    showStrat(stratTypeID, &optimalStrat2);*/
-
-    strat_t optimalStrat3 = findOptimalStrat3(stratTypeID, strategies, numStrats);
-    printf("Optimum (multi-dimensional halving):\n");
-    showStrat(stratTypeID, &optimalStrat3);
 
     if(config.visualisation){
-        visualise(stratTypeID, strategies, numStrats);
+        for(unsigned i = 0; i < NUM_PERF_TYPES; i++){
+            printf("Visualising %s\n", perfTypes[i]);
+            visualise(stratTypeID, strategies, numStrats, i);
+        }
     }
 
     free(strategies);

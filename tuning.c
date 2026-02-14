@@ -4,14 +4,14 @@
 #include <math.h>
 
 
-void visualise(unsigned stratTypeID, strat_t * strategies, unsigned numStrats){
+void visualise(unsigned stratTypeID, strat_t * strategies, unsigned numStrats, unsigned goal){
     FILE * file;
     file = fopen(STRAT_FILE, "w");
     for(unsigned i = 0; i < numStrats; i++){
         for(unsigned j = 0; j < stratTypes[stratTypeID].numParams; j++){
             fprintf(file, "%u ", strategies[i].params[j]);
         }
-        fprintf(file, "%f\n", strategies[i].performance);
+        fprintf(file, "%f\n", strategies[i].performance[goal]);
     }
     fclose(file);
     char command[50];
@@ -34,24 +34,24 @@ void genStrats(unsigned stratTypeID, unsigned param, strat_t * strategies, unsig
 
 void testStrats(unsigned stratTypeID, strat_t * strategies, unsigned numStrats, float * prices, unsigned priceAmount, unsigned start, execMode_t * config){
     for(unsigned i = 0; i < numStrats; i++){
-        strategies[i].performance = backtest(stratTypeID, &strategies[i], prices, priceAmount, start, config);
+        backtest(stratTypeID, &strategies[i], prices, priceAmount, start, config);
         if(i % 2500 == 0){
             loadingBar(i, numStrats);
         }
     }
 }
 
-strat_t findBestStrat(strat_t * strategies, unsigned numStrats){
+strat_t findBestStrat(strat_t * strategies, unsigned numStrats, unsigned goal){
     strat_t bestStrat = strategies[0];
     for(unsigned i = 1; i < numStrats; i++){
-        if(strategies[i].performance > bestStrat.performance){
+        if(strategies[i].performance[goal] > bestStrat.performance[goal]){
             bestStrat = strategies[i];
         }
     }
     return bestStrat;
 }
 
-float perfByParams(unsigned stratTypeID, strat_t * strategies, strat_t strategy, unsigned numStrats){
+strat_t perfByParams(unsigned stratTypeID, strat_t * strategies, strat_t strategy, unsigned numStrats){
     unsigned numParams = stratTypes[stratTypeID].numParams;
     unsigned index = 0;
     for(unsigned i = 0; i < numStrats; i++){
@@ -67,105 +67,10 @@ float perfByParams(unsigned stratTypeID, strat_t * strategies, strat_t strategy,
             }
         }
     }
-    return strategies[index].performance;
+    return strategies[index];
 }
 
-strat_t findOptimalStrat(unsigned stratTypeID, strat_t * strategies, unsigned numStrats){
-    unsigned numParams = stratTypes[stratTypeID].numParams;
-    unsigned maxParams[numParams];
-    for(unsigned i = 0; i < numParams; i++){
-        maxParams[i] = strategies[numStrats-1].params[i];
-    }
-    unsigned optimalParams[numParams];
-    for(unsigned i = 0; i < numParams; i++){
-        unsigned lowerHalf[2] = {stratTypes[stratTypeID].minParams[i], maxParams[i]/2};
-        unsigned upperHalf[2] = {lowerHalf[1], maxParams[i]};
-
-        while(!(lowerHalf[0] == lowerHalf[1] || upperHalf[0] == upperHalf[1])){
-
-            float lowerSum = 0, upperSum = 0;
-
-            for(unsigned j = 0; j < numStrats; j++){
-                unsigned param = strategies[j].params[i];
-                if(param >= lowerHalf[0] && param < lowerHalf[1]){
-                    lowerSum += strategies[j].performance;
-                } else if(param >= upperHalf[0] && param < upperHalf[1]){
-                    upperSum += strategies[j].performance;
-                }
-            }
-
-            if(lowerSum > upperSum){
-                lowerHalf[1] = (lowerHalf[1] + lowerHalf[0]) / 2;
-                upperHalf[1] = upperHalf[0];
-                upperHalf[0] = lowerHalf[1];
-            } else{
-                upperHalf[0] = (upperHalf[0] + upperHalf[1]) / 2;
-                lowerHalf[0] = lowerHalf[1];
-                lowerHalf[1] = upperHalf[0];
-            }
-
-        }
-        float perf1 = 0, perf2 = 0;
-        for(unsigned j = 0; j < numStrats; j++){
-            if(strategies[j].params[i] == upperHalf[0]){
-                perf1 = strategies[j].performance;
-            } else if(strategies[j].params[i] == upperHalf[1]){
-                perf2 = strategies[j].performance;
-            }
-        }
-
-        optimalParams[i] = perf1 > perf2 ? upperHalf[0] : upperHalf[1];
-
-    }
-
-    strat_t optimalStrat;
-    for(unsigned i = 0; i < numParams; i++){
-        optimalStrat.params[i] = optimalParams[i];
-    }
-    optimalStrat.performance = perfByParams(stratTypeID, strategies, optimalStrat, numStrats);
-
-    return optimalStrat;
-}
-
-strat_t findOptimalStrat2(unsigned stratTypeID, strat_t * strategies, unsigned numStrats){
-    unsigned numParams = stratTypes[stratTypeID].numParams;
-    unsigned bestParams[numParams];
-
-    for(unsigned i = 0; i < numParams; i++){
-
-        unsigned bestParam = stratTypes[stratTypeID].minParams[i];
-        float bestPerfSum = 0;
-        for(unsigned k = 0; k < numStrats; k++){
-            if(strategies[k].params[i] == stratTypes[stratTypeID].minParams[i]){
-                bestPerfSum += strategies[k].performance;
-            }
-        }
-
-        for(unsigned j = 1; j < strategies[numStrats-1].params[i]; j++){
-            float perfSum = 0;
-            for(unsigned k = 0; k < numStrats; k++){
-                if(strategies[k].params[i] == j){
-                    perfSum += strategies[k].performance;
-                }
-            }
-            if(perfSum > bestPerfSum){
-                bestPerfSum = perfSum;
-                bestParam = j;
-            }
-        }
-        bestParams[i] = bestParam;
-    }
-
-    strat_t optimalStrat;
-    for(unsigned i = 0; i < numParams; i++){
-        optimalStrat.params[i] = bestParams[i];
-    }
-    optimalStrat.performance = perfByParams(stratTypeID, strategies, optimalStrat, numStrats);
-
-    return optimalStrat;
-}
-
-strat_t findOptimalStrat3(unsigned stratTypeID, strat_t * strategies, unsigned numStrats){
+strat_t findOptimalStrat(unsigned stratTypeID, strat_t * strategies, unsigned numStrats, unsigned goal){
     unsigned numParams = stratTypes[stratTypeID].numParams;
     unsigned maxParams[numParams];
     unsigned minParams[numParams];
@@ -217,13 +122,13 @@ strat_t findOptimalStrat3(unsigned stratTypeID, strat_t * strategies, unsigned n
                 if(param >= half1[j][0] && param <= half1[j][1]){
                     matching1 ++;
                     if(matching1 == numParams){
-                        value1 += strategies[i].performance;
+                        value1 += strategies[i].performance[goal];
                     }
                 }
                 if(param >= half2[j][0] && param <= half2[j][1]){
                     matching2 ++;
                     if(matching2 == numParams){
-                        value2 += strategies[i].performance;
+                        value2 += strategies[i].performance[goal];
                     }
                 }
             }
@@ -266,7 +171,7 @@ strat_t findOptimalStrat3(unsigned stratTypeID, strat_t * strategies, unsigned n
     for(unsigned i = 0; i < numParams; i++){
         optimalStrat.params[i] = optimalParams[i];
     }
-    optimalStrat.performance = perfByParams(stratTypeID, strategies, optimalStrat, numStrats);
+    optimalStrat = perfByParams(stratTypeID, strategies, optimalStrat, numStrats);
 
     return optimalStrat;
 }

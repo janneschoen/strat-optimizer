@@ -12,9 +12,11 @@
 
 #define MAX_PARAMS 4
 #define NUM_STRAT_TYPES 1
+#define NUM_PERF_TYPES 2
+
+extern const char * perfTypes[];
 
 typedef struct{
-    bool sharpe;
     bool fullYear;
     bool singleTest;
     bool visualisation;
@@ -22,7 +24,7 @@ typedef struct{
 
 typedef struct{
     unsigned params[MAX_PARAMS];
-    float performance;
+    float performance[NUM_PERF_TYPES]; // annProfit, sharpe
 } strat_t;
 
 typedef int (*getSigFun)(unsigned day, strat_t * strategy, float * prices);
@@ -41,7 +43,7 @@ unsigned getLookback(unsigned stratTypeID, strat_t * strategy);
 
 
 // graphics
-void visualise(unsigned stratTypeID, strat_t * strategies, unsigned numStrats);
+void visualise(unsigned stratTypeID, strat_t * strategies, unsigned numStrats, unsigned goal);
 void loadHeading();
 void clear();
 void loadingBar(unsigned done, unsigned goal);
@@ -49,16 +51,14 @@ void showStrat(unsigned stratTypeID, strat_t * strategy);
 
 // backtesting
 void getPrices(char * ticker, unsigned priceAmount, float * prices);
-float backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned priceAmount, unsigned start, execMode_t * config);
+void backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned priceAmount, unsigned start, execMode_t * config);
 
 // tuning
 void genStrats(unsigned stratTypeID, unsigned param, strat_t * strategies, unsigned numStrats, strat_t * strategy, unsigned * stratsMade);
 void testStrats(unsigned stratTypeID, strat_t * strategies, unsigned numStrats, float * prices, unsigned priceAmount, unsigned start, execMode_t * config);
 
-strat_t findBestStrat(strat_t * strategies, unsigned numStrats);
-strat_t findOptimalStrat(unsigned stratTypeID, strat_t * strategies, unsigned numStrats);
-strat_t findOptimalStrat2(unsigned stratTypeID, strat_t * strategies, unsigned numStrats);
-strat_t findOptimalStrat3(unsigned stratTypeID, strat_t * strategies, unsigned numStrats);
+strat_t findBestStrat(strat_t * strategies, unsigned numStrats, unsigned goal);
+strat_t findOptimalStrat(unsigned stratTypeID, strat_t * strategies, unsigned numStrats, unsigned goal);
 
 void doRegression(unsigned stratTypeID, strat_t * strategies, unsigned numStrats, strat_t * predStrats, unsigned degree);
 
