@@ -95,5 +95,5 @@ void showStrat(unsigned stratTypeID, strat_t * strategy){
     for(unsigned i = 0; i < stratTypes[stratTypeID].numParams; i++){
         printf(" %u ", strategy->params[i]);
     }
-    printf("] %.2f\n", strategy->performance);
+    printf("] %.2f\n\n", strategy->performance);
 }

@@ -77,10 +77,10 @@ int main(int argc, char * argv[]){
 
     unsigned numStrats = 1;
     for(unsigned i = 0; i < stratTypes[stratTypeID].numParams; i++){
-        if(stratTypes[stratTypeID].minParams[i] != 0){
-            numStrats *= maxStrat.params[i];
-        } else{
+        if(stratTypes[stratTypeID].minParams[i] == 0){
             numStrats *= maxStrat.params[i] + 1;
+        } else{
+            numStrats *= maxStrat.params[i];
         }
     }
 
@@ -109,15 +109,17 @@ int main(int argc, char * argv[]){
     printf("Best backtest:\n");
     showStrat(stratTypeID, &bestStrat);
 
-    printf("\n");
-
     strat_t optimalStrat = findOptimalStrat(stratTypeID, strategies, numStrats);
-    printf("Approx. optimum 1: (param-based halving)\n");
+    printf("Optimum (param-based halving):\n");
     showStrat(stratTypeID, &optimalStrat);
 
     strat_t optimalStrat2 = findOptimalStrat2(stratTypeID, strategies, numStrats);
-    printf("Approx. optimum 2: (slicing)\n");
+    printf("Optimum (slicing):\n");
     showStrat(stratTypeID, &optimalStrat2);
+
+    strat_t optimalStrat3 = findOptimalStrat3(stratTypeID, strategies, numStrats);
+    printf("Optimum (multi-dimensional halving):\n");
+    showStrat(stratTypeID, &optimalStrat3);
 
     if(visualisation){
         visualise(stratTypeID, strategies, numStrats);

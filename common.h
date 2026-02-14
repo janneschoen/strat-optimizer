@@ -53,6 +53,7 @@ void testStrats(unsigned stratTypeID, strat_t * strategies, unsigned numStrats, 
 strat_t findBestStrat(strat_t * strategies, unsigned numStrats);
 strat_t findOptimalStrat(unsigned stratTypeID, strat_t * strategies, unsigned numStrats);
 strat_t findOptimalStrat2(unsigned stratTypeID, strat_t * strategies, unsigned numStrats);
+strat_t findOptimalStrat3(unsigned stratTypeID, strat_t * strategies, unsigned numStrats);
 
 void doRegression(unsigned stratTypeID, strat_t * strategies, unsigned numStrats, strat_t * predStrats, unsigned degree);
 
