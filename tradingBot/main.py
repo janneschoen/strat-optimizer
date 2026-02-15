@@ -54,13 +54,15 @@ def getPosition(prices, stratParams):
     sma = sum(prices[-smaW:]) / smaW
     lma = sum(prices[-lmaW:]) / lmaW
 
-    diff = abs((sma-lma)/lma)
-    if diff <= stratParams[2]/100:
-        position = 0
-    elif sma > lma:
+    sigTol = stratParams[2] / 100
+
+    diff = (sma-lma)/lma
+    position = diff / sigTol
+    if position > 1:
         position = 1
-    else:
+    elif position < -1:
         position = -1
+
     logging.info(f"SMA: {sma:.2f} | LMA: {lma:.2f} | diff: {diff:.2f} | => position: {position}")
     return position
 
