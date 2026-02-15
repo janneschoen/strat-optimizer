@@ -88,6 +88,8 @@ int main(int argc, char * argv[]){
     unsigned stratsMade = 0;
 
     genStrats(stratTypeID, 0, strategies, numStrats, &maxStrat, &stratsMade);
+    numStrats = stratsMade;
+
     testStrats(stratTypeID, strategies, numStrats, prices, priceAmount, maxLookback, &config);
     
     clear();

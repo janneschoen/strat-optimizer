@@ -3,10 +3,11 @@
 #include <stdlib.h>
 #include <math.h>
 
-int getSignal0(unsigned day, strat_t * strategy, float * prices);
+float getSignal0(unsigned day, strat_t * strategy, float * prices);
+bool validStrat0(strat_t * strategy);
 
 const stratType_t stratTypes[NUM_STRAT_TYPES] ={
-    {"Simple Moving Average", 3, {"SMA Length", "LMA Length", "Sensitivity"}, {1,1,0}, getSignal0},
+    {"Simple Moving Average", 3, {"SMA Length", "LMA Length", "Sensitivity"}, {1,1,0}, getSignal0, validStrat0},
 };
 
 const char * perfTypes[] = {
@@ -14,6 +15,12 @@ const char * perfTypes[] = {
     "Sharpe Ratio"
 };
 
+bool validStrat0(strat_t * strategy){
+    if(strategy->params[0] < strategy->params[1]){
+        return 1;
+    }
+    return 0;
+}
 
 
 unsigned getLookback(unsigned stratTypeID, strat_t * strategy){
@@ -29,8 +36,7 @@ unsigned getLookback(unsigned stratTypeID, strat_t * strategy){
 }
 
 // stratType0 : Simple Moving Average
-int getSignal0(unsigned day, strat_t * strategy, float * prices){
-    
+float getSignal0(unsigned day, strat_t * strategy, float * prices){
     float shortPriceSum = 0;
     for(unsigned i = 0; i < strategy->params[0]; i++){
         shortPriceSum += prices[day-i];
@@ -43,14 +49,14 @@ int getSignal0(unsigned day, strat_t * strategy, float * prices){
     }
     float lma = longPriceSum / strategy->params[1];
 
+    float diff = (sma-lma)/lma;
 
-    if(fabs((sma-lma)/lma) <= (float)strategy->params[2]/100){
-        return 0;
-    }
+    float position = diff / ((float)strategy->params[2]/100);
 
-    if(sma > lma){
-        return 1;
-    } else{
-        return -1;
+    if(position > 1){
+        position = 1;
+    } else if(position < -1){
+        position = -1;
     }
+    return(position);
 }

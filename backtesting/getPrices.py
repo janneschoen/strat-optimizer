@@ -17,7 +17,7 @@ try:
         progress = False,
         start = day - td(daysToDownload),
         end = day,
-        auto_adjust = True))['Close'][ticker].to_dict()
+        auto_adjust = True))['Open'][ticker].to_dict()
 except:
     with open(FILENAME, 'w') as file:
         file.write(f"ERROR\n")

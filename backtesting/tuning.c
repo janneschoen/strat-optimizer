@@ -21,8 +21,10 @@ void visualise(unsigned stratTypeID, strat_t * strategies, unsigned numStrats, u
 
 void genStrats(unsigned stratTypeID, unsigned param, strat_t * strategies, unsigned numStrats, strat_t * strategy, unsigned * stratsMade){
     if(param == stratTypes[stratTypeID].numParams){
-        strategies[*stratsMade] = * strategy; 
-        (*stratsMade) ++;
+        if(stratTypes[stratTypeID].validStrat(strategy)){
+            strategies[*stratsMade] = * strategy; 
+            (*stratsMade) ++;
+        }
     } else{
         for(unsigned i = stratTypes[stratTypeID].minParams[param]; i <= strategy->params[param]; i++){
             strat_t stratCpy = *strategy;

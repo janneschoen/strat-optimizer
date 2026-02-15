@@ -27,7 +27,8 @@ typedef struct{
     float performance[NUM_PERF_TYPES]; // annProfit, sharpe
 } strat_t;
 
-typedef int (*getSigFun)(unsigned day, strat_t * strategy, float * prices);
+typedef float (*getSigFun)(unsigned day, strat_t * strategy, float * prices);
+typedef bool (*validStratFun)(strat_t * strategy);
 
 typedef struct{
     char * name;
@@ -35,6 +36,7 @@ typedef struct{
     char * paramNames[MAX_PARAMS];
     unsigned minParams[MAX_PARAMS];
     getSigFun getSignal;
+    validStratFun validStrat;
 } stratType_t;
 
 extern const stratType_t stratTypes[NUM_STRAT_TYPES];

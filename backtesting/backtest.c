@@ -4,8 +4,8 @@
 #include <math.h>
 
 #define RISK_FREE_RATE 0.02
-#define TRADING_FEE 1 // trade republic: 1€ per trade
-#define BUDGET 1200
+#define TRADING_FEE 0.001
+#define BUDGET 600
 
 void backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned priceAmount, unsigned start, execMode_t * config){
 
@@ -21,51 +21,34 @@ void backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned
         }
     }
 
-    float cash = BUDGET, longs = 0, shorts = 0;
-    float shortEntry, networth = cash;
-    int position;
+    float cash = BUDGET, assetsOwned = 0, assetLoans = 0;
+    float networth = cash;
+    float position;
 
     for(unsigned i = start; i < priceAmount; i++){
-        if(shorts > 0){
-            networth = shorts * (2 * shortEntry - prices[i]);
-        } else if(longs > 0){
-            networth = longs * prices[i];
-        } else{
-            networth = cash;
-        }
+        networth = (assetsOwned - assetLoans) * prices[i] + cash;
 
         position = stratTypes[stratTypeID].getSignal(i, strategy, prices);
-        switch(position){
-            case -1:
-                if(shorts == 0){
-                    shortEntry = prices[i];
-                    shorts = (networth - TRADING_FEE)  / prices[i];
-                    cash = 0, longs = 0;
-                }
-                break;
-            case 1:
-                if(longs == 0){
-                    longs = (networth - TRADING_FEE) / prices[i];
-                    cash = 0, shorts = 0;
-                }
-                break;
-            case 0:
-                if(longs != 0 || shorts != 0){
-                    cash = networth - TRADING_FEE;
-                    longs = 0, shorts = 0;
-                }
-                break;
-            default:
-                printf("ERROR.\n");
-                exit(1);
-        }
 
-        if(shorts > 0){
-            networth = shorts * (2 * shortEntry - prices[i]);
-        } else if(longs > 0){
-            networth = longs * prices[i];
-        } else{
-            networth = cash;
+        if(position > 0){
+            // buying back borrowed assets (closing shorts)
+            cash -= assetLoans * prices[i];
+            assetLoans = 0;
+
+            // buying or selling assets
+            float desiredAssets = (position * networth) / prices[i];
+            cash += (assetsOwned - desiredAssets) * prices[i];
+            assetsOwned = desiredAssets;
+
+        } else if(position < 0){
+            // selling all assets (closing longs)
+            cash += assetsOwned * prices[i];
+            assetsOwned = 0;
+
+            // borrowing or giving back assets
+            float desiredAssetLoans = (-1*position * networth) / prices[i];
+            cash += (desiredAssetLoans - assetLoans) * prices[i];
+            assetLoans = desiredAssetLoans;
         }
 
         if(networth <= 0){
