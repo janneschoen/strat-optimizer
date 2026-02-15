@@ -50,8 +50,13 @@ float getSignal0(unsigned day, strat_t * strategy, float * prices){
     float lma = longPriceSum / strategy->params[1];
 
     float diff = (sma-lma)/lma;
+    float sigTol = (float)strategy->params[2]/100;
 
-    float position = diff / ((float)strategy->params[2]/100);
+    if(sigTol == 0){
+        return diff > 0 ? 1 : -1;
+    }
+
+    float position = diff / sigTol;
 
     if(position > 1){
         position = 1;
