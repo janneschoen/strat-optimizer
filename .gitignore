@@ -3,5 +3,4 @@ stratOpt
 *.out
 keys.json
 myenv
-
 *.log
