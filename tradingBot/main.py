@@ -1,9 +1,11 @@
 import json
 import time
 import logging
-import datetime
+from datetime import datetime, timedelta
 import argparse
 from binance.client import Client
+import requests
+import pandas as pd
 
 
 def setupArgs():
@@ -28,20 +30,48 @@ def loadKeys(filePath):
     return config['api_key'], config['api_secret']
 
 def getPrices(ticker, amount):
-    start = (datetime.utcnow() - timedelta(days=amount)).strftime('%Y-%m-%d')
-    prices = client.get_historical_klines(symbol, Client.KLINE_INTERVAL_1DAY, start)
+    now = datetime.now()
 
-    return [(float(k[0]), float(k[4])) for p in prices]
+    url = "https://api.binance.com/api/v3/klines"
+    params = {
+        'symbol': ticker,
+        'interval': '1d',
+        'limit': amount
+    }
+    response = requests.get(url, params=params)
+    data = response.json()
 
+    prices = []
+    for candle in data:
+        prices.append(float(candle[1]))
 
-def getPosition(priceData, stratParams):
-    return 0
+    logging.info(f"Downloaded {len(prices)} {ticker} prices.")
+    return prices
+
+def getPosition(prices, stratParams):
+    smaW = stratParams[0]
+    lmaW = stratParams[1]
+    sma = sum(prices[-smaW:]) / smaW
+    lma = sum(prices[-lmaW:]) / lmaW
+
+    diff = abs((sma-lma)/lma)
+    if diff <= stratParams[2]/100:
+        position = 0
+    elif sma > lma:
+        position = 1
+    else:
+        position = -1
+    logging.info(f"SMA: {sma:.2f} | LMA: {lma:.2f} | diff: {diff:.2f} | => position: {position}")
+    return position
 
 def takePosition(position):
     pass
 
 
 def main():
+    apiKey, apiSecret = loadKeys('keys.json')
+    client = Client(apiKey, apiSecret)    
+
     args = setupArgs()
     setupLogging()
 
@@ -52,18 +82,22 @@ def main():
     else:
         numPrices = stratParams[0]
 
-    client = Client(loadKeys('keys.json'))    
+    lastDayRan = None
 
     while True:
-        try:
-            priceData = getPrices(ticker, numPrices)
-            position = getPosition(priceData, stratParams)
-            takePosition(position)
-            
-            time.sleep(60)
-        except Exception as e:
-            print("ERROR:", e)
+        now = datetime.now()
+        while now.hour >= 1 and now.day != lastDayRan:
+            try:
+                prices = getPrices(ticker, numPrices)
+                position = getPosition(prices, stratParams)
+                takePosition(position)
+                lastDayRan = (datetime.now()).day
+            except Exception as e:
+                print("ERROR:", e)
+                logging.error("ERROR:", e)
             time.sleep(10)
+        
+        time.sleep(90)
 
 if __name__ == "__main__":
     main()
