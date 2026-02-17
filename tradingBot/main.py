@@ -130,7 +130,7 @@ def main():
 
     while True:
         now = datetime.now()
-        if now.minute != lastRun.minute:
+        if now.day != lastRun.day and now.hour == 1:
             try:
                 logging.info("Running strategy")
                 runStrategy(bitget, strategy, symbol, params, reserves)
@@ -143,7 +143,7 @@ def main():
                 print(f'ERROR: {e}')
                 logging.error(e)
 
-        time.sleep(5)
+        time.sleep(60)
 
 if __name__ == "__main__":
     main()

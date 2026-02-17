@@ -2,6 +2,7 @@
 
 def generateSignal(bitget, params, symbol):
     candles = bitget.fetch_ohlcv(symbol, '1d', limit=params[1])
+    print("Timestamp of newest price:", candles[-1][0])
     openPrices = []
 
     for candle in candles:
