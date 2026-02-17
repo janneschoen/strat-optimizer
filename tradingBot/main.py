@@ -9,21 +9,15 @@ import inspect
 
 def buy(bitget, symbol, quantity):
 
-    params = {
-        "marginMode": "isolated",
-    }
+    params = {"marginMode": "isolated",}
 
-    bitget.create_order(f"{symbol}:USDT", type='market', amount=quantity, side='buy', params=params)
-
+    bitget.create_order(symbol, type='market', amount=quantity, side='buy', params=params)
 
 def sell(bitget, symbol, quantity):
 
-    params = {
-        "marginMode": "isolated",
-    }
+    params = {"marginMode": "isolated",}
 
-    bitget.create_order(f"{symbol}:USDT", type='market', amount=quantity, side='sell', params=params)
-
+    bitget.create_order(symbol, type='market', amount=quantity, side='sell', params=params)
 
 def takePosition(bitget, signal, symbol, reserves):
         
@@ -42,7 +36,6 @@ def takePosition(bitget, signal, symbol, reserves):
     if signal == side:
         if abs(desiredInv - invested) / currentPrice <= 0.0001:
             logging.info(f"({side}, {invested}) - maintaining position")
-            print(f"({side}, {invested}) - maintaining position")
             return
 
         if (signal == "long" and desiredInv > invested) or (signal == "short" and desiredInv < invested):
@@ -60,7 +53,6 @@ def takePosition(bitget, signal, symbol, reserves):
             sell(bitget, symbol, toSell)
     
     logging.info(f"({side}, {invested}) -> ({signal}, {desiredInv})")
-    print(f"({side}, {invested}) -> ({signal}, {desiredInv})")
 
 
 def getPortfolio(bitget):
@@ -97,11 +89,19 @@ def main():
     params = args.p
     reserves = args.r
 
+    if(reserves < 0.01 or reserves >= 1):
+        print("ERROR: 1% to 99% must be reserved. (0.01-0.99)")
+        exit(1)
+
     try:
         strategy = importlib.import_module(f"strategies.strat{stratID}")
     except:
         print("Error importing strategy.")
         exit(1)
+
+    if not strategy.valid(params):
+        exit(1)
+    
 
     with open('keys.json', 'r') as file:
         keys = json.load(file)
@@ -124,19 +124,26 @@ def main():
 
     elem = bitget.fetch_canceled_and_closed_orders()
     
-
     logging.basicConfig(filename='bot.log', level=logging.INFO, format='%(asctime)s | %(levelname)s | %(message)s')
 
+    lastRun = datetime.now()
 
     while True:
-        try:
-            runStrategy(bitget, strategy, symbol, params, reserves)
-            
-        except Exception as e:
-            print(f'ERROR: {e}')
-            logging.error(e)
+        now = datetime.now()
+        if now.minute != lastRun.minute:
+            try:
+                logging.info("Running strategy")
+                runStrategy(bitget, strategy, symbol, params, reserves)
+                lastRun = now
 
-        time.sleep(60)
+                portf = getPortfolio(bitget)
+                logging.info(f"Netw.: {portf[0]} | Inv.: {portf[1]} | Pos.: {portf[2]}")
+
+            except Exception as e:
+                print(f'ERROR: {e}')
+                logging.error(e)
+
+        time.sleep(5)
 
 if __name__ == "__main__":
     main()
