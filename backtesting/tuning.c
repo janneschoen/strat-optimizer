@@ -15,7 +15,7 @@ void visualise(unsigned stratTypeID, strat_t * strategies, unsigned numStrats, u
     }
     fclose(file);
     char command[50];
-    sprintf(command, "python %s %u %u", PLOTTING_PY, numStrats, stratTypes[stratTypeID].numParams);
+    sprintf(command, "python %s --goal '%s'", PLOTTING_PY, perfTypes[goal]);
     system(command);
 }
 

@@ -1,6 +1,6 @@
 
 def generateSignal(bitget, params, symbol):
-    candles = bitget.fetch_ohlcv(symbol, '1h', limit=params[1])
+    candles = bitget.fetch_ohlcv(symbol, '1m', limit=params[1])
     openPrices = []
 
     for candle in candles:

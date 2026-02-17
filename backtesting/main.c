@@ -92,18 +92,17 @@ int main(int argc, char * argv[]){
 
     testStrats(stratTypeID, strategies, numStrats, prices, priceAmount, maxLookback, &config);
     
-    clear();
 
     printf("%s | %s", ticker, stratTypes[stratTypeID].name);
     printf(" | %s | %u days\n\n", config.fullYear ? "full year" : "252 trading days", btLength);
 
-    /*printf("Backtest winners\n");
+    printf("Backtest winners\n");
     strat_t bestStrats[NUM_PERF_TYPES];
     for(unsigned i = 0; i < NUM_PERF_TYPES; i++){
         bestStrats[i] = findBestStrat(strategies, numStrats, i);
         printf("%s:\n", perfTypes[i]);
         showStrat(stratTypeID, &bestStrats[i]);
-    }*/
+    }
 
     printf("Optimal\n");
     strat_t optimalStrats[NUM_PERF_TYPES];
@@ -116,7 +115,6 @@ int main(int argc, char * argv[]){
 
     if(config.visualisation){
         for(unsigned i = 0; i < NUM_PERF_TYPES; i++){
-            printf("Visualising %s\n", perfTypes[i]);
             visualise(stratTypeID, strategies, numStrats, i);
         }
     }

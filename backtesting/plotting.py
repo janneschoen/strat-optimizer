@@ -3,6 +3,12 @@ from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 import sys
 import os
+import argparse
+
+parser = argparse.ArgumentParser(description='Receive name for purpose of plot.')
+parser.add_argument('--goal', type=str, required=False, help='what the plot will show')
+args = parser.parse_args()
+goal = args.goal
 
 path = 'temp/strategies.temp'
 
@@ -34,7 +40,7 @@ if dimensions == 4:
     cbar = plt.colorbar(scatter)
     cbar.set_label('Performance')
 
-    ax.set_title('Strategy Performance (3 Parameters)')
+    ax.set_title(f"{goal} vs {dimensions-1} parameters")
     ax.set_xlabel('Parameter 1')
     ax.set_ylabel('Parameter 2')
     ax.set_zlabel('Parameter 3')
@@ -49,7 +55,7 @@ elif dimensions == 3:
 
     scatter = ax.scatter(x, y, z)
 
-    ax.set_title('Strategy Performance (2 Parameters)')
+    ax.set_title(f"{goal} vs {dimensions-1} parameters")
     ax.set_xlabel('Parameter 1')
     ax.set_ylabel('Parameter 2')
     ax.set_zlabel('Results')
@@ -59,7 +65,7 @@ elif dimensions == 2:
     y = vectors[:, 1]
     plt.scatter(x, y, color='blue', marker='o')
 
-    plt.title('Strategy Performance (1 Parameter)')
+    ax.set_title(f"{goal} vs {dimensions-1} parameters")
     plt.xlabel('Parameter')
     plt.ylabel('Results')
 else:

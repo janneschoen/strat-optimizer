@@ -28,7 +28,14 @@ void backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned
     for(unsigned i = start; i < priceAmount; i++){
         networth = (assetsOwned - assetLoans) * prices[i] + cash;
 
-        position = stratTypes[stratTypeID].getSignal(i, strategy, prices);
+        if(networth <= 0){
+            networth = 0;
+            networthValues[i-start] = 0;
+            liquidation = i-start;
+            break;
+        }
+
+        position = stratTypes[stratTypeID].getSignal(i, strategy, prices, networth);
 
         if(position > 0){
             // buying back borrowed assets (closing shorts)
@@ -36,7 +43,7 @@ void backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned
             assetLoans = 0;
 
             // buying or selling assets
-            float desiredAssets = (position * networth) / prices[i];
+            float desiredAssets = position / prices[i];
             cash += (assetsOwned - desiredAssets) * prices[i];
             assetsOwned = desiredAssets;
 
@@ -46,17 +53,12 @@ void backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned
             assetsOwned = 0;
 
             // borrowing or giving back assets
-            float desiredAssetLoans = (-1*position * networth) / prices[i];
+            float desiredAssetLoans = -1 * position / prices[i];
             cash += (desiredAssetLoans - assetLoans) * prices[i];
             assetLoans = desiredAssetLoans;
         }
 
-        if(networth <= 0){
-            networth = 0;
-            networthValues[i-start] = 0;
-            liquidation = i-start;
-            break;
-        }
+
 
         networthValues[i-start] = networth;
     }

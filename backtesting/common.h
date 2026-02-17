@@ -27,7 +27,7 @@ typedef struct{
     float performance[NUM_PERF_TYPES]; // annProfit, sharpe
 } strat_t;
 
-typedef float (*getSigFun)(unsigned day, strat_t * strategy, float * prices);
+typedef float (*getSigFun)(unsigned day, strat_t * strategy, float * prices, float networth);
 typedef bool (*validStratFun)(strat_t * strategy);
 
 typedef struct{

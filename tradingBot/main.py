@@ -25,7 +25,7 @@ def sell(bitget, symbol, quantity):
     bitget.create_order(f"{symbol}:USDT", type='market', amount=quantity, side='sell', params=params)
 
 
-def takePosition(bitget, signal, symbol, allocation):
+def takePosition(bitget, signal, symbol, reserves):
         
     ticker = bitget.fetch_ticker(symbol)
     currentPrice = ticker['last']
@@ -35,7 +35,7 @@ def takePosition(bitget, signal, symbol, allocation):
     invested = portfolio[1]
     side = portfolio[2]
 
-    desiredInv = networth * allocation
+    desiredInv = networth * (1 - reserves)
 
     markets = bitget.load_markets()
 
@@ -77,25 +77,25 @@ def getPortfolio(bitget):
     
     return networth, invested, position
 
-def runStrategy(bitget, strategy, symbol, params, allocation):
+def runStrategy(bitget, strategy, symbol, params, reserves):
 
     signal = strategy.generateSignal(bitget, params, symbol)
 
-    takePosition(bitget, signal, symbol, allocation)
+    takePosition(bitget, signal, symbol, reserves)
 
 
 def main():
     parser = argparse.ArgumentParser(description='Run trading strategy with specific parameters.')
     parser.add_argument('-s', required=True, type=int, help='strategy ID')
     parser.add_argument('-p', nargs='+', type=int, help='strategy parameters')
-    parser.add_argument('-i', required=True, type=float, help='investment size')
+    parser.add_argument('-r', required=True, type=float, help='reserves size (%% of netwoth not invested)')
     parser.add_argument('-a', required=True, type=str, help='asset ticker')
 
     args = parser.parse_args()
     symbol = args.a
     stratID = args.s
     params = args.p
-    allocation = args.i
+    reserves = args.r
 
     try:
         strategy = importlib.import_module(f"strategies.strat{stratID}")
@@ -130,7 +130,7 @@ def main():
 
     while True:
         try:
-            runStrategy(bitget, strategy, symbol, params, allocation)
+            runStrategy(bitget, strategy, symbol, params, reserves)
             
         except Exception as e:
             print(f'ERROR: {e}')
