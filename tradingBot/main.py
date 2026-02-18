@@ -19,7 +19,8 @@ def sell(bitget, symbol, quantity):
 
     bitget.create_order(symbol, type='market', amount=quantity, side='sell', params=params)
 
-def takePosition(bitget, signal, symbol, reserves):
+def takePosition(bitget, signal, settings):
+    symbol = settings["asset"]
 
     ticker = bitget.fetch_ticker(symbol)
     currentPrice = ticker['last']
@@ -29,7 +30,7 @@ def takePosition(bitget, signal, symbol, reserves):
     invested = portfolio[1]
     side = portfolio[2]
 
-    desiredInv = networth * (1 - reserves)
+    desiredInv = networth * (1 - settings["reserves"])
 
     markets = bitget.load_markets()
 
@@ -69,39 +70,41 @@ def getPortfolio(bitget):
 
     return networth, invested, position
 
-def runStrategy(bitget, strategy, symbol, params, reserves):
+def runStrategy(bitget, settings):
+    
+    signal = settings["strategy"].generateSignal(bitget, settings)
+    takePosition(bitget, signal, settings)
 
-    signal = strategy.generateSignal(bitget, params, symbol)
 
-    takePosition(bitget, signal, symbol, reserves)
+def loadConfig():
+    with open('config.json', 'r') as file:
+        config = json.load(file)
+    
+    configKeys = ["strategy", "params", "reserves", "asset"]
+    for key in configKeys:
+        if key not in config:
+            print("ERROR: not found in config:", key)
+            raise KeyError
+
+    settings = {setting: config[setting] for setting in configKeys}
+
+    if(settings["reserves"] < 0.01 or settings["reserves"] >= 1):
+        print("ERROR: 1% to 99% must be reserved. (0.01-0.99)")
+        raise ValueError
+
+    try:
+        strategy = importlib.import_module(f"strategies.strat{settings["strategy"]}")
+    except:
+        print("ERROR: couldn't import strategy with stratID", settings["strategy"])
+        raise ImportError
+
+    settings["strategy"] = strategy
+    strategy.validate(settings["params"])
+    
+    return settings
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Run trading strategy with specific parameters.')
-    parser.add_argument('-s', required=True, type=int, help='strategy ID')
-    parser.add_argument('-p', nargs='+', type=int, help='strategy parameters')
-    parser.add_argument('-r', required=True, type=float, help='reserves size (%% of netwoth not invested)')
-    parser.add_argument('-a', required=True, type=str, help='asset ticker')
-
-    args = parser.parse_args()
-    symbol = args.a
-    stratID = args.s
-    params = args.p
-    reserves = args.r
-
-    if(reserves < 0.01 or reserves >= 1):
-        print("ERROR: 1% to 99% must be reserved. (0.01-0.99)")
-        exit(1)
-
-    try:
-        strategy = importlib.import_module(f"strategies.strat{stratID}")
-    except:
-        print("Error importing strategy.")
-        exit(1)
-
-    if not strategy.valid(params):
-        exit(1)
-
 
     with open('keys.json', 'r') as file:
         keys = json.load(file)
@@ -128,14 +131,14 @@ def main():
 
     lastRun = datetime.now()
 
-    print("Running since", lastRun)
-
     while True:
         now = datetime.now()
-        if now.day != lastRun.day and now.hour == 1:
+        if True or (now.day != lastRun.day and now.hour == 1):
             try:
+                settings = loadConfig()
+
                 logging.info("Running strategy")
-                runStrategy(bitget, strategy, symbol, params, reserves)
+                runStrategy(bitget, settings)
                 lastRun = now
 
                 portf = getPortfolio(bitget)

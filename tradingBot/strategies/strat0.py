@@ -1,7 +1,9 @@
 # Daily Moving Average Crossover Strategy
 
-def generateSignal(bitget, params, symbol):
-    candles = bitget.fetch_ohlcv(symbol, '1d', limit=params[1])
+def generateSignal(bitget, settings):
+    params = settings["params"]
+
+    candles = bitget.fetch_ohlcv(settings["asset"], '1d', limit=params[1])
     openPrices = []
 
     for candle in candles:
@@ -19,11 +21,13 @@ def generateSignal(bitget, params, symbol):
     else:
         return 'short'
 
-def valid(params):
+def validate(params):
+    if len(params) != 2:
+        print("ERROR: strat0 requires exactly 2 parameters.")
+        raise ValueError
     if params[0] >= params[1]:
         print("ERROR: SMA length must be smaller than LMA length.")
-        return 0
+        raise ValueError
     if params[0] < 1 or params[1] < 1:
         print("ERROR: Moving average lengths must be at least 1.")
-        return 0
-    return 1
+        raise ValueError
