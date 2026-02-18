@@ -5,11 +5,11 @@
 
 #define RISK_FREE_RATE 0.02
 #define TRADING_FEE 0.001
-#define BUDGET 600
+#define BUDGET 1000
 
-void backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned priceAmount, unsigned start, execMode_t * config){
+void backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned start, unsigned end, execMode_t * config){
 
-    unsigned liquidation = priceAmount - start;
+    unsigned liquidation = end - start;
     unsigned numDailyReturns = liquidation - 1;
     double dailyReturns[numDailyReturns];
     float networthValues[liquidation];
@@ -25,7 +25,7 @@ void backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned
     float networth = cash;
     float position;
 
-    for(unsigned i = start; i < priceAmount; i++){
+    for(unsigned i = start; i < end; i++){
         networth = (assetsOwned - assetLoans) * prices[i] + cash;
 
         if(networth <= 0){
@@ -58,8 +58,6 @@ void backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned
             assetLoans = desiredAssetLoans;
         }
 
-
-
         networthValues[i-start] = networth;
     }
 
@@ -74,7 +72,7 @@ void backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned
     }
 
     unsigned tradingDays = config->fullYear ? 365 : 252;
-    double period = tradingDays / (float)(priceAmount-start);
+    double period = tradingDays / (float)(end-start);
     double annProfit = pow(1 + ((networth - BUDGET) / BUDGET), period) - 1;
 
     for(unsigned i = 0; i < numDailyReturns; i++){

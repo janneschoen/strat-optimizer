@@ -26,7 +26,7 @@ void genStrats(unsigned stratTypeID, unsigned param, strat_t * strategies, unsig
             (*stratsMade) ++;
         }
     } else{
-        for(unsigned i = stratTypes[stratTypeID].minParams[param]; i <= strategy->params[param]; i++){
+        for(unsigned i = stratTypes[stratTypeID].minParams[param]; i <= strategy->params[param]; i+=GRID_INTERVAL){
             strat_t stratCpy = *strategy;
             stratCpy.params[param] = i;
             genStrats(stratTypeID, param + 1, strategies, numStrats, &stratCpy, stratsMade);
@@ -34,9 +34,33 @@ void genStrats(unsigned stratTypeID, unsigned param, strat_t * strategies, unsig
     }
 }
 
-void testStrats(unsigned stratTypeID, strat_t * strategies, unsigned numStrats, float * prices, unsigned priceAmount, unsigned start, execMode_t * config){
+void crossTest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned start, unsigned priceAmount, execMode_t * config){
+    unsigned lenPeriod = (priceAmount - start) / PERIODS;
+    float perfSum[NUM_PERF_TYPES];
+    for(unsigned i = 0; i < NUM_PERF_TYPES; i++){
+        perfSum[i] = 0;
+    }
+    for(unsigned i = 0; i < PERIODS; i++){
+        unsigned from = start + i * lenPeriod;
+        unsigned to = from + lenPeriod;
+        strat_t stratClone = *strategy;
+        backtest(stratTypeID, &stratClone, prices, from, to, config);
+        for(unsigned j = 0; j < NUM_PERF_TYPES; j++){
+            perfSum[j] += stratClone.performance[j];
+        }
+    }
+    for(unsigned i = 0; i < NUM_PERF_TYPES; i++){
+        strategy->performance[i] = perfSum[i] / PERIODS;
+    }
+}
+
+void testStrats(unsigned stratTypeID, strat_t * strategies, unsigned numStrats, float * prices, unsigned start, unsigned priceAmount, execMode_t * config){
     for(unsigned i = 0; i < numStrats; i++){
-        backtest(stratTypeID, &strategies[i], prices, priceAmount, start, config);
+
+        //crossTest(stratTypeID, &strategies[i], prices, start, priceAmount, config);
+
+        backtest(stratTypeID, &strategies[i], prices, start, priceAmount, config);
+
         if(i % 2500 == 0){
             loadingBar(i, numStrats);
         }

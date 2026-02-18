@@ -13,6 +13,8 @@
 #define MAX_PARAMS 4
 #define NUM_STRAT_TYPES 1
 #define NUM_PERF_TYPES 2
+#define GRID_INTERVAL 5
+#define PERIODS 10
 
 extern const char * perfTypes[];
 
@@ -53,11 +55,12 @@ void showStrat(unsigned stratTypeID, strat_t * strategy);
 
 // backtesting
 void getPrices(char * ticker, unsigned priceAmount, float * prices);
-void backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned priceAmount, unsigned start, execMode_t * config);
+void backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned start, unsigned end, execMode_t * config);
+void crossTest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned start, unsigned priceAmount, execMode_t * config);
 
 // tuning
 void genStrats(unsigned stratTypeID, unsigned param, strat_t * strategies, unsigned numStrats, strat_t * strategy, unsigned * stratsMade);
-void testStrats(unsigned stratTypeID, strat_t * strategies, unsigned numStrats, float * prices, unsigned priceAmount, unsigned start, execMode_t * config);
+void testStrats(unsigned stratTypeID, strat_t * strategies, unsigned numStrats, float * prices, unsigned start, unsigned priceAmount, execMode_t * config);
 
 strat_t findBestStrat(strat_t * strategies, unsigned numStrats, unsigned goal);
 strat_t findOptimalStrat(unsigned stratTypeID, strat_t * strategies, unsigned numStrats, unsigned goal);

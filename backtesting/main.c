@@ -56,9 +56,14 @@ int main(int argc, char * argv[]){
 
     if(config.singleTest){
         printf("%s | %s", ticker, stratTypes[stratTypeID].name);
-        printf(" | %s days\n", config.fullYear ? "365" : "252");
+        printf(" | %s\n", config.fullYear ? "full year" : "252 trading days");
         
-        backtest(stratTypeID, &maxStrat, prices, priceAmount, maxLookback, &config);
+        printf("Crosstested over %u periods\n", PERIODS);
+        crossTest(stratTypeID, &maxStrat, prices, maxLookback, priceAmount, &config);
+        showStrat(stratTypeID, &maxStrat);
+
+        printf("Full backtest\n");
+        backtest(stratTypeID, &maxStrat, prices, maxLookback, priceAmount, &config);
         showStrat(stratTypeID, &maxStrat);
 
         if(config.visualisation){
@@ -74,7 +79,7 @@ int main(int argc, char * argv[]){
         if(stratTypes[stratTypeID].minParams[i] == 0){
             numStrats *= maxStrat.params[i] + 1;
         } else{
-            numStrats *= maxStrat.params[i];
+            numStrats *= maxStrat.params[i] / 5;
         }
     }
 
@@ -90,8 +95,7 @@ int main(int argc, char * argv[]){
     genStrats(stratTypeID, 0, strategies, numStrats, &maxStrat, &stratsMade);
     numStrats = stratsMade;
 
-    testStrats(stratTypeID, strategies, numStrats, prices, priceAmount, maxLookback, &config);
-    
+    testStrats(stratTypeID, strategies, numStrats, prices, maxLookback, priceAmount, &config);
 
     printf("%s | %s", ticker, stratTypes[stratTypeID].name);
     printf(" | %s | %u days\n\n", config.fullYear ? "full year" : "252 trading days", btLength);
