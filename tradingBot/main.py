@@ -1,4 +1,5 @@
 import argparse
+import os
 import ccxt
 import json
 import time
@@ -40,10 +41,10 @@ def takePosition(bitget, signal, settings):
             return
 
         if (signal == "long" and desiredInv > invested) or (signal == "short" and desiredInv < invested):
-            toBuy = (desiredInv - invested) / currentPrice
+            toBuy = abs(desiredInv - invested) / currentPrice
             buy(bitget, symbol, toBuy)
         else:
-            toSell = (invested - desiredInv) / currentPrice
+            toSell = abs(invested - desiredInv) / currentPrice
             sell(bitget, symbol, toSell)
     else:
         if signal == "long":
@@ -71,15 +72,29 @@ def getPortfolio(bitget):
     return networth, invested, position
 
 def runStrategy(bitget, settings):
-    
+
     signal = settings["strategy"].generateSignal(bitget, settings)
-    takePosition(bitget, signal, settings)
-
-
+    positionTaken = False
+    increasedReserves = 0
+    while not positionTaken:
+        try:
+            takePosition(bitget, signal, settings)
+            positionTaken = True
+        except:
+            if settings["reserves"] >= 0.05:
+                logging.warning("Order could not be executed at >=5% reserves.")
+                exit(1)
+            settings["reserves"] += (5/1000)
+            increasedReserves += (5/1000)
+            logging.warning(f"Order invalid, increased reserves -> {settings['reserves']}")
+            print("Increased reserves->", settings["reserves"])
 def loadConfig():
-    with open('config.json', 'r') as file:
+    mainDir = os.path.dirname(os.path.abspath(__file__))
+    configDir = os.path.join(mainDir, 'config.json')
+
+    with open(configDir, 'r') as file:
         config = json.load(file)
-    
+
     configKeys = ["strategy", "params", "reserves", "asset"]
     for key in configKeys:
         if key not in config:
@@ -89,36 +104,45 @@ def loadConfig():
     settings = {setting: config[setting] for setting in configKeys}
 
     if(settings["reserves"] < 0.01 or settings["reserves"] >= 1):
-        print("ERROR: 1% to 99% must be reserved. (0.01-0.99)")
+        print("ERROR: 1% - 100% must be reserved. (0.01 - 1.00)")
         raise ValueError
 
     try:
-        strategy = importlib.import_module(f"strategies.strat{settings["strategy"]}")
+        strategy = importlib.import_module(f"strategies.strat{settings['strategy']}")
     except:
         print("ERROR: couldn't import strategy with stratID", settings["strategy"])
         raise ImportError
 
     settings["strategy"] = strategy
     strategy.validate(settings["params"])
-    
+
     return settings
 
 def ranToday():
-    with open("bot.log", 'r') as file:
+    mainDir = os.path.dirname(os.path.abspath(__file__))
+    logDir = os.path.join(mainDir, "bot.log")
+
+    with open(logDir, 'r') as file:
         logs = file.readlines()
         for log in logs:
-            if str((datetime.now()).day) in log:
+            if str((datetime.now()).date()) in log:
                 return True
     return False
 
 def main():
-    logging.basicConfig(filename='bot.log', level=logging.INFO, format='%(asctime)s | %(levelname)s | %(message)s')
+    mainDir = os.path.dirname(os.path.abspath(__file__))
+    logDir = os.path.join(mainDir, "bot.log")
+
+    logging.basicConfig(filename=logDir, level=logging.INFO, format='%(asctime)s | %(levelname)s | %(message)s')
 
     if(ranToday()):
         logging.warning("Tried running again")
         exit(1)
 
-    with open('keys.json', 'r') as file:
+    mainDir = os.path.dirname(os.path.abspath(__file__))
+    keysDir = os.path.join(mainDir, 'keys.json')
+
+    with open(keysDir, 'r') as file:
         keys = json.load(file)
 
     apiKey = keys["apikey"]
@@ -148,8 +172,9 @@ def main():
         networth = f"{portf[0]:.2f}"
         invested = f"{portf[1]:.2f}"
         cash = f"{(portf[0]-portf[1]):.2f}"
+        reserves = settings["reserves"]
 
-        logging.info(f"Networth: {networth} | Invested: {invested} | Cash: {cash}")
+        logging.info(f"Networth: {networth} | Invested: {invested} | Cash: {cash} | Reserves: {reserves}")
 
     except Exception as e:
         print(f'ERROR: {e}')
