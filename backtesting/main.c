@@ -79,7 +79,7 @@ int main(int argc, char * argv[]){
         if(stratTypes[stratTypeID].minParams[i] == 0){
             numStrats *= maxStrat.params[i] + 1;
         } else{
-            numStrats *= maxStrat.params[i] / 5;
+            numStrats *= maxStrat.params[i] / GRID_INTERVAL;
         }
     }
 
