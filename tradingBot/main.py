@@ -1,12 +1,9 @@
-import argparse
-import os
 import ccxt
 import json
 import time
 import logging
 from datetime import datetime
 import importlib
-import inspect
 
 def buy(bitget, symbol, quantity):
 
@@ -89,10 +86,8 @@ def runStrategy(bitget, settings):
             logging.warning(f"Order invalid, increased reserves -> {settings['reserves']}")
             print("Increased reserves->", settings["reserves"])
 def loadConfig():
-    mainDir = os.path.dirname(os.path.abspath(__file__))
-    configDir = os.path.join(mainDir, 'config.json')
 
-    with open(configDir, 'r') as file:
+    with open('config.json', 'r') as file:
         config = json.load(file)
 
     configKeys = ["strategy", "params", "reserves", "asset"]
@@ -119,10 +114,8 @@ def loadConfig():
     return settings
 
 def ranToday():
-    mainDir = os.path.dirname(os.path.abspath(__file__))
-    logDir = os.path.join(mainDir, "bot.log")
 
-    with open(logDir, 'r') as file:
+    with open('bot.log', 'r') as file:
         logs = file.readlines()
         for log in logs:
             if str((datetime.now()).date()) in log:
@@ -130,19 +123,13 @@ def ranToday():
     return False
 
 def main():
-    mainDir = os.path.dirname(os.path.abspath(__file__))
-    logDir = os.path.join(mainDir, "bot.log")
-
-    logging.basicConfig(filename=logDir, level=logging.INFO, format='%(asctime)s | %(levelname)s | %(message)s')
+    logging.basicConfig(filename='bot.log', level=logging.INFO, format='%(asctime)s | %(levelname)s | %(message)s')
 
     if(ranToday()):
         logging.warning("Tried running again")
         exit(1)
 
-    mainDir = os.path.dirname(os.path.abspath(__file__))
-    keysDir = os.path.join(mainDir, 'keys.json')
-
-    with open(keysDir, 'r') as file:
+    with open('keys.json', 'r') as file:
         keys = json.load(file)
 
     apiKey = keys["apikey"]
