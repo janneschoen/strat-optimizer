@@ -14,7 +14,7 @@ with open(networthPath, 'r', encoding="utf-8") as file:
 
 with open(pricePath, 'r', encoding="utf-8") as file:
     lines = file.readlines()
-    priceLines = lines[:len(networthValues)]
+    priceLines = lines[-len(networthValues):]
     for price in priceLines:
         prices.append(float(price.strip()))
 
