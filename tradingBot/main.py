@@ -36,7 +36,7 @@ def takePosition(bitget, signal, settings):
 
     if signal == side:
         if abs(desiredInv - invested) / currentPrice <= 0.0001:
-            logging.info(f"({side}, {invested}) - maintaining position")
+            logging.info(f"{side} - maintaining position")
             return
 
         if (signal == "long" and desiredInv > invested) or (signal == "short" and desiredInv < invested):
@@ -53,7 +53,7 @@ def takePosition(bitget, signal, settings):
             toSell = (desiredInv + invested) / currentPrice
             sell(bitget, symbol, toSell)
 
-    logging.info(f"({side}, {invested}) -> ({signal}, {desiredInv})")
+    logging.info(f"{side} -> {signal}")
 
 
 def getPortfolio(bitget):
@@ -103,8 +103,20 @@ def loadConfig():
     
     return settings
 
+def ranToday():
+    with open("bot.log", 'r') as file:
+        logs = file.readlines()
+        for log in logs:
+            if str((datetime.now()).day) in log:
+                return True
+    return False
 
 def main():
+    logging.basicConfig(filename='bot.log', level=logging.INFO, format='%(asctime)s | %(levelname)s | %(message)s')
+
+    if(ranToday()):
+        logging.warning("Tried running again")
+        exit(1)
 
     with open('keys.json', 'r') as file:
         keys = json.load(file)
@@ -125,30 +137,24 @@ def main():
         },
     })
 
-    elem = bitget.fetch_canceled_and_closed_orders()
+    try:
+        settings = loadConfig()
 
-    logging.basicConfig(filename='bot.log', level=logging.INFO, format='%(asctime)s | %(levelname)s | %(message)s')
+        logging.info("Running strategy")
+        runStrategy(bitget, settings)
 
-    lastRun = datetime.now()
+        portf = getPortfolio(bitget)
 
-    while True:
-        now = datetime.now()
-        if True or (now.day != lastRun.day and now.hour == 1):
-            try:
-                settings = loadConfig()
+        networth = f"{portf[0]:.2f}"
+        invested = f"{portf[1]:.2f}"
+        cash = f"{(portf[0]-portf[1]):.2f}"
 
-                logging.info("Running strategy")
-                runStrategy(bitget, settings)
-                lastRun = now
+        logging.info(f"Networth: {networth} | Invested: {invested} | Cash: {cash}")
 
-                portf = getPortfolio(bitget)
-                logging.info(f"Netw.: {portf[0]} | Inv.: {portf[1]} | Pos.: {portf[2]}")
+    except Exception as e:
+        print(f'ERROR: {e}')
+        logging.error(e)
 
-            except Exception as e:
-                print(f'ERROR: {e}')
-                logging.error(e)
-
-        time.sleep(60)
 
 if __name__ == "__main__":
     main()
