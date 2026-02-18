@@ -2,12 +2,11 @@
 
 def generateSignal(bitget, params, symbol):
     candles = bitget.fetch_ohlcv(symbol, '1d', limit=params[1])
-    print("Timestamp of newest price:", candles[-1][0])
     openPrices = []
 
     for candle in candles:
         openPrices.append(candle[1])
-    
+
     if(params[0] > 1):
         sma = sum(openPrices[-params[0]:]) / params[0]
     else:

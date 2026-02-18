@@ -20,7 +20,7 @@ def sell(bitget, symbol, quantity):
     bitget.create_order(symbol, type='market', amount=quantity, side='sell', params=params)
 
 def takePosition(bitget, signal, symbol, reserves):
-        
+
     ticker = bitget.fetch_ticker(symbol)
     currentPrice = ticker['last']
 
@@ -51,7 +51,7 @@ def takePosition(bitget, signal, symbol, reserves):
         else:
             toSell = (desiredInv + invested) / currentPrice
             sell(bitget, symbol, toSell)
-    
+
     logging.info(f"({side}, {invested}) -> ({signal}, {desiredInv})")
 
 
@@ -66,7 +66,7 @@ def getPortfolio(bitget):
         position = positions[0]["side"]
     else:
         position = None
-    
+
     return networth, invested, position
 
 def runStrategy(bitget, strategy, symbol, params, reserves):
@@ -101,7 +101,7 @@ def main():
 
     if not strategy.valid(params):
         exit(1)
-    
+
 
     with open('keys.json', 'r') as file:
         keys = json.load(file)
@@ -123,10 +123,12 @@ def main():
     })
 
     elem = bitget.fetch_canceled_and_closed_orders()
-    
+
     logging.basicConfig(filename='bot.log', level=logging.INFO, format='%(asctime)s | %(levelname)s | %(message)s')
 
     lastRun = datetime.now()
+
+    print("Running since", lastRun)
 
     while True:
         now = datetime.now()
