@@ -7,13 +7,19 @@ import importlib
 
 def buy(bitget, symbol, quantity):
 
-    params = {"marginMode": "isolated",}
+    params = {
+        "marginMode": "isolated",
+        "leverage": "1",
+    }
 
     bitget.create_order(symbol, type='market', amount=quantity, side='buy', params=params)
 
 def sell(bitget, symbol, quantity):
 
-    params = {"marginMode": "isolated",}
+    params = {
+        "marginMode": "isolated",
+        "leverage": "1",
+    }
 
     bitget.create_order(symbol, type='market', amount=quantity, side='sell', params=params)
 
@@ -77,14 +83,15 @@ def runStrategy(bitget, settings):
         try:
             takePosition(bitget, signal, settings)
             positionTaken = True
-        except:
-            if settings["reserves"] >= 0.05:
-                logging.warning("Order could not be executed at >=5% reserves.")
+        except Exception as e:
+            if settings["reserves"] >= 0.03:
+                logging.warning("Order could not be executed at >=3% reserves.")
+                logging.error("ERROR:", e)
                 exit(1)
             settings["reserves"] += (5/1000)
             increasedReserves += (5/1000)
             logging.warning(f"Order invalid, increased reserves -> {settings['reserves']}")
-            print("Increased reserves->", settings["reserves"])
+
 def loadConfig():
 
     with open('config.json', 'r') as file:
@@ -129,7 +136,7 @@ def main():
         logging.warning("Tried running again")
         exit(1)
 
-    with open('keys.json', 'r') as file:
+    with open('keys2.json', 'r') as file:
         keys = json.load(file)
 
     apiKey = keys["apikey"]
@@ -141,7 +148,7 @@ def main():
         'secret': secret,
         'password': password,
         'headers': {
-            'paptrading': '1',
+            'paptrading': '0',
         },
         'options': {
             'defaultType': 'future',
@@ -162,9 +169,10 @@ def main():
         reserves = settings["reserves"]
 
         logging.info(f"Networth: {networth} | Invested: {invested} | Cash: {cash} | Reserves: {reserves}")
+        print(datetime.now(), "Success")
 
     except Exception as e:
-        print(f'ERROR: {e}')
+        print(datetime.now(), "ERROR:", e)
         logging.error(e)
 
 
