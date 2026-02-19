@@ -5,21 +5,8 @@
 
 #define RISK_FREE_RATE 0.02
 #define TRADING_FEE 0.001
-#define BUDGET 1000
 
-void backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned start, unsigned end, execMode_t * config){
-
-    unsigned liquidation = end - start;
-    unsigned numDailyReturns = liquidation - 1;
-    double dailyReturns[numDailyReturns];
-    float networthValues[liquidation];
-
-    for(unsigned i = 0; i < liquidation; i++){
-        networthValues[i] = NAN;
-        if(i < numDailyReturns){
-            dailyReturns[i] = NAN;
-        }
-    }
+void backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned start, unsigned end){
 
     float cash = BUDGET, assetsOwned = 0, assetLoans = 0;
     float networth = cash;
@@ -30,8 +17,6 @@ void backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned
 
         if(networth <= 0){
             networth = 0;
-            networthValues[i-start] = 0;
-            liquidation = i-start;
             break;
         }
 
@@ -57,49 +42,8 @@ void backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned
             cash += (desiredAssetLoans - assetLoans) * prices[i];
             assetLoans = desiredAssetLoans;
         }
-
-        networthValues[i-start] = networth;
     }
-
-    numDailyReturns = liquidation - 1;
-
-    if(config->singleTest){
-        FILE * file = fopen(CHART_FILE, "w");
-        for(unsigned i = 0; i < liquidation; i++){
-            fprintf(file, "%f\n", networthValues[i]);
-        }
-        fclose(file);
-    }
-
-    unsigned tradingDays = config->fullYear ? 365 : 252;
-    double period = tradingDays / (float)(end-start);
-    double annProfit = pow(1 + ((networth - BUDGET) / BUDGET), period) - 1;
-
-    for(unsigned i = 0; i < numDailyReturns; i++){
-        dailyReturns[i] = (networthValues[i+1]-networthValues[i]) / networthValues[i];
-    }
-
-    double meanDailyReturn = 0;
-    for(unsigned i = 0; i < numDailyReturns; i++){
-        meanDailyReturn += dailyReturns[i];
-    }
-    meanDailyReturn /= numDailyReturns;
-
-    double variance = 0;
-    for(unsigned i = 0; i < numDailyReturns; i++){
-        variance += pow((dailyReturns[i] - meanDailyReturn), 2);
-    }
-    variance /= numDailyReturns;
-
-    double stdDeviation = pow(variance, 0.5) * pow(tradingDays, 0.5);
-
-    strategy->performance[0] = annProfit;
-    
-    if(annProfit == 0){
-        strategy->performance[1] = 0;
-    } else{
-        strategy->performance[1] = (annProfit - RISK_FREE_RATE) / stdDeviation;
-    }
+    strategy->performance[0] = (networth - BUDGET) / BUDGET;
 }
 
 void getPrices(char * ticker, unsigned priceAmount, float * prices){

@@ -34,36 +34,52 @@ void genStrats(unsigned stratTypeID, unsigned param, strat_t * strategies, unsig
     }
 }
 
-void crossTest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned start, unsigned priceAmount, execMode_t * config){
-    unsigned lenPeriod = (priceAmount - start) / PERIODS;
-    float perfSum[NUM_PERF_TYPES];
-    for(unsigned i = 0; i < NUM_PERF_TYPES; i++){
-        perfSum[i] = 0;
-    }
-    for(unsigned i = 0; i < PERIODS; i++){
-        unsigned from = start + i * lenPeriod;
-        unsigned to = from + lenPeriod;
-        strat_t stratClone = *strategy;
-        backtest(stratTypeID, &stratClone, prices, from, to, config);
-        for(unsigned j = 0; j < NUM_PERF_TYPES; j++){
-            perfSum[j] += stratClone.performance[j];
+void walkForwardAnalysis(unsigned stratTypeID, strat_t * strategies, unsigned numStrats, float * prices, unsigned start, unsigned priceAmount, execMode_t * config){
+    unsigned trSize = config->trSize;
+    unsigned trFreq = config->trFreq;
+
+    printf("training size: %u\n", trSize);
+    printf("training every %u days\n", trFreq);
+    printf("days available for training: %u\n\n", priceAmount-start);
+    printf("prices downloaded %u\n", priceAmount);
+
+    float investment = BUDGET;
+
+    for(unsigned i = start; i < priceAmount-start-trSize; i+=trFreq){
+        unsigned training[2];
+        training[0] = i;
+        training[1] = training[0] + trSize;
+
+        for(unsigned j = 0; j < numStrats; j++){
+            backtest(stratTypeID, &strategies[j], prices, training[0], training[1]);
         }
+
+        strat_t trainedStrat = findOptimalStrat(stratTypeID, strategies, numStrats, 0);
+
+        unsigned test[2];
+        test[0] = training[1];
+        test[1] = test[0] + trFreq;
+
+        backtest(stratTypeID, &trainedStrat, prices, test[0], test[1]);
+
+        investment *= (1 + trainedStrat.performance[0]);
+        //showStrat(stratTypeID, &trainedStrat);
     }
-    for(unsigned i = 0; i < NUM_PERF_TYPES; i++){
-        strategy->performance[i] = perfSum[i] / PERIODS;
-    }
+
+    float profit = (investment - BUDGET) / BUDGET;
+
+    float lenYear = (float)(config->fullYear ? 365 : 252);
+    float annProfit = pow(1 + profit, lenYear / (priceAmount - start)) - 1;
+
+    printf("Profit: %.2f / %u days\n", profit, priceAmount-start);
+    printf("Annualized profit: %.4f\n", annProfit);
 }
 
-void testStrats(unsigned stratTypeID, strat_t * strategies, unsigned numStrats, float * prices, unsigned start, unsigned priceAmount, execMode_t * config){
+void testStrats(unsigned stratTypeID, strat_t * strategies, unsigned numStrats, float * prices, unsigned start, unsigned priceAmount){
     for(unsigned i = 0; i < numStrats; i++){
 
-        //crossTest(stratTypeID, &strategies[i], prices, start, priceAmount, config);
+        backtest(stratTypeID, &strategies[i], prices, start, priceAmount);
 
-        backtest(stratTypeID, &strategies[i], prices, start, priceAmount, config);
-
-        if(i % 2500 == 0){
-            loadingBar(i, numStrats);
-        }
     }
 }
 

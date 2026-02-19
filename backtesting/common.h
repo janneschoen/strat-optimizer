@@ -13,20 +13,22 @@
 #define MAX_PARAMS 4
 #define NUM_STRAT_TYPES 1
 #define NUM_PERF_TYPES 2
-#define GRID_INTERVAL 5
-#define PERIODS 10
+#define GRID_INTERVAL 10
+
+#define BUDGET 1000
 
 extern const char * perfTypes[];
 
 typedef struct{
     bool fullYear;
-    bool singleTest;
+    unsigned trSize;
+    unsigned trFreq;
     bool visualisation;
 } execMode_t;
 
 typedef struct{
     unsigned params[MAX_PARAMS];
-    float performance[NUM_PERF_TYPES]; // annProfit, sharpe
+    float performance[NUM_PERF_TYPES]; // profit, sharpe
 } strat_t;
 
 typedef float (*getSigFun)(unsigned day, strat_t * strategy, float * prices, float networth);
@@ -55,15 +57,15 @@ void showStrat(unsigned stratTypeID, strat_t * strategy);
 
 // backtesting
 void getPrices(char * ticker, unsigned priceAmount, float * prices);
-void backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned start, unsigned end, execMode_t * config);
-void crossTest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned start, unsigned priceAmount, execMode_t * config);
+void backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned start, unsigned end);
 
 // tuning
 void genStrats(unsigned stratTypeID, unsigned param, strat_t * strategies, unsigned numStrats, strat_t * strategy, unsigned * stratsMade);
-void testStrats(unsigned stratTypeID, strat_t * strategies, unsigned numStrats, float * prices, unsigned start, unsigned priceAmount, execMode_t * config);
+void testStrats(unsigned stratTypeID, strat_t * strategies, unsigned numStrats, float * prices, unsigned start, unsigned priceAmount);
 
 strat_t findBestStrat(strat_t * strategies, unsigned numStrats, unsigned goal);
 strat_t findOptimalStrat(unsigned stratTypeID, strat_t * strategies, unsigned numStrats, unsigned goal);
+void walkForwardAnalysis(unsigned stratTypeID, strat_t * strategies, unsigned numStrats, float * prices, unsigned start, unsigned priceAmount, execMode_t * config);
 
 void doRegression(unsigned stratTypeID, strat_t * strategies, unsigned numStrats, strat_t * predStrats, unsigned degree);
 
