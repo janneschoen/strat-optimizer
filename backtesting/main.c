@@ -3,13 +3,14 @@
 #include <stdlib.h>
 #include <math.h>
 
-#define NUM_ARGUMENTS 8
+#define NUM_ARGUMENTS 6
 
-// Arguments: stratTypeID, p0, p1, p2, btLength, trSize, trFreq, ticker, fullYear, visualisation
+// Arguments: stratTypeID, params[], btLength, ticker, fullYear, visualisation
 
 int main(int argc, char * argv[]){
+    char * arguments = "stratTypeID, params[], btLength, ticker, fullYear?, visualisations?";
     if(argc == 1){
-        printf("ERROR: Requires arguments: stratTypeID, params[], btLength, trSize, trFreq, ticker, fullYear, visualisation\n");
+        printf("ERROR: Requires arguments: %s\n", arguments);
         exit(1);
     }
 
@@ -28,9 +29,9 @@ int main(int argc, char * argv[]){
         exit(1);
     }
 
-    strat_t maxStrat;
+    strat_t strategy;
     for(unsigned i = 0; i < stratTypes[stratTypeID].numParams; i++){
-        maxStrat.params[i] = strtoul(argv[argID], NULL, 10);
+        strategy.params[i] = strtoul(argv[argID], NULL, 10);
         argID ++;
     }
 
@@ -38,12 +39,6 @@ int main(int argc, char * argv[]){
     argID ++;
 
     execMode_t config;
-
-    config.trSize = strtoul(argv[argID], NULL, 10);
-    argID ++;
-
-    config.trFreq = strtoul(argv[argID], NULL, 10);
-    argID ++;
 
     char * ticker = argv[argID];
     argID ++;
@@ -54,38 +49,22 @@ int main(int argc, char * argv[]){
     config.visualisation = strtoul(argv[argID], NULL, 10);
     argID ++;
 
-    unsigned maxLookback = getLookback(stratTypeID, &maxStrat);
+    unsigned maxLookback = getLookback(stratTypeID, &strategy);
 
     unsigned priceAmount = btLength + maxLookback;
     float prices[priceAmount];
     getPrices(ticker, priceAmount, prices);
 
-    unsigned numStrats = 1;
-    for(unsigned i = 0; i < stratTypes[stratTypeID].numParams; i++){
-        if(stratTypes[stratTypeID].minParams[i] == 0){
-            numStrats *= maxStrat.params[i] + 1;
-        } else{
-            numStrats *= maxStrat.params[i] / GRID_INTERVAL;
-        }
-    }
-
-    strat_t * strategies = (strat_t *)malloc(numStrats * sizeof(strat_t));
-    for(unsigned i = 0; i < numStrats; i++){
-        for(unsigned j = 0; j < NUM_PERF_TYPES; j++){
-            strategies[i].performance[j] = NAN;
-        }
-    }
-
-    unsigned stratsMade = 0;
-
-    genStrats(stratTypeID, 0, strategies, numStrats, &maxStrat, &stratsMade);
-    numStrats = stratsMade;
-
     printf("%s | %s", ticker, stratTypes[stratTypeID].name);
     printf(" | %s | %u days\n\n", config.fullYear ? "full year" : "252 trading days", btLength);
 
-    walkForwardAnalysis(stratTypeID, strategies, numStrats, prices, maxLookback, priceAmount, &config);
+    backtest(stratTypeID, &strategy, prices, maxLookback, priceAmount);
 
-    free(strategies);
+    float perf = strategy.performance[0];
+    float yearLen = config.fullYear ? 365 : 252;
+    strategy.performance[0] = pow(1 + perf, yearLen / (priceAmount-maxLookback)) - 1;
+    printf("Profit annualized\n");
+    showStrat(stratTypeID, &strategy);
+
     return 0;
 }

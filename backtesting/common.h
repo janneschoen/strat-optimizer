@@ -10,23 +10,23 @@
 #define PLOTTING_PY "plotting.py"
 #define CHART_PY "chart.py"
 
-#define MAX_PARAMS 4
-#define NUM_STRAT_TYPES 1
+#define MAX_PARAMS 5
+#define NUM_STRAT_TYPES 2
 #define NUM_PERF_TYPES 2
 #define GRID_INTERVAL 10
 
 #define BUDGET 1000
+#define STRAT_STORAGE 3
 
 extern const char * perfTypes[];
 
 typedef struct{
     bool fullYear;
-    unsigned trSize;
-    unsigned trFreq;
     bool visualisation;
 } execMode_t;
 
 typedef struct{
+    unsigned storage[STRAT_STORAGE];
     unsigned params[MAX_PARAMS];
     float performance[NUM_PERF_TYPES]; // profit, sharpe
 } strat_t;
@@ -50,8 +50,6 @@ unsigned getLookback(unsigned stratTypeID, strat_t * strategy);
 
 // graphics
 void visualise(unsigned stratTypeID, strat_t * strategies, unsigned numStrats, unsigned goal);
-void loadHeading();
-void clear();
 void loadingBar(unsigned done, unsigned goal);
 void showStrat(unsigned stratTypeID, strat_t * strategy);
 
@@ -61,11 +59,9 @@ void backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned
 
 // tuning
 void genStrats(unsigned stratTypeID, unsigned param, strat_t * strategies, unsigned numStrats, strat_t * strategy, unsigned * stratsMade);
-void testStrats(unsigned stratTypeID, strat_t * strategies, unsigned numStrats, float * prices, unsigned start, unsigned priceAmount);
 
 strat_t findBestStrat(strat_t * strategies, unsigned numStrats, unsigned goal);
 strat_t findOptimalStrat(unsigned stratTypeID, strat_t * strategies, unsigned numStrats, unsigned goal);
-void walkForwardAnalysis(unsigned stratTypeID, strat_t * strategies, unsigned numStrats, float * prices, unsigned start, unsigned priceAmount, execMode_t * config);
 
 void doRegression(unsigned stratTypeID, strat_t * strategies, unsigned numStrats, strat_t * predStrats, unsigned degree);
 
