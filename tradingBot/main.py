@@ -136,7 +136,7 @@ def main():
         logging.warning("Tried running again")
         exit(1)
 
-    with open('keys2.json', 'r') as file:
+    with open('keys.json', 'r') as file:
         keys = json.load(file)
 
     apiKey = keys["apikey"]
@@ -148,7 +148,7 @@ def main():
         'secret': secret,
         'password': password,
         'headers': {
-            'paptrading': '0',
+            'paptrading': '1',
         },
         'options': {
             'defaultType': 'future',
