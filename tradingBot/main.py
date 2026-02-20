@@ -97,7 +97,7 @@ def loadConfig():
     with open('config.json', 'r') as file:
         config = json.load(file)
 
-    configKeys = ["strategy", "params", "reserves", "asset"]
+    configKeys = ["strategy", "params", "reserves", "asset", "yfTicker"]
     for key in configKeys:
         if key not in config:
             print("ERROR: not found in config:", key)

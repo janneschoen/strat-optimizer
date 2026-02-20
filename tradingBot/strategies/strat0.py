@@ -1,13 +1,13 @@
 # Daily Moving Average Crossover Strategy
+import yfinance as yf
 
 def generateSignal(bitget, settings):
     params = settings["params"]
+    ticker = settings["yfTicker"]
 
-    candles = bitget.fetch_ohlcv(settings["asset"], '1d', limit=params[1])
-    openPrices = []
+    candles = yf.download(ticker, period=f"{params[1]}d", interval="1d", progress=False)
 
-    for candle in candles:
-        openPrices.append(candle[1])
+    openPrices = candles['Open'][ticker].to_list()
 
     if(params[0] > 1):
         sma = sum(openPrices[-params[0]:]) / params[0]
