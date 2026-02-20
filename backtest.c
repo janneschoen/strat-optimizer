@@ -12,6 +12,8 @@ void backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned
     float networth = cash;
     float position;
 
+    float networthValues[end-start];
+
     for(unsigned i = start; i < end; i++){
         networth = (assetsOwned - assetLoans) * prices[i] + cash;
 
@@ -42,13 +44,27 @@ void backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned
             cash += (desiredAssetLoans - assetLoans) * prices[i];
             assetLoans = desiredAssetLoans;
         }
+        networthValues[i-start] = networth;
     }
-    strategy->performance[0] = (networth - BUDGET) / BUDGET;
+
+    float perf = (networth - BUDGET) / BUDGET;
+    float yearLen = config.fullYear ? 365 : 252;
+
+    strategy->performance[0] = pow(1 + perf, yearLen / (end-start)) - 1;
+
+    if(config.singleTest && config.visuals){
+        FILE * file = fopen(CHART_FILE, "w");
+        for(unsigned i = 0; i < end-start; i++){
+            fprintf(file, "%f\n", networthValues[i]);
+        }
+        fclose(file);
+    }
 }
 
 void getPrices(char * ticker, unsigned priceAmount, float * prices){
 
     char command[50];
+    
     sprintf(command, "python %s %s %u", GETPRICES_PY, ticker, priceAmount);
     system(command);
 

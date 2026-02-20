@@ -3,22 +3,6 @@
 #include <stdlib.h>
 #include <math.h>
 
-
-void visualise(unsigned stratTypeID, strat_t * strategies, unsigned numStrats, unsigned goal){
-    FILE * file;
-    file = fopen(STRAT_FILE, "w");
-    for(unsigned i = 0; i < numStrats; i++){
-        for(unsigned j = 0; j < stratTypes[stratTypeID].numParams; j++){
-            fprintf(file, "%u ", strategies[i].params[j]);
-        }
-        fprintf(file, "%f\n", strategies[i].performance[goal]);
-    }
-    fclose(file);
-    char command[50];
-    sprintf(command, "python %s --goal '%s'", PLOTTING_PY, perfTypes[goal]);
-    system(command);
-}
-
 void genStrats(unsigned stratTypeID, unsigned param, strat_t * strategies, unsigned numStrats, strat_t * strategy, unsigned * stratsMade){
     if(param == stratTypes[stratTypeID].numParams){
         if(stratTypes[stratTypeID].validStrat(strategy)){
@@ -29,7 +13,7 @@ void genStrats(unsigned stratTypeID, unsigned param, strat_t * strategies, unsig
             (*stratsMade) ++;
         }
     } else{
-        for(unsigned i = stratTypes[stratTypeID].minParams[param]; i <= strategy->params[param]; i+=GRID_INTERVAL){
+        for(unsigned i = stratTypes[stratTypeID].minParams[param]; i <= strategy->params[param]; i+=config.gridIntv){
             strat_t stratCpy = *strategy;
             stratCpy.params[param] = i;
             genStrats(stratTypeID, param + 1, strategies, numStrats, &stratCpy, stratsMade);
@@ -56,17 +40,17 @@ strat_t perfByParams(unsigned stratTypeID, strat_t * strategies, strat_t strateg
     return strategies[index];
 }
 
-strat_t findBestStrat(strat_t * strategies, unsigned numStrats, unsigned goal){
+strat_t findBestStrat(strat_t * strategies, unsigned numStrats){
     strat_t bestStrat = strategies[0];
     for(unsigned i = 1; i < numStrats; i++){
-        if(strategies[i].performance[goal] > bestStrat.performance[goal]){
+        if(strategies[i].performance[config.goal] > bestStrat.performance[config.goal]){
             bestStrat = strategies[i];
         }
     }
     return bestStrat;
 }
 
-strat_t findOptimalStrat(unsigned stratTypeID, strat_t * strategies, unsigned numStrats, unsigned goal){
+strat_t findOptimalStrat(unsigned stratTypeID, strat_t * strategies, unsigned numStrats){
     unsigned numParams = stratTypes[stratTypeID].numParams;
     unsigned maxParams[numParams];
     unsigned minParams[numParams];
@@ -118,13 +102,13 @@ strat_t findOptimalStrat(unsigned stratTypeID, strat_t * strategies, unsigned nu
                 if(param >= half1[j][0] && param <= half1[j][1]){
                     matching1 ++;
                     if(matching1 == numParams){
-                        value1 += strategies[i].performance[goal];
+                        value1 += strategies[i].performance[config.goal];
                     }
                 }
                 if(param >= half2[j][0] && param <= half2[j][1]){
                     matching2 ++;
                     if(matching2 == numParams){
-                        value2 += strategies[i].performance[goal];
+                        value2 += strategies[i].performance[config.goal];
                     }
                 }
             }

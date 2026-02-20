@@ -1,16 +1,18 @@
 import yfinance as yf
-import sys
+import sys, os
 from datetime import datetime
 from datetime import timedelta as td
-import os
+import json
 
-FILENAME = "temp/prices.temp"
+PRICES_FILE = "temp/prices.temp"
 
 ticker = sys.argv[1]
 priceAmount = int(sys.argv[2])
+
 daysToDownload = int(priceAmount * (5/3))
 
 day = datetime.now().replace(hour=0,minute=0,second=0,microsecond=0) - td(1)
+
 
 try:
     priceData = (yf.download(ticker,
@@ -19,7 +21,7 @@ try:
         end = day,
         auto_adjust = True))['Open'][ticker].to_dict()
 except:
-    with open(FILENAME, 'w') as file:
+    with open(PRICES_FILE, 'w') as file:
         file.write(f"ERROR\n")
     exit(1)
 
@@ -34,6 +36,6 @@ for date in sorted(priceData.keys()):
 
 prices = prices[-priceAmount:]
 
-with open(FILENAME, 'w') as file:
+with open(PRICES_FILE, 'w') as file:
     for price in prices:
         file.write(f"{price}\n")

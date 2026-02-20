@@ -5,16 +5,16 @@ import sys
 import os
 import argparse
 
+STRATS_FILE = 'temp/strategies.temp'
+
 parser = argparse.ArgumentParser(description='Receive name for purpose of plot.')
 parser.add_argument('--goal', type=str, required=False, help='what the plot will show')
 args = parser.parse_args()
 goal = args.goal
 
-path = 'temp/strategies.temp'
-
 vectors = []
 
-with open(path, 'r', encoding="utf-8") as file:
+with open(STRATS_FILE, 'r', encoding="utf-8") as file:
     for line in file:
         line = line.strip()
         if line:

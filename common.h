@@ -6,24 +6,31 @@
 #define STRAT_FILE "temp/strategies.temp"
 #define CHART_FILE "temp/networth.temp"
 
-#define GETPRICES_PY "getPrices.py"
-#define PLOTTING_PY "plotting.py"
-#define CHART_PY "chart.py"
+#define GETPRICES_PY "python/getPrices.py"
+#define PLOTTING_PY "python/plotting.py"
+#define CHART_PY "python/chart.py"
 
 #define MAX_PARAMS 5
 #define NUM_STRAT_TYPES 2
 #define NUM_PERF_TYPES 2
-#define GRID_INTERVAL 10
+#define GOAL 0
 
 #define BUDGET 1000
 #define STRAT_STORAGE 3
 
-extern const char * perfTypes[];
-
 typedef struct{
+    unsigned stratTypeID;
+    unsigned params[MAX_PARAMS];
+    unsigned btLength;
+    unsigned gridIntv;
+    unsigned goal;
+    char ticker[20];
     bool fullYear;
-    bool visualisation;
+    bool visuals;
+    bool singleTest;
 } execMode_t;
+
+extern execMode_t config;
 
 typedef struct{
     unsigned storage[STRAT_STORAGE];
@@ -43,13 +50,18 @@ typedef struct{
     validStratFun validStrat;
 } stratType_t;
 
+// strategy infos
+extern const char * perfTypes[];
 extern const stratType_t stratTypes[NUM_STRAT_TYPES];
 
 unsigned getLookback(unsigned stratTypeID, strat_t * strategy);
-
+float getSignal0(unsigned day, strat_t * strategy, float * prices, float networth);
+float getSignal1(unsigned day, strat_t * strategy, float * prices, float networth);
+bool validStrat0(strat_t * strategy);
+bool validStrat1(strat_t * strategy);
 
 // graphics
-void visualise(unsigned stratTypeID, strat_t * strategies, unsigned numStrats, unsigned goal);
+void visualise(unsigned stratTypeID, strat_t * strategies, unsigned numStrats);
 void loadingBar(unsigned done, unsigned goal);
 void showStrat(unsigned stratTypeID, strat_t * strategy);
 
@@ -60,10 +72,9 @@ void backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned
 // tuning
 void genStrats(unsigned stratTypeID, unsigned param, strat_t * strategies, unsigned numStrats, strat_t * strategy, unsigned * stratsMade);
 
-strat_t findBestStrat(strat_t * strategies, unsigned numStrats, unsigned goal);
-strat_t findOptimalStrat(unsigned stratTypeID, strat_t * strategies, unsigned numStrats, unsigned goal);
+strat_t findBestStrat(strat_t * strategies, unsigned numStrats);
+strat_t findOptimalStrat(unsigned stratTypeID, strat_t * strategies, unsigned numStrats);
 
-void doRegression(unsigned stratTypeID, strat_t * strategies, unsigned numStrats, strat_t * predStrats, unsigned degree);
-
+void loadConfig();
 
 #endif

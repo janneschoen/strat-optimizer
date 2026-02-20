@@ -1,0 +1,11 @@
+{
+    "stratTypeID": 0,
+    "params": [100, 100, 0],
+    "btLength": 2000,
+    "gridIntv": 1,
+    "ticker": "BTC-USD",
+    "fullYear": 1,
+    "visuals": 1,
+    "singleTest": 0,
+    "goal": 0
+}

@@ -1,8 +1,26 @@
 #include "common.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 #define SCREENROWS 100
 #define BAR_LENGTH 20
+
+
+void visualise(unsigned stratTypeID, strat_t * strategies, unsigned numStrats){
+    FILE * file = fopen(STRAT_FILE, "w");
+    
+    for(unsigned i = 0; i < numStrats; i++){
+        for(unsigned j = 0; j < stratTypes[stratTypeID].numParams; j++){
+            fprintf(file, "%u ", strategies[i].params[j]);
+        }
+        fprintf(file, "%f\n", strategies[i].performance[config.goal]);
+    }
+
+    fclose(file);
+    char command[50];
+    sprintf(command, "python %s --goal '%s'", PLOTTING_PY, perfTypes[config.goal]);
+    system(command);
+}
 
 void clear(){
     for(unsigned i = 0; i < SCREENROWS; i++){    
@@ -11,9 +29,9 @@ void clear(){
 }
 
 void loadingBar(unsigned done, unsigned goal){
-    clear();
     float progress = (float)done / goal;
     unsigned simpleProgress = (unsigned)(progress * BAR_LENGTH);
+    printf("\033[F\033[2K");
     printf("[");
     for(unsigned i = 0; i < simpleProgress; i++){
         printf("#");
@@ -29,7 +47,5 @@ void showStrat(unsigned stratTypeID, strat_t * strategy){
     for(unsigned i = 0; i < stratTypes[stratTypeID].numParams; i++){
         printf(" %u ", strategy->params[i]);
     }
-    float annProfit = strategy->performance[0];
-    float sharpe = strategy->performance[1];
-    printf("] %.2f profit | %.2f sharpe\n\n", annProfit, sharpe);
+    printf("] %.3f %s\n", strategy->performance[config.goal], perfTypes[config.goal]);
 }

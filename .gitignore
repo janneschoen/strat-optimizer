@@ -1,7 +1,4 @@
-stratOpt
+optimizer
 *.temp
 *.out
-*.json
-env
-*.log
 __pycache__/
