@@ -4,9 +4,9 @@
 
 const stratType_t stratTypes[NUM_STRAT_TYPES] ={
     {"SMA crossover",
-        3,
-        {"SMA len", "LMA len", "Reserves"},
-        {1,1,0},
+        4,
+        {"SMA len", "LMA len", "Reserves", "Entry area"},
+        {1,1,0,1},
         getSignal0, validStrat0},
     {"dynamic SMA crossover",
         5,

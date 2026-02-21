@@ -10,7 +10,7 @@ bool validStrat1(strat_t * strategy){
     return 1;
 }
 
-float getSignal1(unsigned day, strat_t * strategy, float * prices, float networth){
+float getSignal1(unsigned day, strat_t * strategy, float * prices, float networth, float cash){
     strat_t trainedStrat;
     for(unsigned i = 0; i < stratTypes[1].numParams; i++){
         trainedStrat.params[i] = strategy->storage[i];
@@ -47,5 +47,5 @@ float getSignal1(unsigned day, strat_t * strategy, float * prices, float networt
         free(trainingStrats);
     }
 
-    return getSignal0(day, &trainedStrat, prices, networth);
+    return getSignal0(day, &trainedStrat, prices, networth, cash);
 }

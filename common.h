@@ -13,7 +13,6 @@
 #define MAX_PARAMS 5
 #define NUM_STRAT_TYPES 2
 #define NUM_PERF_TYPES 2
-#define GOAL 0
 
 #define BUDGET 1000
 #define STRAT_STORAGE 3
@@ -38,7 +37,7 @@ typedef struct{
     float performance[NUM_PERF_TYPES]; // profit, sharpe
 } strat_t;
 
-typedef float (*getSigFun)(unsigned day, strat_t * strategy, float * prices, float networth);
+typedef float (*getSigFun)(unsigned day, strat_t * strategy, float * prices, float networth, float cash);
 typedef bool (*validStratFun)(strat_t * strategy);
 
 typedef struct{
@@ -55,8 +54,8 @@ extern const char * perfTypes[];
 extern const stratType_t stratTypes[NUM_STRAT_TYPES];
 
 unsigned getLookback(unsigned stratTypeID, strat_t * strategy);
-float getSignal0(unsigned day, strat_t * strategy, float * prices, float networth);
-float getSignal1(unsigned day, strat_t * strategy, float * prices, float networth);
+float getSignal0(unsigned day, strat_t * strategy, float * prices, float networth, float cash);
+float getSignal1(unsigned day, strat_t * strategy, float * prices, float networth, float cash);
 bool validStrat0(strat_t * strategy);
 bool validStrat1(strat_t * strategy);
 

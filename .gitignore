@@ -2,3 +2,4 @@ optimizer
 *.temp
 *.out
 __pycache__/
+*.json

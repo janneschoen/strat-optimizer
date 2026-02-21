@@ -1,4 +1,6 @@
 #include "common.h"
+#include <math.h>
+#include <stdio.h>
 
 // STRATEGY TYPE 0: simple moving average crossover
 
@@ -12,7 +14,7 @@ bool validStrat0(strat_t * strategy){
     return 1;
 }
 
-float getSignal0(unsigned day, strat_t * strategy, float * prices, float networth){
+float getSignal0(unsigned day, strat_t * strategy, float * prices, float networth, float cash){
     float shortPriceSum = 0;
     for(unsigned i = 0; i < strategy->params[0]; i++){
         shortPriceSum += prices[day-i];
@@ -25,11 +27,17 @@ float getSignal0(unsigned day, strat_t * strategy, float * prices, float networt
     }
     float lma = longPriceSum / strategy->params[1];
 
-    float allocation = networth * (1.0 - ((float)strategy->params[2] / 100.0));
+    float desiredInv = networth * (1.0 - ((float)strategy->params[2] / 100.0));
+
+    if(networth == cash){
+        if(fabs(sma-lma)/lma > (float)strategy->params[3]/100.0){
+            return 0;
+        }
+    }
 
     if(sma > lma){
-        return allocation;
+        return desiredInv;
     } else{
-        return -allocation;
+        return -desiredInv;
     }
 }

@@ -10,7 +10,7 @@ void backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned
 
     float cash = BUDGET, assetsOwned = 0, assetLoans = 0;
     float networth = cash;
-    float position;
+    float desiredInv;
 
     float networthValues[end-start];
 
@@ -22,25 +22,27 @@ void backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned
             break;
         }
 
-        position = stratTypes[stratTypeID].getSignal(i, strategy, prices, networth);
+        desiredInv = stratTypes[stratTypeID].getSignal(i, strategy, prices, networth, cash);
 
-        if(position > 0){
-            // buying back borrowed assets (closing shorts)
-            cash -= assetLoans * prices[i];
-            assetLoans = 0;
-
+        if(desiredInv > 0){
+            if(assetLoans > 0){
+                // buying back borrowed assets (closing shorts)
+                cash -= assetLoans * prices[i];
+                assetLoans = 0;
+            }
             // buying or selling assets
-            float desiredAssets = position / prices[i];
+            float desiredAssets = desiredInv / prices[i];
             cash += (assetsOwned - desiredAssets) * prices[i];
             assetsOwned = desiredAssets;
 
-        } else if(position < 0){
-            // selling all assets (closing longs)
-            cash += assetsOwned * prices[i];
-            assetsOwned = 0;
-
+        } else if(desiredInv < 0){
+            if(assetsOwned > 0){
+                // selling all assets (closing longs)
+                cash += assetsOwned * prices[i];
+                assetsOwned = 0;
+            }
             // borrowing or giving back assets
-            float desiredAssetLoans = -1 * position / prices[i];
+            float desiredAssetLoans = -1 * desiredInv / prices[i];
             cash += (desiredAssetLoans - assetLoans) * prices[i];
             assetLoans = desiredAssetLoans;
         }

@@ -49,11 +49,14 @@ void loadConfig(){
     cJSON *array = cJSON_GetObjectItem(json, "params");
 
     if (cJSON_IsArray(array)) {
-        int arrSize = cJSON_GetArraySize(array);
+        unsigned arrSize = cJSON_GetArraySize(array);
 
-        for (int i = 0; i < arrSize; i++) {
+        for (unsigned i = 0; i < arrSize; i++) {
             cJSON *item = cJSON_GetArrayItem(array, i);
             config.params[i] = (unsigned)item->valueint;
+        }
+        for(unsigned i = arrSize; i < MAX_PARAMS; i++){
+            config.params[i] = 0;
         }
     }
 
