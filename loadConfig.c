@@ -37,7 +37,6 @@ void loadConfig(){
 
     config.stratTypeID = loadInt(json, "stratTypeID");
     config.btLength = loadInt(json, "btLength");
-    config.gridIntv = loadInt(json, "gridIntv");
     config.fullYear = loadInt(json, "fullYear");
     config.visuals = loadInt(json, "visuals");
     config.singleTest = loadInt(json, "singleTest");
@@ -46,17 +45,20 @@ void loadConfig(){
     cJSON *item = cJSON_GetObjectItem(json, "ticker");
     snprintf(config.ticker, sizeof(config.ticker), "%s", item->valuestring);
 
-    cJSON *array = cJSON_GetObjectItem(json, "params");
-
+    cJSON * array = cJSON_GetObjectItem(json, "params");
     if (cJSON_IsArray(array)) {
         unsigned arrSize = cJSON_GetArraySize(array);
-
         for (unsigned i = 0; i < arrSize; i++) {
             cJSON *item = cJSON_GetArrayItem(array, i);
-            config.params[i] = (unsigned)item->valueint;
+            config.params[i] = item->valuedouble;
         }
-        for(unsigned i = arrSize; i < MAX_PARAMS; i++){
-            config.params[i] = 0;
+    }
+    cJSON * array2 = cJSON_GetObjectItem(json, "gridIntv");
+    if (cJSON_IsArray(array2)) {
+        unsigned arrSize = cJSON_GetArraySize(array2);
+        for (unsigned i = 0; i < arrSize; i++) {
+            cJSON *item = cJSON_GetArrayItem(array2, i);
+            config.gridIntv[i] = item->valuedouble;
         }
     }
 

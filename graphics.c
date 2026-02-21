@@ -11,7 +11,7 @@ void visualise(unsigned stratTypeID, strat_t * strategies, unsigned numStrats){
     
     for(unsigned i = 0; i < numStrats; i++){
         for(unsigned j = 0; j < stratTypes[stratTypeID].numParams; j++){
-            fprintf(file, "%u ", strategies[i].params[j]);
+            fprintf(file, "%f ", strategies[i].params[j]);
         }
         fprintf(file, "%f\n", strategies[i].performance[config.goal]);
     }
@@ -45,7 +45,12 @@ void loadingBar(unsigned done, unsigned goal){
 void showStrat(unsigned stratTypeID, strat_t * strategy){
     printf("[");
     for(unsigned i = 0; i < stratTypes[stratTypeID].numParams; i++){
-        printf(" %u ", strategy->params[i]);
+        float param = strategy->params[i];
+        if(param == (unsigned)param){
+            printf(" %u ", (unsigned)param);
+        } else{
+            printf(" %.3f ", strategy->params[i]);
+        }
     }
     printf("] %.3f %s\n", strategy->performance[config.goal], perfTypes[config.goal]);
 }

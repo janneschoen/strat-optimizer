@@ -5,10 +5,16 @@
 // STRATEGY TYPE 0: simple moving average crossover
 
 bool validStrat0(strat_t * strategy){
-    if(strategy->params[0] >= strategy->params[1]){
+    float p0 = strategy->params[0];
+    float p1 = strategy->params[1];
+    float p2 = strategy->params[2];
+    if(p0 != (unsigned)p0 || p1 != (unsigned)p1){
         return 0;
     }
-    if(strategy->params[2] > 100){
+    if(p0 >= p1){
+        return 0;
+    }
+    if(p2 > 100){
         return 0;
     }
     return 1;
@@ -27,10 +33,10 @@ float getSignal0(unsigned day, strat_t * strategy, float * prices, float networt
     }
     float lma = longPriceSum / strategy->params[1];
 
-    float desiredInv = networth * (1.0 - ((float)strategy->params[2] / 100.0));
+    float desiredInv = networth * (1.0 - strategy->params[2]);
 
     if(networth == cash){
-        if(fabs(sma-lma)/lma > (float)strategy->params[3]/100.0){
+        if(fabs(sma-lma)/lma > strategy->params[3]){
             return 0;
         }
     }

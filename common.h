@@ -19,9 +19,9 @@
 
 typedef struct{
     unsigned stratTypeID;
-    unsigned params[MAX_PARAMS];
+    float params[MAX_PARAMS];
+    float gridIntv[MAX_PARAMS];
     unsigned btLength;
-    unsigned gridIntv;
     unsigned goal;
     char ticker[20];
     bool fullYear;
@@ -33,7 +33,7 @@ extern execMode_t config;
 
 typedef struct{
     unsigned storage[STRAT_STORAGE];
-    unsigned params[MAX_PARAMS];
+    float params[MAX_PARAMS];
     float performance[NUM_PERF_TYPES]; // profit, sharpe
 } strat_t;
 
@@ -44,7 +44,7 @@ typedef struct{
     char * name;
     unsigned numParams;
     char * paramNames[MAX_PARAMS];
-    unsigned minParams[MAX_PARAMS];
+    float minParams[MAX_PARAMS];
     getSigFun getSignal;
     validStratFun validStrat;
 } stratType_t;

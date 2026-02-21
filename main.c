@@ -36,9 +36,9 @@ int main(){
         unsigned numStrats = 1;
         for(unsigned i = 0; i < stratTypes[config.stratTypeID].numParams; i++){
             if(stratTypes[config.stratTypeID].minParams[i] == 0){
-                numStrats *= strategy.params[i] + 1;
+                numStrats *= (strategy.params[i] + 1) / config.gridIntv[i];
             } else{
-                numStrats *= strategy.params[i];
+                numStrats *= strategy.params[i] / config.gridIntv[i];
             }
         }
 

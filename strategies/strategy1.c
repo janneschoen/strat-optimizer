@@ -16,13 +16,13 @@ float getSignal1(unsigned day, strat_t * strategy, float * prices, float networt
         trainedStrat.params[i] = strategy->storage[i];
     }
 
-    if((day - getLookback(1, strategy)) % strategy->params[4] == 0){
+    if((day - getLookback(1, strategy)) % (unsigned)strategy->params[4] == 0){
         unsigned numStrats = 1;
         for(unsigned i = 0; i < stratTypes[0].numParams; i++){
             if(stratTypes[0].minParams[i] == 0){
-                numStrats *= strategy->params[i] + 1;
+                numStrats *= (strategy->params[i] + 1) / config.gridIntv[i];
             } else{
-                numStrats *= strategy->params[i] / config.gridIntv;
+                numStrats *= strategy->params[i] / config.gridIntv[i];
             }
         }
 
