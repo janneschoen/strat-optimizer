@@ -55,7 +55,6 @@ strat_t findBestStrat(strat_t * strategies, unsigned numStrats){
 
 strat_t findOptimalStrat(unsigned stratTypeID, strat_t * strategies, unsigned numStrats){
     unsigned numParams = stratTypes[stratTypeID].numParams;
-    float split[numParams][3];
 
     float refinedParams[numParams];
     for(unsigned i = 0; i < numParams; i++){
@@ -64,11 +63,14 @@ strat_t findOptimalStrat(unsigned stratTypeID, strat_t * strategies, unsigned nu
     unsigned paramsRefined = 0;
     unsigned hDim = 0;
 
+    float split[numParams][3];
+
     for(unsigned i = 0; i < numParams; i++){
         split[i][0] = stratTypes[stratTypeID].minParams[i];
         split[i][2] = strategies[numStrats-1].params[i];
         split[i][1] = (split[i][0] + split[i][2]) / 2;
     }
+    strat_t strat;
 
     while(paramsRefined < numParams){
         while(hDim == numParams || !isnan(refinedParams[hDim])){
@@ -81,6 +83,7 @@ strat_t findOptimalStrat(unsigned stratTypeID, strat_t * strategies, unsigned nu
         }
 
         float lowerSum = 0, upperSum = 0;
+        unsigned lowerPoints = 0, upperPoints = 0;
         for(unsigned i = 0; i < numStrats; i++){
             unsigned paramsInLowerHalf = 0;
             unsigned paramsInUpperHalf = 0;
@@ -95,16 +98,20 @@ strat_t findOptimalStrat(unsigned stratTypeID, strat_t * strategies, unsigned nu
             }
             if(paramsInLowerHalf == numParams){
                 lowerSum += strategies[i].performance[config.goal];
+                strat = strategies[i];
+                lowerPoints ++;
             }
             if(paramsInUpperHalf == numParams){
                 upperSum += strategies[i].performance[config.goal];
+                strat = strategies[i];
+                upperPoints ++;
             }
         }
-        printf("Lowerhalf: %.2f\n", lowerSum);
-        printf("Upperhalf: %.2f\n", upperSum);
-        printf("\n");
+        if(lowerPoints + upperPoints == 1){
+            return strat;
+        }
 
-        if(lowerSum > upperSum){
+        if(lowerSum/lowerPoints > upperSum/upperPoints){
             split[hDim][2] = split[hDim][1];
         } else{
             split[hDim][0] = split[hDim][1];
@@ -113,7 +120,7 @@ strat_t findOptimalStrat(unsigned stratTypeID, strat_t * strategies, unsigned nu
 
         if(fabs(split[hDim][0] - split[hDim][2]) < TOLERANCE){
             paramsRefined ++;
-            refinedParams[hDim] = (split[hDim][0]+split[hDim][1]+split[hDim][2]) / 3;
+            refinedParams[hDim] = (split[hDim][0]+split[hDim][2]) / 2;
         }
 
         hDim++;
