@@ -38,7 +38,6 @@ void loadConfig(){
     config.stratTypeID = loadInt(json, "stratTypeID");
     config.btLength = loadInt(json, "btLength");
     config.fullYear = loadInt(json, "fullYear");
-    config.visuals = loadInt(json, "visuals");
     config.singleTest = loadInt(json, "singleTest");
     config.goal = loadInt(json, "goal");
 
@@ -59,6 +58,15 @@ void loadConfig(){
         for (unsigned i = 0; i < arrSize; i++) {
             cJSON *item = cJSON_GetArrayItem(array2, i);
             config.gridIntv[i] = item->valuedouble;
+        }
+    }
+
+    cJSON * array3 = cJSON_GetObjectItem(json, "visuals");
+    if (cJSON_IsArray(array3)) {
+        unsigned arrSize = cJSON_GetArraySize(array3);
+        for (unsigned i = 0; i < arrSize; i++) {
+            cJSON *item = cJSON_GetArrayItem(array3, i);
+            config.visuals[i] = item->valueint;
         }
     }
 

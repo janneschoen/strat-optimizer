@@ -8,10 +8,11 @@
 
 void visualise(unsigned stratTypeID, strat_t * strategies, unsigned numStrats){
     FILE * file = fopen(STRAT_FILE, "w");
-    
     for(unsigned i = 0; i < numStrats; i++){
         for(unsigned j = 0; j < stratTypes[stratTypeID].numParams; j++){
-            fprintf(file, "%f ", strategies[i].params[j]);
+            if(config.visuals[j]){
+                fprintf(file, "%f ", strategies[i].params[j]);
+            }
         }
         fprintf(file, "%f\n", strategies[i].performance[config.goal]);
     }

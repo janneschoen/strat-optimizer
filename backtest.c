@@ -54,7 +54,7 @@ void backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned
 
     strategy->performance[0] = pow(1 + perf, yearLen / (end-start)) - 1;
 
-    if(config.singleTest && config.visuals){
+    if(config.singleTest && config.visuals[0]){
         FILE * file = fopen(CHART_FILE, "w");
         for(unsigned i = 0; i < end-start; i++){
             fprintf(file, "%f\n", networthValues[i]);

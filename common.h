@@ -21,11 +21,11 @@ typedef struct{
     unsigned stratTypeID;
     float params[MAX_PARAMS];
     float gridIntv[MAX_PARAMS];
+    bool visuals[MAX_PARAMS];
     unsigned btLength;
     unsigned goal;
     char ticker[20];
     bool fullYear;
-    bool visuals;
     bool singleTest;
 } execMode_t;
 

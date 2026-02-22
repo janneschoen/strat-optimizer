@@ -40,7 +40,7 @@ if dimensions == 4:
     cbar = plt.colorbar(scatter)
     cbar.set_label('Performance')
 
-    ax.set_title(f"{goal} vs {dimensions-1} parameters")
+    ax.set_title(f"{goal} vs 3 parameters")
     ax.set_xlabel('Parameter 1')
     ax.set_ylabel('Parameter 2')
     ax.set_zlabel('Parameter 3')
@@ -55,7 +55,7 @@ elif dimensions == 3:
 
     scatter = ax.scatter(x, y, z)
 
-    ax.set_title(f"{goal} vs {dimensions-1} parameters")
+    ax.set_title(f"{goal} vs 2 parameters")
     ax.set_xlabel('Parameter 1')
     ax.set_ylabel('Parameter 2')
     ax.set_zlabel('Results')
@@ -65,7 +65,7 @@ elif dimensions == 2:
     y = vectors[:, 1]
     plt.scatter(x, y, color='blue', marker='o')
 
-    ax.set_title(f"{goal} vs {dimensions-1} parameters")
+    plt.title(f"{goal} vs 1 parameter")
     plt.xlabel('Parameter')
     plt.ylabel('Results')
 else:

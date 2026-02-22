@@ -11,7 +11,12 @@ int main(){
 
     strat_t strategy;
     for(unsigned i = 0; i < stratTypes[config.stratTypeID].numParams; i++){
+        if(config.visuals[i] == 0 && config.gridIntv[i] != 0){
+            printf("ERROR: param %u must be fixed if not visualised.\n", i);
+            exit(1);
+        }
         strategy.params[i] = config.params[i];
+
     }
 
     unsigned maxLookback = getLookback(config.stratTypeID, &strategy);
@@ -27,7 +32,7 @@ int main(){
     if(config.singleTest){
         backtest(config.stratTypeID, &strategy, prices, maxLookback, priceAmount);
         showStrat(config.stratTypeID, &strategy);
-        if(config.visuals){
+        if(config.visuals[0]){
             char command[50];
             sprintf(command, "python %s", CHART_PY);
             system(command);
@@ -35,10 +40,11 @@ int main(){
     } else{
         unsigned numStrats = 1;
         for(unsigned i = 0; i < stratTypes[config.stratTypeID].numParams; i++){
+            float intv = config.gridIntv[i];
             if(stratTypes[config.stratTypeID].minParams[i] == 0){
-                numStrats *= (strategy.params[i] + 1) / config.gridIntv[i];
+                numStrats *= intv ?(strategy.params[i] + 1) / intv : 1;
             } else{
-                numStrats *= strategy.params[i] / config.gridIntv[i];
+                numStrats *= intv ? strategy.params[i] / intv : 1;
             }
         }
 
@@ -51,6 +57,10 @@ int main(){
         unsigned stratsMade = 0;
         genStrats(config.stratTypeID, 0, strategies, numStrats, &strategy, &stratsMade);
         numStrats = stratsMade;
+        if(stratsMade == 0){
+            printf("ERROR: generated 0 strategies.\n");
+            exit(1);
+        }
 
         strat_t * temp = realloc(strategies, numStrats * sizeof(strat_t));
         strategies = temp;
@@ -71,15 +81,14 @@ int main(){
         showStrat(config.stratTypeID, &winningStrat);
         printf("Optimal: ");
         showStrat(config.stratTypeID, &optimalStrat);
-
-        if(config.visuals){
-            visualise(config.stratTypeID, strategies, numStrats);
+        
+        for(unsigned i = 0; i < stratTypes[config.stratTypeID].numParams; i++){
+            if(config.visuals[i]){
+                visualise(config.stratTypeID, strategies, numStrats);
+            }
         }
         free(strategies);
     }
-
- 
- 
 
     return 0;
 }
