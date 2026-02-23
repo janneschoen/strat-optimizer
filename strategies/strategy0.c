@@ -20,28 +20,37 @@ bool validStrat0(strat_t * strategy){
     return 1;
 }
 
-float getSignal0(unsigned day, strat_t * strategy, float * prices, float networth, float cash){
-    float shortPriceSum = 0;
-    for(unsigned i = 0; i < strategy->params[0]; i++){
-        shortPriceSum += prices[day-i];
+float avgPrice(float * prices, unsigned from, unsigned to){
+    float priceSum = 0;
+    for(unsigned i = from; i < to; i++){
+        priceSum += prices[i];
     }
-    float sma = shortPriceSum / strategy->params[0];
+    return priceSum / (to-from);
+}
 
-    float longPriceSum = 0;
-    for(unsigned i = 0; i < strategy->params[1]; i++){
-        longPriceSum += prices[day-i];
-    }
-    float lma = longPriceSum / strategy->params[1];
+float getSignal0(unsigned day, strat_t * strategy, float * prices, float networth, float cash){
+    unsigned fastL = strategy->params[0];
+    unsigned slowL = strategy->params[1];
+    unsigned entryType = strategy->params[3];
+
+    float fastSMA = avgPrice(prices, day-fastL, day);
+    float slowSMA = avgPrice(prices, day-slowL, day);
 
     float desiredInv = networth * (1.0 - strategy->params[2]);
 
-    if(networth == cash){
-        if(fabs(sma-lma)/lma > strategy->params[3]){
+    if(entryType == 1 && networth == cash){
+        float oldFastSMA = avgPrice(prices, day-fastL-1, day-1);
+        float oldSlowSMA = avgPrice(prices, day-slowL-1, day-1);
+        if(fastSMA > slowSMA && oldFastSMA < oldSlowSMA){
+            return desiredInv;
+        } else if (fastSMA < slowSMA && oldFastSMA > oldSlowSMA){
+            return -desiredInv;
+        } else{
             return 0;
         }
     }
 
-    if(sma > lma){
+    if(fastSMA > slowSMA){
         return desiredInv;
     } else{
         return -desiredInv;

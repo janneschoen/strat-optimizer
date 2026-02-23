@@ -18,17 +18,19 @@ int main(){
         }
     }
     for(unsigned i = 0; i < stratTypes[config.stratTypeID].numParams; i++){
-        if(visual && config.visuals[i] == 0 && config.gridIntv[i] != 0){
-            printf("ERROR: param %u must be fixed if not visualised.\n", i);
-            exit(1);
+        if(!config.singleTest){
+            if(visual && config.visuals[i] == 0 && config.gridIntv[i] != 0){
+                printf("ERROR: param %u must be fixed if not visualised.\n", i);
+                exit(1);
+            }
         }
         strategy.params[i] = config.params[i];
-
     }
 
     unsigned maxLookback = getLookback(config.stratTypeID, &strategy);
 
     unsigned btPrices = config.btLength[0] + config.btLength[1];
+
     unsigned priceAmount = btPrices + maxLookback;
     float prices[priceAmount];
     getPrices(config.ticker, priceAmount, prices);
@@ -39,8 +41,20 @@ int main(){
     printf(" | %s \n\n", config.singleTest ? "single test" : "range test");
 
     if(config.singleTest){
-        backtest(config.stratTypeID, &strategy, prices, maxLookback, priceAmount);
+        printf("%ud - %ud:\n", maxLookback, priceAmount-config.btLength[1]);
+        backtest(config.stratTypeID, &strategy, prices, maxLookback, priceAmount-config.btLength[1]);
         showStrat(config.stratTypeID, &strategy);
+        
+        if(config.visuals[0]){
+            char command[50];
+            sprintf(command, "python %s", CHART_PY);
+            system(command);
+        }
+
+        printf("%ud - %ud:\n", priceAmount-config.btLength[1], priceAmount);
+        backtest(config.stratTypeID, &strategy, prices, priceAmount-config.btLength[1], priceAmount);
+        showStrat(config.stratTypeID, &strategy);
+
         if(config.visuals[0]){
             char command[50];
             sprintf(command, "python %s", CHART_PY);
@@ -105,6 +119,7 @@ int main(){
         for(unsigned i = 0; i < stratTypes[config.stratTypeID].numParams; i++){
             if(config.visuals[i]){
                 visualise(config.stratTypeID, strategies, numStrats);
+                break;
             }
         }
         free(strategies);

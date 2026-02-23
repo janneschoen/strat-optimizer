@@ -8,8 +8,12 @@ PRICES_FILE = "temp/prices.temp"
 
 ticker = sys.argv[1]
 priceAmount = int(sys.argv[2])
+fullYear = int(sys.argv[3])
 
-daysToDownload = int(priceAmount * (5/3))
+if fullYear:
+    daysToDownload = priceAmount
+else:
+    daysToDownload = int(priceAmount * (5/3))
 
 day = datetime.now().replace(hour=0,minute=0,second=0,microsecond=0) - td(1)
 

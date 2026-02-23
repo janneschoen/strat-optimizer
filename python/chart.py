@@ -18,6 +18,9 @@ with open(pricePath, 'r', encoding="utf-8") as file:
     for price in priceLines:
         prices.append(float(price.strip()))
 
+if(len(networthValues) <= 0):
+    exit(1)
+
 normValue = networthValues[0]
 for a in range(len(networthValues)):
     networthValues[a] /= normValue

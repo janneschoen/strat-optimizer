@@ -70,7 +70,7 @@ void getPrices(char * ticker, unsigned priceAmount, float * prices){
 
     char command[50];
     
-    sprintf(command, "python %s %s %u", GETPRICES_PY, ticker, priceAmount);
+    sprintf(command, "python %s %s %u %u", GETPRICES_PY, ticker, priceAmount, config.fullYear);
     system(command);
 
     FILE * file;
