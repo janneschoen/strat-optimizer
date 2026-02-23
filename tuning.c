@@ -27,16 +27,18 @@ void genStrats(unsigned stratTypeID, unsigned param, strat_t * strategies, unsig
     }
 }
 
-strat_t perfByParams(unsigned stratTypeID, strat_t * strategies, strat_t strategy, unsigned numStrats){
+void fillPerf(unsigned stratTypeID, strat_t * strategies, strat_t * strategy, unsigned numStrats){
     unsigned numParams = stratTypes[stratTypeID].numParams;
-    unsigned index = 0;
     for(unsigned i = 0; i < numStrats; i++){
         unsigned matching = 0;
         for(unsigned j = 0; j < numParams; j++){
-            if(strategies[i].params[j] == strategy.params[j]){
+            if(strategies[i].params[j] == strategy->params[j]){
                 matching ++;
                 if(matching == numParams){
-                    return strategies[index];
+                    for(unsigned k = 0; k < NUM_PERF_TYPES; k++){
+                        strategy->performance[k] = strategies[i].performance[k];
+                        return;
+                    }
                 }
             } else{
                 break;
@@ -136,6 +138,16 @@ strat_t findOptimalStrat(unsigned stratTypeID, strat_t * strategies, unsigned nu
     for(unsigned i = 0; i < numParams; i++){
         optimalStrat.params[i] = refinedParams[i];
     }
-    optimalStrat.performance[config.goal] = NAN;
+    for(unsigned i = 0; i < NUM_PERF_TYPES; i++){
+        optimalStrat.performance[i] = NAN;
+    }
+    for(unsigned i = 0; i < stratTypes[config.stratTypeID].numParams; i++){
+        if(stratTypes[config.stratTypeID].mustBeInt[i]){
+            float param = optimalStrat.params[i];
+            int rounded = (int)param;
+            bool closerToRounded = param - rounded < (float)(rounded + 1) - param;
+            optimalStrat.params[i] = closerToRounded ? rounded : rounded + 1;
+        }
+    }
     return optimalStrat;
 }

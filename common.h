@@ -22,7 +22,7 @@ typedef struct{
     float params[MAX_PARAMS];
     float gridIntv[MAX_PARAMS];
     bool visuals[MAX_PARAMS];
-    unsigned btLength;
+    unsigned btLength[2];
     unsigned goal;
     char ticker[20];
     bool fullYear;
@@ -45,6 +45,7 @@ typedef struct{
     unsigned numParams;
     char * paramNames[MAX_PARAMS];
     float minParams[MAX_PARAMS];
+    bool mustBeInt[MAX_PARAMS];
     getSigFun getSignal;
     validStratFun validStrat;
 } stratType_t;

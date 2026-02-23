@@ -10,8 +10,15 @@ int main(){
     loadConfig();
 
     strat_t strategy;
+    unsigned visual = 0;
     for(unsigned i = 0; i < stratTypes[config.stratTypeID].numParams; i++){
-        if(config.visuals[i] == 0 && config.gridIntv[i] != 0){
+        if(config.visuals[i]){
+            visual = 1;
+            break;
+        }
+    }
+    for(unsigned i = 0; i < stratTypes[config.stratTypeID].numParams; i++){
+        if(visual && config.visuals[i] == 0 && config.gridIntv[i] != 0){
             printf("ERROR: param %u must be fixed if not visualised.\n", i);
             exit(1);
         }
@@ -21,12 +28,14 @@ int main(){
 
     unsigned maxLookback = getLookback(config.stratTypeID, &strategy);
 
-    unsigned priceAmount = config.btLength + maxLookback;
+    unsigned btPrices = config.btLength[0] + config.btLength[1];
+    unsigned priceAmount = btPrices + maxLookback;
     float prices[priceAmount];
     getPrices(config.ticker, priceAmount, prices);
 
     printf("%s | %s", config.ticker, stratTypes[config.stratTypeID].name);
-    printf(" | %s | %u days", config.fullYear ? "full year" : "252 trading days", config.btLength);
+    printf(" | %s", config.fullYear ? "full year" : "252 trading days");
+    printf(" | bt %ud | vld %ud", config.btLength[0], config.btLength[1]);
     printf(" | %s \n\n", config.singleTest ? "single test" : "range test");
 
     if(config.singleTest){
@@ -67,7 +76,7 @@ int main(){
 
         printf("\n");
         for(unsigned i = 0; i < numStrats; i++){
-            backtest(config.stratTypeID, &strategies[i], prices, maxLookback, priceAmount);
+            backtest(config.stratTypeID, &strategies[i], prices, maxLookback, priceAmount-config.btLength[1]);
             if(i % 250 == 0){
                 loadingBar(i, numStrats);
             }
@@ -76,12 +85,23 @@ int main(){
 
         strat_t winningStrat = findBestStrat(strategies, numStrats);
         strat_t optimalStrat = findOptimalStrat(config.stratTypeID, strategies, numStrats);
+        backtest(config.stratTypeID, &optimalStrat, prices, maxLookback, priceAmount-config.btLength[1]);
+        
+        printf("Backtesting (%ud - %ud)\n", maxLookback, priceAmount-config.btLength[1]);
+        printf("Winner : ");
+        showStrat(config.stratTypeID, &winningStrat);
+        printf("Optimal: ");
+        showStrat(config.stratTypeID, &optimalStrat);
+
+        printf("\nValidation (%ud - %ud)\n", priceAmount-config.btLength[1], priceAmount);
+        backtest(config.stratTypeID, &winningStrat, prices, priceAmount-config.btLength[1], priceAmount);
+        backtest(config.stratTypeID, &optimalStrat, prices, priceAmount-config.btLength[1], priceAmount);
         
         printf("Winner : ");
         showStrat(config.stratTypeID, &winningStrat);
         printf("Optimal: ");
         showStrat(config.stratTypeID, &optimalStrat);
-        
+
         for(unsigned i = 0; i < stratTypes[config.stratTypeID].numParams; i++){
             if(config.visuals[i]){
                 visualise(config.stratTypeID, strategies, numStrats);

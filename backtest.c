@@ -4,10 +4,13 @@
 #include <math.h>
 
 #define RISK_FREE_RATE 0.02
-#define TRADING_FEE 0.001
+#define TRADING_FEE 0.002
 
 void backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned start, unsigned end){
-
+    if(!stratTypes[stratTypeID].validStrat(strategy)){
+        printf("ERROR: invalid strat given to backtest.\n");
+        exit(1);
+    }
     float cash = BUDGET, assetsOwned = 0, assetLoans = 0;
     float networth = cash;
     float desiredInv;
