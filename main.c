@@ -32,10 +32,7 @@ int main(){
 
     unsigned maxLookback = getLookback(config.stratTypeID, &strategy);
 
-    unsigned btPrices = config.btLength[0];
-    if(!config.singleTest){
-        btPrices += config.btLength[1];
-    }
+    unsigned btPrices = config.btLength[0] + config.btLength[1];
 
     unsigned priceAmount = btPrices + maxLookback;
     float prices[priceAmount];
@@ -54,7 +51,7 @@ int main(){
             }
         }
         printf("%ud - %ud:\n", maxLookback, priceAmount);
-        backtest(config.stratTypeID, &strategy, prices, maxLookback, priceAmount);
+        backtest(config.stratTypeID, &strategy, prices, maxLookback, priceAmount-config.btLength[1]);
         showStrat(config.stratTypeID, &strategy);
 
         if(config.visuals[0]){
