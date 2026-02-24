@@ -8,8 +8,7 @@
 
 void backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned start, unsigned end){
     if(!stratTypes[stratTypeID].validStrat(strategy)){
-        printf("ERROR: invalid strat given to backtest.\n");
-        exit(1);
+        printf("WARNING: invalid strat given to backtest.\n");
     }
     float cash = BUDGET, assetsOwned = 0, assetLoans = 0;
     float networth = cash;

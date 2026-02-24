@@ -38,7 +38,7 @@ if dimensions == 4:
     scatter = ax.scatter(x, y, z, c=colors, cmap='viridis')
 
     cbar = plt.colorbar(scatter)
-    cbar.set_label('Performance')
+    cbar.set_label(goal)
 
     ax.set_title(f"{goal} vs 3 parameters")
     ax.set_xlabel('Parameter 1')
@@ -46,28 +46,26 @@ if dimensions == 4:
     ax.set_zlabel('Parameter 3')
 
 elif dimensions == 3:
+
     x = vectors[:, 0]
     y = vectors[:, 1]
     z = vectors[:, 2]
 
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
+    scatter = plt.scatter(x, y, c=z, cmap='viridis', s=100)
 
-    scatter = ax.scatter(x, y, z)
-
-    ax.set_title(f"{goal} vs 2 parameters")
-    ax.set_xlabel('Parameter 1')
-    ax.set_ylabel('Parameter 2')
-    ax.set_zlabel('Results')
+    plt.colorbar(label=goal)
+    plt.title(f"{goal} vs 2 parameters")
+    plt.xlabel("Parameter 1")
+    plt.ylabel("Parameter 2")
 
 elif dimensions == 2:
     x = vectors[:, 0]
     y = vectors[:, 1]
-    plt.scatter(x, y, color='blue', marker='o')
 
+    plt.scatter(x, y, color='blue', marker='o')
     plt.title(f"{goal} vs 1 parameter")
     plt.xlabel('Parameter')
-    plt.ylabel('Results')
+    plt.ylabel(goal)
 else:
     print("ERROR: only dimensions 2-4 supported.")
     exit(1)

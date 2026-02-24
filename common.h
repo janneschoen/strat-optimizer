@@ -74,6 +74,7 @@ void genStrats(unsigned stratTypeID, unsigned param, strat_t * strategies, unsig
 
 strat_t findBestStrat(strat_t * strategies, unsigned numStrats);
 strat_t findOptimalStrat(unsigned stratTypeID, strat_t * strategies, unsigned numStrats);
+strat_t findOptimalStrat2(unsigned stratTypeID, strat_t * strategies, unsigned numStrats);
 
 void loadConfig();
 

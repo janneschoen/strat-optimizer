@@ -97,24 +97,29 @@ int main(){
         }
         printf("\033[F\033[2K");
 
-        strat_t winningStrat = findBestStrat(strategies, numStrats);
-        strat_t optimalStrat = findOptimalStrat(config.stratTypeID, strategies, numStrats);
-        backtest(config.stratTypeID, &optimalStrat, prices, maxLookback, priceAmount-config.btLength[1]);
-        
+        unsigned numOptimal = 3;
+        strat_t optimalStrats[numOptimal];
+        optimalStrats[0] = findBestStrat(strategies, numStrats);
+        optimalStrats[1] = findOptimalStrat(config.stratTypeID, strategies, numStrats);
+        optimalStrats[2] = findOptimalStrat2(config.stratTypeID, strategies, numStrats);
+
         printf("Backtesting (%ud - %ud)\n", maxLookback, priceAmount-config.btLength[1]);
-        printf("Winner : ");
-        showStrat(config.stratTypeID, &winningStrat);
-        printf("Optimal: ");
-        showStrat(config.stratTypeID, &optimalStrat);
+        for(unsigned i = 0; i < numOptimal; i++){
+            backtest(config.stratTypeID, &optimalStrats[i], prices, maxLookback, priceAmount-config.btLength[1]);
+        }
+        for(unsigned i = 0; i < numOptimal; i++){
+            printf("Strat %u:\n", i);
+            showStrat(config.stratTypeID, &optimalStrats[i]);
+        }
 
         printf("\nValidation (%ud - %ud)\n", priceAmount-config.btLength[1], priceAmount);
-        backtest(config.stratTypeID, &winningStrat, prices, priceAmount-config.btLength[1], priceAmount);
-        backtest(config.stratTypeID, &optimalStrat, prices, priceAmount-config.btLength[1], priceAmount);
-        
-        printf("Winner : ");
-        showStrat(config.stratTypeID, &winningStrat);
-        printf("Optimal: ");
-        showStrat(config.stratTypeID, &optimalStrat);
+        for(unsigned i = 0; i < numOptimal; i++){
+            backtest(config.stratTypeID, &optimalStrats[i], prices, priceAmount-config.btLength[1], priceAmount);
+        }
+        for(unsigned i = 0; i < numOptimal; i++){
+            printf("Strat %u:\n", i);
+            showStrat(config.stratTypeID, &optimalStrats[i]);
+        }
 
         for(unsigned i = 0; i < stratTypes[config.stratTypeID].numParams; i++){
             if(config.visuals[i]){
