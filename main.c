@@ -10,6 +10,9 @@ int main(){
     loadConfig();
 
     strat_t strategy;
+    for(unsigned i = 0; i < STRAT_STORAGE; i++){
+        strategy.storage[i] = NAN;
+    }
     unsigned visual = 0;
     for(unsigned i = 0; i < stratTypes[config.stratTypeID].numParams; i++){
         if(config.visuals[i]){
@@ -29,7 +32,10 @@ int main(){
 
     unsigned maxLookback = getLookback(config.stratTypeID, &strategy);
 
-    unsigned btPrices = config.btLength[0] + config.btLength[1];
+    unsigned btPrices = config.btLength[0];
+    if(!config.singleTest){
+        btPrices += config.btLength[1];
+    }
 
     unsigned priceAmount = btPrices + maxLookback;
     float prices[priceAmount];
@@ -41,18 +47,14 @@ int main(){
     printf(" | %s \n\n", config.singleTest ? "single test" : "range test");
 
     if(config.singleTest){
-        printf("%ud - %ud:\n", maxLookback, priceAmount-config.btLength[1]);
-        backtest(config.stratTypeID, &strategy, prices, maxLookback, priceAmount-config.btLength[1]);
-        showStrat(config.stratTypeID, &strategy);
-        
-        if(config.visuals[0]){
-            char command[50];
-            sprintf(command, "python %s", CHART_PY);
-            system(command);
+        for(unsigned i = 0; i < stratTypes[config.stratTypeID].numParams; i++){
+            if(config.visuals[i]){
+                config.visuals[0] = 1;
+                break;
+            }
         }
-
-        printf("%ud - %ud:\n", priceAmount-config.btLength[1], priceAmount);
-        backtest(config.stratTypeID, &strategy, prices, priceAmount-config.btLength[1], priceAmount);
+        printf("%ud - %ud:\n", maxLookback, priceAmount);
+        backtest(config.stratTypeID, &strategy, prices, maxLookback, priceAmount);
         showStrat(config.stratTypeID, &strategy);
 
         if(config.visuals[0]){
@@ -90,6 +92,9 @@ int main(){
 
         printf("\n");
         for(unsigned i = 0; i < numStrats; i++){
+            for(unsigned j = 0; j < STRAT_STORAGE; j++){
+                strategies[i].storage[j] = NAN;
+            }
             backtest(config.stratTypeID, &strategies[i], prices, maxLookback, priceAmount-config.btLength[1]);
             if(i % 250 == 0){
                 loadingBar(i, numStrats);
@@ -107,6 +112,7 @@ int main(){
         for(unsigned i = 0; i < numOptimal; i++){
             backtest(config.stratTypeID, &optimalStrats[i], prices, maxLookback, priceAmount-config.btLength[1]);
         }
+
         for(unsigned i = 0; i < numOptimal; i++){
             printf("Strat %u:\n", i);
             showStrat(config.stratTypeID, &optimalStrats[i]);

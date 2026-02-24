@@ -18,6 +18,7 @@ with open(pricePath, 'r', encoding="utf-8") as file:
     for price in priceLines:
         prices.append(float(price.strip()))
 
+
 if(len(networthValues) <= 0):
     exit(1)
 
@@ -29,7 +30,6 @@ normValue = prices[0]
 for a in range(len(prices)):
    prices[a] /= normValue
 
-plt.figure(figsize=(10, 5))
 
 plt.plot(networthValues, linestyle='-', color='green')
 plt.plot(prices, linestyle='-', color='black')

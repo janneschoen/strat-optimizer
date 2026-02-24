@@ -12,9 +12,12 @@ void backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned
     }
     float cash = BUDGET, assetsOwned = 0, assetLoans = 0;
     float networth = cash;
-    float desiredInv;
+    int pos = 0;
 
     float networthValues[end-start];
+    for(unsigned i = 0; i < end-start; i++){
+        networthValues[i] = 0;
+    }
 
     for(unsigned i = start; i < end; i++){
         networth = (assetsOwned - assetLoans) * prices[i] + cash;
@@ -24,29 +27,24 @@ void backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned
             break;
         }
 
-        desiredInv = stratTypes[stratTypeID].getSignal(i, strategy, prices, networth, cash);
+        int signal = stratTypes[stratTypeID].getSignal(i, strategy, prices, pos);
 
-        if(desiredInv > 0){
-            if(assetLoans > 0){
-                // buying back borrowed assets (closing shorts)
-                cash -= assetLoans * prices[i];
-                assetLoans = 0;
-            }
-            // buying or selling assets
-            float desiredAssets = desiredInv / prices[i];
-            cash += (assetsOwned - desiredAssets) * prices[i];
-            assetsOwned = desiredAssets;
+        float desPosSize = networth / prices[i];
+        if(signal == 1){
+            cash -= assetLoans * prices[i]; // close all shorts
+            assetLoans = 0;
 
-        } else if(desiredInv < 0){
-            if(assetsOwned > 0){
-                // selling all assets (closing longs)
-                cash += assetsOwned * prices[i];
-                assetsOwned = 0;
-            }
-            // borrowing or giving back assets
-            float desiredAssetLoans = -1 * desiredInv / prices[i];
-            cash += (desiredAssetLoans - assetLoans) * prices[i];
-            assetLoans = desiredAssetLoans;
+            cash += (assetsOwned - desPosSize) * prices[i];
+            assetsOwned = desPosSize;
+            pos = 1;
+
+        } else if(signal == -1){
+            cash += assetsOwned * prices[i]; // close all longs
+            assetsOwned = 0;
+
+            cash += (desPosSize - assetLoans) * prices[i];
+            assetLoans = desPosSize;
+            pos = -1;
         }
         networthValues[i-start] = networth;
     }
@@ -62,6 +60,10 @@ void backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned
             fprintf(file, "%f\n", networthValues[i]);
         }
         fclose(file);
+    }
+
+    for(unsigned i = 0; i < STRAT_STORAGE; i++){
+        strategy->storage[i] = NAN;
     }
 }
 

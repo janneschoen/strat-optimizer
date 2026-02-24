@@ -149,9 +149,6 @@ strat_t findOptimalStrat(unsigned stratTypeID, strat_t * strategies, unsigned nu
 
         float lowerPerf = lowerSum / lowerPoints;
         float upperPerf = upperSum / upperPoints;
-        printf("lower: %.2f\n", lowerPerf);
-        printf("upper: %.2f\n", upperPerf);
-        printf("\n");
 
         if(lowerPerf > upperPerf){
             split[hDim][2] = split[hDim][1];

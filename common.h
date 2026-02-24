@@ -32,12 +32,12 @@ typedef struct{
 extern execMode_t config;
 
 typedef struct{
-    unsigned storage[STRAT_STORAGE];
+    float storage[STRAT_STORAGE];
     float params[MAX_PARAMS];
     float performance[NUM_PERF_TYPES]; // profit, sharpe
 } strat_t;
 
-typedef float (*getSigFun)(unsigned day, strat_t * strategy, float * prices, float networth, float cash);
+typedef int (*getSigFun)(unsigned day, strat_t * strategy, float * prices, int pos);
 typedef bool (*validStratFun)(strat_t * strategy);
 
 typedef struct{
@@ -55,8 +55,8 @@ extern const char * perfTypes[];
 extern const stratType_t stratTypes[NUM_STRAT_TYPES];
 
 unsigned getLookback(unsigned stratTypeID, strat_t * strategy);
-float getSignal0(unsigned day, strat_t * strategy, float * prices, float networth, float cash);
-float getSignal1(unsigned day, strat_t * strategy, float * prices, float networth, float cash);
+int getSignal0(unsigned day, strat_t * strategy, float * prices, int pos);
+int getSignal1(unsigned day, strat_t * strategy, float * prices, int pos);
 bool validStrat0(strat_t * strategy);
 bool validStrat1(strat_t * strategy);
 
