@@ -8,8 +8,9 @@
 #define TRADING_FEE 0.002
 #define BUDGET 10000
 
-int (*getSignal[])(unsigned day, strat_t * strategy, float * prices) = {
-    SMA_Crossover,
+float (*getSignal[])(unsigned day, strat_t * strategy, float * prices) = {
+    SMA_crossover_signal,
+    RSI_signal,
 };
 
 int main(int argc, char *argv[]){
@@ -69,7 +70,7 @@ int main(int argc, char *argv[]){
         backtest(stratType, &strategies[i], prices, start, numPrices);
     }
     printf("\n");
-    
+
     // Saving performances
 
     file = fopen(argv[8], "w");
@@ -86,10 +87,18 @@ int main(int argc, char *argv[]){
 void backtest(unsigned stratType, strat_t * strategy, float * prices, unsigned start, unsigned end){
     float cash = BUDGET, assetsOwned = 0, assetLoans = 0;
     float networth = cash;
-    unsigned trades = 0;
 
     for(unsigned i = start; i < end; i++){
-        networth = (assetsOwned - assetLoans) * prices[i] + cash;
+        float knownPrices[end];
+        for(unsigned j = 0; j < end; j++){
+            if(j <= i){
+                knownPrices[j] = prices[j];
+            } else{
+                knownPrices[j] = NAN;
+            }
+        }
+
+        networth = (assetsOwned - assetLoans) * knownPrices[i] + cash;
 
         if(networth <= 0){
             networth = 0;
@@ -98,22 +107,20 @@ void backtest(unsigned stratType, strat_t * strategy, float * prices, unsigned s
 
         int signal = getSignal[stratType](i, strategy, prices);
 
-        float desPosSize = networth / prices[i];
+        float desPosSize = networth / knownPrices[i];
 
-        if(signal == 1){ // going long
-            trades ++;
-            cash -= assetLoans * prices[i];
+        if(signal > 0){ // buying
+            cash -= assetLoans * knownPrices[i];
             assetLoans = 0;
 
-            cash += (assetsOwned - desPosSize) * prices[i];
+            cash += (assetsOwned - desPosSize) * knownPrices[i];
             assetsOwned = desPosSize;
 
-        } else if(signal == -1){ // going short
-            trades ++;
-            cash += assetsOwned * prices[i];
+        } else if(signal < 0){ // selling
+            cash += assetsOwned * knownPrices[i];
             assetsOwned = 0;
 
-            cash += (desPosSize - assetLoans) * prices[i];
+            cash += (desPosSize - assetLoans) * knownPrices[i];
             assetLoans = desPosSize;
         }
     }

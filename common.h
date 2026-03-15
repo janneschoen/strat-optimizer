@@ -16,6 +16,7 @@ void backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned
 
 // Strategy Functions
 
-int SMA_Crossover(unsigned day, strat_t * strategy, float * prices);
+float SMA_crossover_signal(unsigned day, strat_t * strategy, float * prices);
+float RSI_signal(unsigned day, strat_t * strategy, float * prices);
 
 #endif

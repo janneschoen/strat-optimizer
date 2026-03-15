@@ -1,5 +1,5 @@
 
-FILES = backtesting.c strategy0.c
+FILES = backtesting.c 0_SMA_crossover.c 1_RSI.c
 
 OUTPUT = compute
 

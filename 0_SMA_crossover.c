@@ -1,7 +1,7 @@
 #include "common.h"
 #include <stdio.h>
 
-// STRATEGY TYPE 0: Simple Moving Average Crossover
+// Strategy Type: Simple Moving Average Crossover
 
 float avgPrice(float * prices, unsigned from, unsigned to){
     float priceSum = 0;
@@ -11,7 +11,7 @@ float avgPrice(float * prices, unsigned from, unsigned to){
     return priceSum / (to-from);
 }
 
-int SMA_Crossover(unsigned day, strat_t * strategy, float * prices){
+float SMA_crossover_signal(unsigned day, strat_t * strategy, float * prices){
 
     // storage[0] stores yesterdays crossover state
 

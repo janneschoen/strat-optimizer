@@ -19,12 +19,12 @@ def plot(stratType, stratTypes, stratPath, performances):
         scatter = ax.scatter(p0, p1, p2, c=perfs, cmap='viridis')
 
         cbar = plt.colorbar(scatter)
-        cbar.set_label(goal)
+        cbar.set_label("Performance")
 
-        ax.set_title(stratTypes[stratType]["name"])
-        ax.set_xlabel(stratTypes[stratType]["paramNames"][0])
-        ax.set_ylabel(stratTypes[stratType]["paramNames"][1])
-        ax.set_zlabel(stratTypes[stratType]["paramNames"][2])
+        ax.set_title(stratTypes[stratType].name)
+        ax.set_xlabel(stratTypes[stratType].paramNames[0])
+        ax.set_ylabel(stratTypes[stratType].paramNames[1])
+        ax.set_zlabel(stratTypes[stratType].paramNames[2])
 
     elif dimension == 3:
 
@@ -35,20 +35,20 @@ def plot(stratType, stratTypes, stratPath, performances):
         scatter = plt.scatter(p0, p1, c=perfs, cmap='viridis', s=100)
 
         plt.colorbar(label="Performance")
-        plt.title(stratTypes[stratType]["name"])
-        plt.xlabel(stratTypes[stratType]["paramNames"][0])
-        plt.ylabel(stratTypes[stratType]["paramNames"][1])
+        plt.title(stratTypes[stratType].name)
+        plt.xlabel(stratTypes[stratType].paramNames[0])
+        plt.ylabel(stratTypes[stratType].paramNames[1])
 
     elif dimension == 2:
         p0 = paramCombos[:, 0]
         perf = performances
 
         plt.scatter(p0, perf, color='blue', marker='o')
-        plt.title(stratTypes[stratType]["name"])
-        plt.xlabel(stratTypes[stratType]["paramNames"][0])
+        plt.title(stratTypes[stratType].name)
+        plt.xlabel(stratTypes[stratType].paramNames[0])
         plt.ylabel(goal)
     else:
-        print("ERROR: only dimensions 2-4 supported.")
+        print("Only 1-3 parameters supported for visualisation.")
         exit(1)
 
 

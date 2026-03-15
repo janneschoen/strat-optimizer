@@ -5,16 +5,40 @@ import subprocess
 import itertools, numpy as np
 import os
 
-def isValidStrat0(paramCombo):
-    p0 = paramCombo[0]
-    p1 = paramCombo[1]
-    if p0 >= p1:
-        return False
-    if p0 < 1 or p1 < 1:
-        return False
-    return True
+class StrategyType:
+    def __init__(self, name, numParams, paramNames, lookbackParam):
+        self.name = name
+        self.numParams = numParams
+        self.paramNames = paramNames
+        self.lookbackParam = lookbackParam
 
+    def isValid(self, p):
+        if len(p) != self.numParams:
+            return False
+        if self.name == "SMA Crossover":
+            if p[0] >= p[1] or p[1] < 2:
+                return False
+        if self.name == "RSI":
+            if p[2] < 2 or p[0] < 0 or p[1] > 100 or p[0] > p[1]:
+                return False
+        return True
+
+strategyTypes = [
+    StrategyType(
+        name = "SMA Crossover",
+        numParams = 2,
+        paramNames = ["Fast SMA Length", "Slow SMA Length"],
+        lookbackParam = 1
+    ),
+    StrategyType(
+        name = "RSI",
+        numParams = 3,
+        paramNames = ["Buying Threshold", "Selling Threshold", "Window Size"],
+        lookbackParam = 2,
+    )
+]
 def main():
+
     with open('config.json', 'r') as file:
         config = json.load(file)
 
@@ -24,19 +48,8 @@ def main():
     stratPath = tempDir + config["stratFile"]
     perfPath = tempDir + config["resultFile"]
 
-    # Defining strategy type attributes
-    strategyTypes = [
-        {
-            "name": "Simple Moving Average Crossover",
-            "numParams": 2,
-            "paramNames": ["Fast SMA Length", "Slow SMA Length"],
-            "lookbackParam": 1,
-            "valid": isValidStrat0
-        },
-    ]
-
     # Downloading price data
-    lookback = config["params"][strategyTypes[config["stratType"]]["lookbackParam"]]
+    lookback = config["params"][strategyTypes[config["stratType"]].lookbackParam]
     numPrices = config["btLength"] + lookback
     downloadPrices(numPrices, config)
 
@@ -44,6 +57,9 @@ def main():
     if config["singleTest"]:
         paramCombos = [config["params"]]
     else:
+        if len(config["gridIntv"]) != len(config["params"]):
+            print("Error: please provide exactly one interval per parameter.")
+            exit(0)
         paramRanges = []
         for param in config["params"]:
             gridInterval = config["gridIntv"][len(paramRanges)]
@@ -51,8 +67,12 @@ def main():
         allCombos = list(itertools.product(*paramRanges))
         paramCombos = []
         for combo in allCombos:
-            if strategyTypes[config["stratType"]]["valid"](combo):
+            if strategyTypes[config["stratType"]].isValid(combo):
                 paramCombos.append(combo)
+
+    if(len(paramCombos)) == 0:
+        print("Error: couldn't generate any valid parameter combinations.")
+        exit(0)
 
     # Saving param combos
     try:
@@ -75,14 +95,20 @@ def main():
         pricePath,
         str(numStrats),
         stratPath,
-        str(strategyTypes[config["stratType"]]["numParams"]),
+        str(strategyTypes[config["stratType"]].numParams),
         str(config["stratType"]),
         str(lookback),
         str(perfPath)])
 
+
     # Annualizing profits
-    
-    performances = np.loadtxt(perfPath).tolist()
+
+    try:
+        performances = np.loadtxt(perfPath).tolist()
+    except:
+        print("Error: backtesting engine generated no performances.\n")
+        exit(0)
+
     yearLength = 365 if config["fullYear"] else 252
 
     if numStrats > 1:
