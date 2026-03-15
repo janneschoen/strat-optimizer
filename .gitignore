@@ -1,5 +1,4 @@
-optimizer
-*.temp
-*.out
+compute
+env
+temp
 __pycache__/
-*.json

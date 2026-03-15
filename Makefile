@@ -1,11 +1,10 @@
-SOURCE_DIR = .
 
-FILES = $(shell find $(SOURCE_DIR) -name "*.c" | grep -v "regression.c")
+FILES = backtesting.c strategy0.c
 
-OUTPUT = optimizer
+OUTPUT = compute
 
 CC = gcc
-CFLAGS = -std=c99 -Wall -Wextra -I. -lcjson -g
+CFLAGS = -Wall -g
 
 $(OUTPUT): $(FILES)
 	$(CC) $(CFLAGS) -o $@ $^ -lm
