@@ -12,6 +12,6 @@
     "tempDir": "temp",
     "priceFile": "prices.temp",
     "stratFile": "strats.temp",
-    "perfFile": "perfs.temp"
+    "resultFile": "results.temp"
 
 }

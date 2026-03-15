@@ -22,7 +22,7 @@ def main():
     tempDir = config["tempDir"] + "/"
     pricePath = tempDir + config["priceFile"]
     stratPath = tempDir + config["stratFile"]
-    perfPath = tempDir + config["perfFile"]
+    perfPath = tempDir + config["resultFile"]
 
     # Defining strategy type attributes
     strategyTypes = [
