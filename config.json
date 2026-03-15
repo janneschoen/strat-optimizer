@@ -1,13 +1,13 @@
 {
     "stratType": 0,
-    "params": [1000, 1000],
+    "params": [500, 700],
     "gridIntv": [10, 10],
     
     "singleTest": 0,
 
     "btLength": 2000,
-    "ticker": "BTC-USD",
-    "fullYear": 1,
+    "ticker": "AAPL",
+    "fullYear": 0,
 
     "tempDir": "temp",
     "priceFile": "prices.temp",
