@@ -16,7 +16,7 @@ class StrategyType:
         if len(p) != self.numParams:
             return False
         if self.name == "SMA Crossover":
-            if p[0] >= p[1] or p[1] < 2:
+            if p[0] >= p[1] or p[1] < 2 or p[2] <= 0 or p[2] > 1:
                 return False
         if self.name == "RSI":
             if p[2] < 2 or p[0] < 0 or p[1] > 100 or p[0] > p[1]:
@@ -26,8 +26,8 @@ class StrategyType:
 strategyTypes = [
     StrategyType(
         name = "SMA Crossover",
-        numParams = 2,
-        paramNames = ["Fast SMA Length", "Slow SMA Length"],
+        numParams = 3,
+        paramNames = ["Fast SMA Length", "Slow SMA Length", "Position Sizing"],
         lookbackParam = 1
     ),
     StrategyType(
@@ -48,35 +48,51 @@ def main():
     stratPath = tempDir + config["stratFile"]
     perfPath = tempDir + config["resultFile"]
 
+    params = config["params"]
+    stratType = config["stratType"]
+    btLength = config["btLength"]
+    gridIntervals = config["paramSteps"]
+    fullYear = config["fullYear"]
+
     # Downloading price data
-    lookback = config["params"][strategyTypes[config["stratType"]].lookbackParam]
-    numPrices = config["btLength"] + lookback
+    lookback = params[strategyTypes[stratType].lookbackParam]
+    lookback = lookback[1] if len(lookback) > 1 else lookback[0]
+
+    numPrices = btLength + lookback
     downloadPrices(numPrices, config)
 
-    # Generating parameter combinations
-    if config["singleTest"]:
-        paramCombos = [config["params"]]
+    # Generating parameter combinations if steps provided
+    paramCombos = []
+
+    if gridIntervals.count(0) == len(params):
+        paramCombos.append([param[0] for param in params])
     else:
-        if len(config["gridIntv"]) != len(config["params"]):
+        if len(gridIntervals) != len(params):
             print("Error: please provide exactly one interval per parameter.")
-            exit(0)
+            exit(1)
+
         paramRanges = []
-        for param in config["params"]:
-            gridInterval = config["gridIntv"][len(paramRanges)]
-            paramRanges.append(range(1, param + gridInterval, gridInterval))
+        for paramRange in params:
+            gridInterval = gridIntervals[len(paramRanges)]
+            if gridInterval == 0:
+                paramRanges.append([paramRange[0]])
+            else:
+                paramRanges.append(np.arange(paramRange[0], paramRange[1], gridInterval))
+
         allCombos = list(itertools.product(*paramRanges))
-        paramCombos = []
+
         for combo in allCombos:
-            if strategyTypes[config["stratType"]].isValid(combo):
+            if strategyTypes[stratType].isValid(combo):
                 paramCombos.append(combo)
 
-    if(len(paramCombos)) == 0:
+    numStrats = len(paramCombos)
+
+    if(numStrats) == 0:
         print("Error: couldn't generate any valid parameter combinations.")
-        exit(0)
+        exit(1)
 
     # Saving param combos
     try:
-        stratPath = config["tempDir"] + "/" + config["stratFile"]
         with open(stratPath, 'w') as file:
             for combo in paramCombos:
                 for param in combo:
@@ -86,7 +102,6 @@ def main():
         print(f"An error occurred: {e}")
         exit(1)
 
-    numStrats = len(paramCombos)
 
     # Running the backtesting engine
     subprocess.run(
@@ -95,8 +110,8 @@ def main():
         pricePath,
         str(numStrats),
         stratPath,
-        str(strategyTypes[config["stratType"]].numParams),
-        str(config["stratType"]),
+        str(strategyTypes[stratType].numParams),
+        str(stratType),
         str(lookback),
         str(perfPath)])
 
@@ -107,20 +122,20 @@ def main():
         performances = np.loadtxt(perfPath).tolist()
     except:
         print("Error: backtesting engine generated no performances.\n")
-        exit(0)
+        exit(1)
 
-    yearLength = 365 if config["fullYear"] else 252
+    yearLength = 365 if fullYear else 252
 
     if numStrats > 1:
         for p in range(numStrats):
-            performances[p] = (1 + performances[p]) ** (yearLength / config["btLength"]) - 1
+            performances[p] = (1 + performances[p]) ** (yearLength / btLength) - 1
     else:
-        performances = (1 + performances) ** (yearLength / config["btLength"]) - 1
+        performances = (1 + performances) ** (yearLength / btLength) - 1
 
     # Plotting results
 
     if numStrats > 1:
-        plot(config["stratType"], strategyTypes, stratPath, performances)
+        plot(gridIntervals, stratType, strategyTypes, stratPath, performances)
     else:
         print(f"Annualized Profit: {performances:.3f}")
 

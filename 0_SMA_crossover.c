@@ -20,10 +20,13 @@ float SMA_crossover_signal(unsigned day, strat_t * strategy, float * prices){
     float fastSMA = avgPrice(prices, day-fastL, day);
     float slowSMA = avgPrice(prices, day-slowL, day);
 
-    int fastAboveSlow = fastSMA > slowSMA ? 1 : -1;
-    if(fastAboveSlow != strategy->storage[0]){
-        strategy->storage[0] = fastAboveSlow;
-        return fastAboveSlow;
+    int signal = fastSMA > slowSMA ? 1 : -1;
+    int lastSignal = strategy->storage[0];
+
+    float invSize = strategy->params[2];
+    if(signal != lastSignal){
+        strategy->storage[0] = signal;
+        return invSize * signal;
     }
     return 0;
 }

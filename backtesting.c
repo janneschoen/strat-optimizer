@@ -86,7 +86,7 @@ int main(int argc, char *argv[]){
 
 void backtest(unsigned stratType, strat_t * strategy, float * prices, unsigned start, unsigned end){
     float cash = BUDGET, assetsOwned = 0, assetLoans = 0;
-    float networth = cash;
+    float networth;
 
     for(unsigned i = start; i < end; i++){
         float knownPrices[end];
@@ -105,23 +105,21 @@ void backtest(unsigned stratType, strat_t * strategy, float * prices, unsigned s
             break;
         }
 
-        int signal = getSignal[stratType](i, strategy, prices);
+        float signal = getSignal[stratType](i, strategy, prices);
 
-        float desPosSize = networth / knownPrices[i];
+        float desInvestment = signal * networth / knownPrices[i];
 
-        if(signal > 0){ // buying
-            cash -= assetLoans * knownPrices[i];
+        if(desInvestment > 0){
+            cash -= (assetLoans * knownPrices[i]);
             assetLoans = 0;
-
-            cash += (assetsOwned - desPosSize) * knownPrices[i];
-            assetsOwned = desPosSize;
-
-        } else if(signal < 0){ // selling
-            cash += assetsOwned * knownPrices[i];
+            cash -= (desInvestment - assetsOwned) * knownPrices[i];
+            assetsOwned = desInvestment;
+        } else if(desInvestment < 0){
+            desInvestment = fabs(desInvestment);
+            cash += (assetsOwned * knownPrices[i]);
             assetsOwned = 0;
-
-            cash += (desPosSize - assetLoans) * knownPrices[i];
-            assetLoans = desPosSize;
+            cash += (desInvestment - assetLoans) * knownPrices[i];
+            assetLoans = desInvestment;
         }
     }
 
