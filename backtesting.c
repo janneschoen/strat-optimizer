@@ -62,12 +62,13 @@ int main(int argc, char *argv[]){
     unsigned stratType = strtoul(argv[6], NULL, 10);
     unsigned start = strtoul(argv[7], NULL, 10); // required lookback used as start
 
+    float equityCurve[numPrices-start];
     for(unsigned i = 0; i < numStrats; i++){
         if(i % PROGRESS_INTV == 0){
             printf("\r%u / %u", i, numStrats);
             fflush(stdout);
         }
-        backtest(stratType, &strategies[i], prices, start, numPrices);
+        backtest(stratType, &strategies[i], prices, start, numPrices, equityCurve);
     }
     printf("\n");
 
@@ -79,12 +80,21 @@ int main(int argc, char *argv[]){
     }
     fclose(file);
 
+    // Saving equity curve for single test
+    if(numStrats == 1){
+        file = fopen(argv[9], "w");
+        for(unsigned i = 0; i < numPrices-start; i++){
+            fprintf(file, "%f\n", equityCurve[i]);
+        }
+        fclose(file);
+    }
+
     return 0;
 }
 
 // Backtesting logic
 
-void backtest(unsigned stratType, strat_t * strategy, float * prices, unsigned start, unsigned end){
+void backtest(unsigned stratType, strat_t * strategy, float * prices, unsigned start, unsigned end, float * equityCurve){
     float cash = BUDGET, assetsOwned = 0, assetLoans = 0;
     float networth;
 
@@ -99,6 +109,7 @@ void backtest(unsigned stratType, strat_t * strategy, float * prices, unsigned s
         }
 
         networth = (assetsOwned - assetLoans) * knownPrices[i] + cash;
+        equityCurve[i-start] = networth;
 
         if(networth <= 0){
             networth = 0;

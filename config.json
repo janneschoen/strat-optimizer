@@ -1,7 +1,7 @@
 {
     "stratType": 1,
-    "params": [[1,100], [1,100], [14]],
-    "paramSteps": [1, 1, 0],
+    "params": [[35,100], [73,100], [14]],
+    "paramSteps": [0, 0, 0],
 
     "btLength": 2000,
     "ticker": "BTC-USD",
@@ -10,6 +10,7 @@
     "tempDir": "temp",
     "priceFile": "prices.temp",
     "stratFile": "strats.temp",
-    "resultFile": "results.temp"
+    "resultFile": "results.temp",
+    "equityFile": "equity.temp"
 
 }

@@ -2,15 +2,15 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 
-def plot(gridIntervals, stratType, stratTypes, stratPath, performances):
+def plot(paramSteps, stratType, stratTypes, stratPath, performances):
 
     paramCombos = np.loadtxt(stratPath)
 
     numParams = paramCombos.shape[1]
 
-    numFixed = gridIntervals.count(0)
+    numFixed = paramSteps.count(0)
 
-    visualParams = [p for p in range(numParams) if gridIntervals[p]]
+    visualParams = [p for p in range(numParams) if paramSteps[p]]
 
     dimension = numParams + 1 - numFixed
 

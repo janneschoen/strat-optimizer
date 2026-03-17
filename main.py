@@ -1,6 +1,7 @@
 import json
 from prices import downloadPrices
 from plotting import plot
+from equityCurve import showEquityCurve
 import subprocess
 import itertools, numpy as np
 import os
@@ -47,11 +48,12 @@ def main():
     pricePath = tempDir + config["priceFile"]
     stratPath = tempDir + config["stratFile"]
     perfPath = tempDir + config["resultFile"]
+    equityPath = tempDir + config["equityFile"]
 
     params = config["params"]
     stratType = config["stratType"]
     btLength = config["btLength"]
-    gridIntervals = config["paramSteps"]
+    paramSteps = config["paramSteps"]
     fullYear = config["fullYear"]
 
     # Downloading price data
@@ -64,20 +66,20 @@ def main():
     # Generating parameter combinations if steps provided
     paramCombos = []
 
-    if gridIntervals.count(0) == len(params):
+    if paramSteps.count(0) == len(params):
         paramCombos.append([param[0] for param in params])
     else:
-        if len(gridIntervals) != len(params):
+        if len(paramSteps) != len(params):
             print("Error: please provide exactly one interval per parameter.")
             exit(1)
 
         paramRanges = []
         for paramRange in params:
-            gridInterval = gridIntervals[len(paramRanges)]
-            if gridInterval == 0:
+            paramStep = paramSteps[len(paramRanges)]
+            if paramStep == 0:
                 paramRanges.append([paramRange[0]])
             else:
-                paramRanges.append(np.arange(paramRange[0], paramRange[1], gridInterval))
+                paramRanges.append(np.arange(paramRange[0], paramRange[1], paramStep))
 
         allCombos = list(itertools.product(*paramRanges))
 
@@ -113,7 +115,8 @@ def main():
         str(strategyTypes[stratType].numParams),
         str(stratType),
         str(lookback),
-        str(perfPath)])
+        str(perfPath),
+        str(equityPath)])
 
 
     # Annualizing profits
@@ -135,9 +138,10 @@ def main():
     # Plotting results
 
     if numStrats > 1:
-        plot(gridIntervals, stratType, strategyTypes, stratPath, performances)
+        plot(paramSteps, stratType, strategyTypes, stratPath, performances)
     else:
         print(f"Annualized Profit: {performances:.3f}")
+        showEquityCurve(equityPath, strategyTypes, stratType)
 
 
 if __name__ == "__main__":
