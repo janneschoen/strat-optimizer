@@ -4,7 +4,7 @@ from plotting import plot
 from equityCurve import showEquityCurve
 import subprocess
 import itertools, numpy as np
-import os
+import os, sys
 
 class StrategyType:
     def __init__(self, name, numParams, paramNames, lookbackParam):
@@ -40,7 +40,15 @@ strategyTypes = [
 ]
 def main():
 
-    with open('config.json', 'r') as file:
+    args = sys.argv
+    if len(args) == 1:
+        configFile = 'config.json'
+    else:
+        configFile = args[1]
+
+    print("Reading configuration from", configFile)
+
+    with open(configFile, 'r') as file:
         config = json.load(file)
 
     os.makedirs(config["tempDir"], exist_ok=True)
@@ -52,7 +60,7 @@ def main():
 
     params = config["params"]
     stratType = config["stratType"]
-    btLength = config["btLength"]
+    btLength = config["backtestLength"]
     paramSteps = config["paramSteps"]
     fullYear = config["fullYear"]
 

@@ -1,13 +1,13 @@
 {
-    "stratType": 1,
-    "params": [[35,100], [73,100], [14]],
-    "paramSteps": [0, 0, 0],
+    "stratType": 0,
+    "params": [[1,200], [30,200], [0.2]],
+    "paramSteps": [3, 3, 0],
 
-    "btLength": 2000,
+    "backtestLength": 2000,
     "ticker": "BTC-USD",
     "fullYear": 1,
 
-    "tempDir": "temp",
+    "tempDir": ".temp",
     "priceFile": "prices.temp",
     "stratFile": "strats.temp",
     "resultFile": "results.temp",
