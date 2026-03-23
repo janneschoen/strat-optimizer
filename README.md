@@ -66,8 +66,7 @@ The relevant part of the config file used in this example:
 - `"ticker": "BTC-USD"`: Ticker symbol of asset on finance.yahoo.com
 - `"fullYear": 1`: If the asset trades all year or is affected by weekends and holidays (0: stocks, ETFs | 1: crypto, forex)
 
-### Results
-Date of test: March 23 2026
+### Results (March 23, 2026)
 The two parameters tested in this example are the length of the "Fast Moving Average" and the "Slow Moving Average".
 Plotting these two parameters in relationship to the annualized profit results in a 2-dimensional heatmap.
 In this test, 2166 combinations were tested, and the computation took around ~20 seconds.
