@@ -2,3 +2,4 @@ compute
 .venv
 .temp
 __pycache__/
+config.json

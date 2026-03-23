@@ -6,6 +6,10 @@ def showEquityCurve(equityPath, stratTypes, stratType):
     with open(equityPath, "r") as file:
         equityValues = [float(eqValue.strip()) for eqValue in file]
 
+    normingFactor = equityValues[0]
+    for eqV in range(len(equityValues)):
+        equityValues[eqV] /= normingFactor
+
     days = list(range(len(equityValues)))
 
     plt.plot(days, equityValues, color='green')
