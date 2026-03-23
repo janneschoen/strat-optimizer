@@ -1,4 +1,4 @@
 compute
-env
-temp
+.venv
+.temp
 __pycache__/
