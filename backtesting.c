@@ -29,7 +29,8 @@ int main(int argc, char *argv[]){
     file = fopen(argv[2], "r");
     for(unsigned i = 0; i < numPrices; i++){
         if (fscanf(file, "%f", &prices[i]) != 1) {
-            printf("ERROR: Prices could not be properly read.\n");
+            printf("Error: Prices could not be properly read. ");
+            printf("Possible reason: not enough prices available for chosen timeframe.\n");
             fclose(file);
             exit(1);
         }
@@ -48,7 +49,7 @@ int main(int argc, char *argv[]){
         for(unsigned j = 0; j < numParams; j++){
             float param;
             if (fscanf(file, "%f", &param) != 1) {
-                printf("ERROR: Parameter combinations could not be properly read.\n");
+                printf("Error: Parameter combinations could not be properly read.\n");
                 fclose(file);
                 exit(1);
             }
