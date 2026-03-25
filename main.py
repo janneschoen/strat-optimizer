@@ -148,10 +148,10 @@ def main():
     # Plotting results
 
     if numStrats > 1:
-        plot(paramSteps, stratType, strategyTypes, stratPath, performances)
+        plot(paramSteps, strategyTypes, stratPath, performances, config)
     else:
         print(f"Annualized Profit: {performances:.3f}")
-        showEquityCurve(equityPath, strategyTypes, stratType)
+        showEquityCurve(equityPath, strategyTypes, config)
 
 
 if __name__ == "__main__":

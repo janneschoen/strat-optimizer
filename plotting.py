@@ -2,7 +2,9 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 
-def plot(paramSteps, stratType, stratTypes, stratPath, performances):
+def plot(paramSteps, stratTypes, stratPath, performances, config):
+
+    stratType = config["stratType"]
 
     paramCombos = np.loadtxt(stratPath)
 
@@ -13,6 +15,8 @@ def plot(paramSteps, stratType, stratTypes, stratPath, performances):
     visualParams = [p for p in range(numParams) if paramSteps[p]]
 
     dimension = numParams + 1 - numFixed
+
+    plotTitle = f"{stratTypes[stratType].name} | {config["ticker"]} | {config["backtestLength"]} d"
 
     if dimension == 4:
         data = [paramCombos[:,p] for p in visualParams]
@@ -27,7 +31,7 @@ def plot(paramSteps, stratType, stratTypes, stratPath, performances):
         cbar = plt.colorbar(scatter)
         cbar.set_label("Performance")
 
-        ax.set_title(stratTypes[stratType].name)
+        ax.set_title(plotTitle)
         ax.set_xlabel(stratTypes[stratType].paramNames[visualParams[0]])
         ax.set_ylabel(stratTypes[stratType].paramNames[visualParams[1]])
         ax.set_zlabel(stratTypes[stratType].paramNames[visualParams[2]])
@@ -41,7 +45,7 @@ def plot(paramSteps, stratType, stratTypes, stratPath, performances):
         scatter = plt.scatter(*data, c=perfs, cmap='viridis', s=100)
 
         plt.colorbar(label="Performance")
-        plt.title(stratTypes[stratType].name)
+        plt.title(plotTitle)
         plt.xlabel(stratTypes[stratType].paramNames[visualParams[0]])
         plt.ylabel(stratTypes[stratType].paramNames[visualParams[1]])
 
@@ -51,7 +55,7 @@ def plot(paramSteps, stratType, stratTypes, stratPath, performances):
         perf = performances
 
         plt.scatter(*data, perf, color='black', marker='o')
-        plt.title(stratTypes[stratType].name)
+        plt.title(plotTitle)
         plt.xlabel(stratTypes[stratType].paramNames[visualParams[0]])
         plt.ylabel("Performance")
         plt.grid(True)

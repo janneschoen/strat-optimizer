@@ -2,7 +2,8 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 
-def showEquityCurve(equityPath, stratTypes, stratType):
+def showEquityCurve(equityPath, stratTypes, config):
+    stratType = config["stratType"]
     with open(equityPath, "r") as file:
         equityValues = [float(eqValue.strip()) for eqValue in file]
 
@@ -13,7 +14,7 @@ def showEquityCurve(equityPath, stratTypes, stratType):
     days = list(range(len(equityValues)))
 
     plt.plot(days, equityValues, color='green')
-    plt.title(stratTypes[stratType].name)
+    plt.title(f"{stratTypes[stratType].name} | {config["ticker"]} | {config["backtestLength"]} d")
     plt.xlabel("Days")
     plt.ylabel("Equity")
     plt.grid(True)
