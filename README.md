@@ -82,9 +82,9 @@ The relevant part of the config file used in this example:
 
 - `"backtestingLength": 2000`: Length of backtest in trading days up to yesterday
 - `"ticker": "BTC-USD"`: Ticker symbol of asset on finance.yahoo.com
-- `"fullYear": 1`: If the asset trades all year or is affected by weekends and holidays
+- `"fullYear": 1`: If the asset trades all year
     - 0: stocks, ETFs
-    - 1: crypto, forex)
+    - 1: crypto, forex
 
 ### Results (March 23, 2026)
 The two parameters tested in this example are the length of the "Fast Moving Average" and the "Slow Moving Average".
