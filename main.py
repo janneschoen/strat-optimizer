@@ -114,18 +114,20 @@ def main():
 
 
     # Running the backtesting engine
-    subprocess.run(
-        ["./compute",
-        str(numPrices),
-        pricePath,
-        str(numStrats),
-        stratPath,
-        str(strategyTypes[stratType].numParams),
-        str(stratType),
-        str(lookback),
-        str(perfPath),
-        str(equityPath)])
 
+    arguments = [
+        numPrices,
+        pricePath,
+        numStrats,
+        stratPath,
+        strategyTypes[stratType].numParams,
+        stratType,
+        lookback,
+        perfPath,
+        equityPath
+    ]
+
+    subprocess.run(["./compute"] + [str(a) for a in arguments])
 
     # Annualizing profits
 

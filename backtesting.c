@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-#define PROGRESS_INTV 1000
+#define PROGRESS_INTV 100
 #define BUDGET 10000
 
 float (*getSignal[])(unsigned day, strat_t * strategy, float * prices) = {
