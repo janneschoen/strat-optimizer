@@ -4,14 +4,14 @@
 #include <math.h>
 
 #define PROGRESS_INTV 1000
-#define RISK_FREE_RATE 0.02
-#define TRADING_FEE 0.002
 #define BUDGET 10000
 
 float (*getSignal[])(unsigned day, strat_t * strategy, float * prices) = {
     SMA_crossover_signal,
     RSI_signal,
 };
+
+void backtest(unsigned stratType, strat_t * strategy, float * prices, unsigned start, unsigned end, float * equityCurve);
 
 int main(int argc, char *argv[]){
 
@@ -101,6 +101,7 @@ void backtest(unsigned stratType, strat_t * strategy, float * prices, unsigned s
 
     for(unsigned i = start; i < end; i++){
         float knownPrices[end];
+        // prices genSignal function is allowed to know at this time
         for(unsigned j = 0; j < end; j++){
             if(j <= i){
                 knownPrices[j] = prices[j];
@@ -121,16 +122,16 @@ void backtest(unsigned stratType, strat_t * strategy, float * prices, unsigned s
 
         float desInvestment = signal * networth / knownPrices[i];
 
-        if(desInvestment > 0){
-            cash -= (assetLoans * knownPrices[i]);
+        if(desInvestment > 0){ // entering long position
+            cash -= (assetLoans * knownPrices[i]); // covering shorts
             assetLoans = 0;
-            cash -= (desInvestment - assetsOwned) * knownPrices[i];
+            cash -= (desInvestment - assetsOwned) * knownPrices[i]; // buying 
             assetsOwned = desInvestment;
-        } else if(desInvestment < 0){
+        } else if(desInvestment < 0){ // entering short position
             desInvestment = fabs(desInvestment);
-            cash += (assetsOwned * knownPrices[i]);
+            cash += (assetsOwned * knownPrices[i]); // closing longs
             assetsOwned = 0;
-            cash += (desInvestment - assetLoans) * knownPrices[i];
+            cash += (desInvestment - assetLoans) * knownPrices[i]; // selling
             assetLoans = desInvestment;
         }
     }

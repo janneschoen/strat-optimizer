@@ -12,8 +12,6 @@ typedef struct{
 } strat_t;
 
 
-void backtest(unsigned stratTypeID, strat_t * strategy, float * prices, unsigned start, unsigned end, float * equityCurve);
-
 // Strategy Functions
 
 float SMA_crossover_signal(unsigned day, strat_t * strategy, float * prices);
