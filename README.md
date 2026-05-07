@@ -130,4 +130,97 @@ Annualized Profit: 0.193
 #### Interpretation
 
 The graph indicates high returns, and in an almost linear fashion - but it has to be kept in mind that this specific strategy is optimized to the timeframe we are testing it on.
-At the start of the 2000 days, we could not have known that these parameters would bring such results.
+Moving average lengths can easily be overfit: while those specific lenghts would have brought a lot of profit in the observed time span, it is unknown whether they remain profitable parameters beyond it.
+
+## Types of Visualisations
+This is how results might look with different amounts of parameters.
+
+### Two-dimensional - 1 parameter
+<img width="600" alt="2d scatter plot" src="https://github.com/user-attachments/assets/2fb1a16b-14a9-41e3-a821-a711606deb40" />
+
+A simple scatter plot with a regression line: backtest(parameter) = performance.
+
+### Three-dimensional - 2 parameters
+<img width="600" alt="2d heatmap" src="https://github.com/user-attachments/assets/2f5f9084-16dd-43fb-b3ef-1cf45773722f" />
+
+A 2D heatmap to display the effect of 2 parameters on performance.
+
+### Four-dimensional - 3 parameters
+<img width="600" alt="fig3" src="https://github.com/user-attachments/assets/c55eff4f-2b14-4cbd-849f-bd097f51471b" />
+
+The relationship between 3 parameters and strategy performance is visualised by a 3D heatmap.
+
+## Own Strategy Types
+Adding and testing your own strategies includes two steps: programming the function that generates the trading signal, and defining the strategies properties.
+
+### 1. Signal
+This is the core of the strategy - it decides the size and direction of exposure to the asset for each timestamp.
+
+#### 1.1 Programming
+It is implemented in a new C file.
+
+Make sure it includes the header file:
+
+```C
+#include "common.h"
+```
+This is the structure of the function that generates trading signals:
+
+```C
+float myNewSignal(unsigned day, strat_t * strategy, float * prices);
+```
+It returns a float ∈ [-1.0, 1.0], which represents the desired asset exposure relative to ones networth: from fully short (-1) to fully long (1).
+
+The parameters are accessible from the `strat_t` struct:
+```C
+float p0 = strategy->params[0];
+```
+
+#### 1.2 Inclusion
+To let the program use the new signal function, make sure to declare it in `common.h`.
+
+Also append it to this list of functions in `backtesting.c`:
+
+```C
+float (*getSignal[])(unsigned day, strat_t * strategy, float * prices) = {
+    goodSignal,
+    mySignal,
+    newSignal
+};
+```
+
+### 2. Defining Properties
+This part is done in Python - it is necessary for validating parameters and displaying names.
+
+#### 2.1 Creating a StrategyType
+
+To the list of strategy types in `main.py`, append your own instance of the `StrategyType` class.
+
+It could look like this:
+```python
+    StrategyType(
+        name = "My Own Strategy",
+        numParams = 3,
+        paramNames = ["Secret Parameter", "Other parameter", "Risk Parameter"],
+        lookbackParam = 1
+    ),
+```
+`lookbackParam` is the parameter that determines how many timestamps the strategy has to look into the past. In this example, the `Other Parameter` looks furthest into the past. This is important so the program knows the amount of prices a strategy needs.
+
+#### 2.2 Validating Parameters
+So the backtest does not run into errors, the program validates each set of parameters beforehand.
+
+The `isValid(self, p)` function is defined in the StrategyType class. `p` is the list of parameters.
+
+Just check if the name of the instance corresponds to your strategy types name, and return `False` if the parameters are illegal, based on limits or their relationship.
+If your validation does not return `False`, the strategy parameters are deemed valid.
+
+```python
+if self.name == "My Own Strategy":
+  if p[0] < 47 or p[1] > 2 * p[2]: # conditions for invalidity
+        return False
+```
+
+### 3. Done
+You should now be able to define parameter ranges in the `config.json` file and test your strategy as you like.
+For visualisations, the program currently only supports testing 1-3 parameters at a time.
