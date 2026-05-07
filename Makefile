@@ -1,5 +1,5 @@
 
-FILES = backtesting.c 01-SMA-Crossover.c 02-RSI.c
+FILES := $(wildcard *.c)
 
 OUTPUT = compute
 
