@@ -64,6 +64,8 @@ def main():
     paramSteps = config["paramSteps"]
     fullYear = config["fullYear"]
 
+    print("Strategy type:", strategyTypes[stratType].name)
+
     # Downloading price data
     lookback = params[strategyTypes[stratType].lookbackParam]
     lookback = lookback[1] if len(lookback) > 1 else lookback[0]
