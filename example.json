@@ -1,5 +1,5 @@
 {
-    "stratType": 0,
+    "stratType": "SMA Crossover",
     "params": [[1,200], [30,200], [0.2]],
     "paramSteps": [3, 3, 0],
 

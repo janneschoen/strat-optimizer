@@ -24,20 +24,6 @@ class StrategyType:
                 return False
         return True
 
-strategyTypes = [
-    StrategyType(
-        name = "SMA Crossover",
-        numParams = 3,
-        paramNames = ["Fast SMA Length", "Slow SMA Length", "Position Sizing"],
-        lookbackParam = 1
-    ),
-    StrategyType(
-        name = "RSI",
-        numParams = 3,
-        paramNames = ["Buying Threshold", "Selling Threshold", "Window Size"],
-        lookbackParam = 2,
-    )
-]
 def main():
 
     args = sys.argv
@@ -59,18 +45,38 @@ def main():
     equityPath = tempDir + config["equityFile"]
 
     params = config["params"]
-    stratType = config["stratType"]
+    stratTypeName = config["stratType"]
     btLength = config["backtestLength"]
     paramSteps = config["paramSteps"]
     fullYear = config["fullYear"]
 
-    print("Strategy type:", strategyTypes[stratType].name)
+
+    with open("strategyTypes.json", 'r') as file:
+        strategyTypes = json.load(file)
+    
+    stratTypeNames = [st["name"] for st in strategyTypes]
+
+    if stratTypeName not in stratTypeNames:
+        raise KeyError(f"Strategy type '{stratTypeName}' not defined.")
+    
+    for stratType in strategyTypes:
+        if stratType["name"] == stratTypeName:
+            strategyType = StrategyType(
+                stratType["name"],
+                stratType["numParams"],
+                stratType["paramNames"],
+                stratType["lookbackParam"]
+            )
+            break
+
+    print("Strategy type:", strategyType.name)
 
     # Downloading price data
-    lookback = params[strategyTypes[stratType].lookbackParam]
+    lookback = params[strategyType.lookbackParam]
     lookback = lookback[1] if len(lookback) > 1 else lookback[0]
 
     numPrices = btLength + lookback
+    
     downloadPrices(numPrices, config)
 
     # Generating parameter combinations if steps provided
@@ -80,8 +86,7 @@ def main():
         paramCombos.append([param[0] for param in params])
     else:
         if len(paramSteps) != len(params):
-            print("Error: please provide exactly one interval per parameter.")
-            exit(1)
+            raise ValueError(f"Got {len(params)} parameters but {len(paramSteps)} intervals.")
 
         paramRanges = []
         for paramRange in params:
@@ -94,26 +99,21 @@ def main():
         allCombos = list(itertools.product(*paramRanges))
 
         for combo in allCombos:
-            if strategyTypes[stratType].isValid(combo):
+            if strategyType.isValid(combo):
                 paramCombos.append(combo)
 
     numStrats = len(paramCombos)
 
     if(numStrats) == 0:
-        print("Error: couldn't generate any valid parameter combinations.")
-        exit(1)
+        raise ValueError("Could not generate any valid parameter combinations.")
 
     # Saving param combos
-    try:
-        with open(stratPath, 'w') as file:
-            for combo in paramCombos:
-                for param in combo:
-                    file.write(str(param)+" ")
-                file.write("\n")
-    except Exception as e:
-        print(f"An error occurred: {e}")
-        exit(1)
 
+    with open(stratPath, 'w') as file:
+        for combo in paramCombos:
+            for param in combo:
+                file.write(str(param)+" ")
+            file.write("\n")
 
     # Running the backtesting engine
 
@@ -122,7 +122,7 @@ def main():
         pricePath,
         numStrats,
         stratPath,
-        strategyTypes[stratType].numParams,
+        strategyType.numParams,
         stratType,
         lookback,
         perfPath,
@@ -136,8 +136,7 @@ def main():
     try:
         performances = np.loadtxt(perfPath).tolist()
     except:
-        print("Error: backtesting engine generated no performances.\n")
-        exit(1)
+        raise RuntimeError("Got no performances from backtesting engine.")
 
     yearLength = 365 if fullYear else 252
 
@@ -150,10 +149,10 @@ def main():
     # Plotting results
 
     if numStrats > 1:
-        plot(paramSteps, strategyTypes, stratPath, performances, config)
+        plot(paramSteps, strategyType, stratPath, performances, config)
     else:
         print(f"Annualized Profit: {performances:.3f}")
-        showEquityCurve(equityPath, strategyTypes, config)
+        showEquityCurve(equityPath, strategyType, config)
 
 
 if __name__ == "__main__":

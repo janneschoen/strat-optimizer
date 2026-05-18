@@ -23,10 +23,8 @@ def downloadPrices(amount, config):
             start = day - td(daysToDownload),
             end = day,
             auto_adjust = True))['Open'][ticker].to_dict()
-    except:
-        with open(pricesPath, 'w') as file:
-            file.write(f"ERROR\n")
-        exit(1)
+    except Exception as e:
+        raise RuntimeError(f"Could not download price data: {e}")
 
     dates = list(priceData.keys())
 
@@ -36,10 +34,6 @@ def downloadPrices(amount, config):
 
     prices = prices[-amount:]
 
-    try:
-        with open(pricesPath, 'w') as file:
-            for price in prices:
-                file.write(f"{price}\n")
-    except Exception as e:
-        print(f"An error occurred: {e}")
-        exit(1)
+    with open(pricesPath, 'w') as file:
+        for price in prices:
+            file.write(f"{price}\n")

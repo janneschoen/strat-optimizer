@@ -2,9 +2,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 
-def plot(paramSteps, stratTypes, stratPath, performances, config):
-
-    stratType = config["stratType"]
+def plot(paramSteps, stratType, stratPath, performances, config):
 
     paramCombos = np.loadtxt(stratPath)
 
@@ -16,7 +14,7 @@ def plot(paramSteps, stratTypes, stratPath, performances, config):
 
     dimension = numParams + 1 - numFixed
 
-    plotTitle = f"{stratTypes[stratType].name} | {config["ticker"]} | {config["backtestLength"]} d"
+    plotTitle = f"{stratType.name} | {config["ticker"]} | {config["backtestLength"]} d"
 
     if dimension == 4:
         data = [paramCombos[:,p] for p in visualParams]
@@ -32,9 +30,9 @@ def plot(paramSteps, stratTypes, stratPath, performances, config):
         cbar.set_label("Performance")
 
         ax.set_title(plotTitle)
-        ax.set_xlabel(stratTypes[stratType].paramNames[visualParams[0]])
-        ax.set_ylabel(stratTypes[stratType].paramNames[visualParams[1]])
-        ax.set_zlabel(stratTypes[stratType].paramNames[visualParams[2]])
+        ax.set_xlabel(stratType.paramNames[visualParams[0]])
+        ax.set_zlabel(stratType.paramNames[visualParams[2]])
+        ax.set_ylabel(stratType.paramNames[visualParams[1]])
 
     elif dimension == 3:
 
@@ -46,8 +44,8 @@ def plot(paramSteps, stratTypes, stratPath, performances, config):
 
         plt.colorbar(label="Performance")
         plt.title(plotTitle)
-        plt.xlabel(stratTypes[stratType].paramNames[visualParams[0]])
-        plt.ylabel(stratTypes[stratType].paramNames[visualParams[1]])
+        plt.xlabel(stratType.paramNames[visualParams[0]])
+        plt.ylabel(stratType.paramNames[visualParams[1]])
 
     elif dimension == 2:
         data = [paramCombos[:,p] for p in visualParams]
@@ -56,7 +54,7 @@ def plot(paramSteps, stratTypes, stratPath, performances, config):
 
         plt.scatter(*data, perf, color='black', marker='o')
         plt.title(plotTitle)
-        plt.xlabel(stratTypes[stratType].paramNames[visualParams[0]])
+        plt.xlabel(stratType.paramNames[visualParams[0]])
         plt.ylabel("Performance")
         plt.grid(True)
 
@@ -66,7 +64,6 @@ def plot(paramSteps, stratTypes, stratPath, performances, config):
         plt.plot(lineX, lineY, color='blue', label='Regression Line')
     else:
         print("Only 1-3 parameters supported for visualisation.")
-        exit(1)
-
+        return
 
     plt.show()

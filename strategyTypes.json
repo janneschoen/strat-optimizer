@@ -1,0 +1,14 @@
+[
+    {
+        "name": "SMA Crossover",
+        "numParams": 3,
+        "paramNames": ["Fast SMA Length", "Slow SMA Length", "Position Sizing"],
+        "lookbackParam": 1
+    },
+    {
+        "name": "RSI",
+        "numParams": 3,
+        "paramNames": ["Buying Threshold", "Selling Threshold", "Window Size"],
+        "lookbackParam": 2
+    }
+]
