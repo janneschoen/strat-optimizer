@@ -33,7 +33,7 @@ def main():
     fullYear = config["fullYear"]
 
 
-    with open("strategyTypes.json", 'r') as file:
+    with open(config["stratTypesFile"], 'r') as file:
         strategyTypes = json.load(file)
     
     stratTypeNames = [st["name"] for st in strategyTypes]
@@ -45,17 +45,17 @@ def main():
         if stratType["name"] == stratTypeName:
             strategyType = StrategyType(
                 stratType["name"],
-                stratType["numParams"],
-                stratType["paramNames"],
-                stratType["lookbackParam"]
+                stratType["parameters"]
             )
             break
 
     print("Strategy type:", strategyType.name)
 
     # Downloading price data
-    lookback = params[strategyType.lookbackParam]
-    lookback = lookback[1] if len(lookback) > 1 else lookback[0]
+    for i, param in enumerate(strategyType.parameters):
+        if "defines_lookback" in param:
+            lookback = params[i]
+            lookback = lookback[1] if len(lookback) > 1 else lookback
 
     numPrices = btLength + lookback
     

@@ -4,6 +4,8 @@ import numpy as np
 
 def plot(paramSteps, stratType, stratPath, performances, config):
 
+    parameter_names = [p["name"] for p in stratType.parameters]
+
     paramCombos = np.loadtxt(stratPath)
 
     numParams = paramCombos.shape[1]
@@ -30,9 +32,9 @@ def plot(paramSteps, stratType, stratPath, performances, config):
         cbar.set_label("Performance")
 
         ax.set_title(plotTitle)
-        ax.set_xlabel(stratType.paramNames[visualParams[0]])
-        ax.set_zlabel(stratType.paramNames[visualParams[2]])
-        ax.set_ylabel(stratType.paramNames[visualParams[1]])
+        ax.set_xlabel(parameter_names[visualParams[0]])
+        ax.set_zlabel(parameter_names[visualParams[2]])
+        ax.set_ylabel(parameter_names[visualParams[1]])
 
     elif dimension == 3:
 
@@ -44,8 +46,8 @@ def plot(paramSteps, stratType, stratPath, performances, config):
 
         plt.colorbar(label="Performance")
         plt.title(plotTitle)
-        plt.xlabel(stratType.paramNames[visualParams[0]])
-        plt.ylabel(stratType.paramNames[visualParams[1]])
+        plt.xlabel(parameter_names[visualParams[0]])
+        plt.ylabel(parameter_names[visualParams[1]])
 
     elif dimension == 2:
         data = [paramCombos[:,p] for p in visualParams]
@@ -54,7 +56,7 @@ def plot(paramSteps, stratType, stratPath, performances, config):
 
         plt.scatter(*data, perf, color='black', marker='o')
         plt.title(plotTitle)
-        plt.xlabel(stratType.paramNames[visualParams[0]])
+        plt.xlabel(parameter_names[visualParams[0]])
         plt.ylabel("Performance")
         plt.grid(True)
 

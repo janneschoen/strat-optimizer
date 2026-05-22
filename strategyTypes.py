@@ -1,33 +1,32 @@
 
 class StrategyType:
-    def __init__(self, name, numParams, paramNames, lookbackParam):
+    def __init__(self, name, parameters):
         self.name = name
-        self.numParams = numParams
-        self.paramNames = paramNames
-        self.lookbackParam = lookbackParam
+        self.parameters = parameters
+        self.numParams = len(self.parameters)
 
     def isValid(self, p):
+
         if len(p) != self.numParams:
             return False
 
-        if self.name == "SMA Crossover":
-            if p[0] >= p[1]:
-                return False
-            if p[1] < 2:
-                return False
-            if p[2] <= 0:
-                return False
-            if p[2] > 1:
+        for i in range(len(p)):
+
+            # Check if parameter is bigger than other parameter (if it should be smaller)
+
+            upper_param = self.parameters[i].get("upper_param")
+            if upper_param and p[i] > p[upper_param]:
                 return False
 
-        if self.name == "RSI":
-            if p[2] < 2:
+            
+            # Check if parameter is in numeric limits (if they exist)
+
+            lower_limit = self.parameters[i].get("min")
+            if lower_limit and p[i] < lower_limit:
                 return False
-            if p[0] < 0:
-                return False
-            if p[1] > 100:
-                return False
-            if p[0] > p[1]:
+
+            upper_limit = self.parameters[i].get("max")
+            if upper_limit and p[i] > upper_limit:
                 return False
 
         return True

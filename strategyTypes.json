@@ -1,14 +1,18 @@
 [
     {
         "name": "SMA Crossover",
-        "numParams": 3,
-        "paramNames": ["Fast SMA Length", "Slow SMA Length", "Position Sizing"],
-        "lookbackParam": 1
+        "parameters": [
+            {"name": "Fast SMA Length", "min": 1, "upper_param": 1},
+            {"name": "Slow SMA Length", "min": 1, "defines_lookback": true},
+            {"name": "Position Sizing", "min": 0, "max": 1}
+        ]
     },
     {
         "name": "RSI",
-        "numParams": 3,
-        "paramNames": ["Buying Threshold", "Selling Threshold", "Window Size"],
-        "lookbackParam": 2
+        "parameters": [
+            {"name": "Buying Threshold", "min": 0, "max": 100, "upper_param": 1},
+            {"name": "Selling Threshold", "min": 0, "max": 100},
+            {"name": "Window Size", "min": 1, "defines_lookback": true}
+        ]
     }
 ]
