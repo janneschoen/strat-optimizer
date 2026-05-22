@@ -1,18 +1,18 @@
 {
-    "stratType": "SMA Crossover",
-    "params": [[1,200], [30,200], [0.2]],
-    "paramSteps": [3, 3, 0],
+    "strategy_type": "SMA Crossover",
+    "parameter_ranges": [[1,200], [30,200], [0.2]],
+    "parameter_steps": [3, 3, 0],
 
-    "backtestLength": 2000,
+    "backtest_length": 2000,
     "ticker": "BTC-USD",
-    "fullYear": 1,
+    "is_traded_all_year": true,
 
     "stratTypesFile": "strategyTypes.json",
 
-    "tempDir": ".temp",
-    "priceFile": "prices.temp",
-    "stratFile": "strats.temp",
-    "resultFile": "results.temp",
-    "equityFile": "equity.temp"
+    "temp_directory": ".temp",
+    "price_file": "prices.temp",
+    "strategy_file": "strats.temp",
+    "results_file": "results.temp",
+    "equity_file": "equity.temp"
 
 }

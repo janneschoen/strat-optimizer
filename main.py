@@ -1,8 +1,8 @@
 import json
-from prices import downloadPrices
+from prices import download_prices
 from plotting import plot
-from equityCurve import showEquityCurve
-from strategyTypes import StrategyType
+from equity_curve import show_equity_curve
+from strategies import Strategy
 import subprocess
 import itertools, numpy as np
 import os, sys
@@ -10,131 +10,143 @@ import os, sys
 def main():
     args = sys.argv
     if len(args) == 1:
-        configFile = 'config.json'
+        config_file = 'config.json'
     else:
-        configFile = args[1]
+        config_file = args[1]
 
-    print("Reading configuration from", configFile)
+    print(f"Reading configuration from '{config_file}'")
 
-    with open(configFile, 'r') as file:
+    with open(config_file, 'r') as file:
         config = json.load(file)
 
-    os.makedirs(config["tempDir"], exist_ok=True)
-    tempDir = config["tempDir"] + "/"
-    pricePath = tempDir + config["priceFile"]
-    stratPath = tempDir + config["stratFile"]
-    perfPath = tempDir + config["resultFile"]
-    equityPath = tempDir + config["equityFile"]
+    temp_dir = config["temp_directory"] + "/"
 
-    params = config["params"]
-    stratTypeName = config["stratType"]
-    btLength = config["backtestLength"]
-    paramSteps = config["paramSteps"]
-    fullYear = config["fullYear"]
+    os.makedirs(temp_dir, exist_ok=True)
+    parameter_path = temp_dir + config["parameter_file"]
+    performance_path = temp_dir + config["results_file"]
+    equity_path = temp_dir + config["equity_file"]
+    prices_path = temp_dir + config["prices_file"]
+
+    parameter_ranges = config["parameter_ranges"]
+    strategy_name = config["strategy"]
+    backtest_length = config["backtest_length"]
+    parameter_steps = config["parameter_steps"]
+    is_traded_all_year = config["is_traded_all_year"]
 
 
-    with open(config["stratTypesFile"], 'r') as file:
-        strategyTypes = json.load(file)
+    with open(config["strategy_file"], 'r') as file:
+        strategies = json.load(file)
     
-    stratTypeNames = [st["name"] for st in strategyTypes]
+    strategy_names = [strategy["name"] for strategy in strategies]
 
-    if stratTypeName not in stratTypeNames:
-        raise KeyError(f"Strategy type '{stratTypeName}' not defined.")
+    if strategy_name not in strategy_names:
+        raise KeyError(f"Strategy '{strategy_name}' not defined.")
+
     
-    for stratType in strategyTypes:
-        if stratType["name"] == stratTypeName:
-            strategyType = StrategyType(
-                stratType["name"],
-                stratType["parameters"]
+    for strat in strategies:
+        if strat["name"] == strategy_name:
+            strategy = Strategy(
+                strat["name"],
+                strat["parameters"]
             )
             break
 
-    print("Strategy type:", strategyType.name)
+    print("Strategy type:", strategy.name)
+
 
     # Downloading price data
-    for i, param in enumerate(strategyType.parameters):
-        if "defines_lookback" in param:
-            lookback = params[i]
-            lookback = lookback[1] if len(lookback) > 1 else lookback
 
-    numPrices = btLength + lookback
+    for i, parameter in enumerate(strategy.parameters):
+        if "defines_lookback" in parameter:
+            lookback = parameter_ranges[i][1]
+
+    number_of_prices = backtest_length + lookback
     
-    downloadPrices(numPrices, config)
+    download_prices(number_of_prices, config)
+
 
     # Generating parameter combinations if steps provided
-    paramCombos = []
 
-    if paramSteps.count(0) == len(params):
-        paramCombos.append([param[0] for param in params])
-    else:
-        if len(paramSteps) != len(params):
-            raise ValueError(f"Got {len(params)} parameters but {len(paramSteps)} intervals.")
+    parameter_combos = []
 
-        paramRanges = []
-        for paramRange in params:
-            paramStep = paramSteps[len(paramRanges)]
-            if paramStep == 0:
-                paramRanges.append([paramRange[0]])
-            else:
-                paramRanges.append(np.arange(paramRange[0], paramRange[1], paramStep))
+    if len(parameter_steps) != len(parameter_ranges):
+        raise ValueError(f"Got {len(parameter_ranges)} parameters but {len(parameter_steps)} intervals.")
 
-        allCombos = list(itertools.product(*paramRanges))
+    parameter_lists = []
+    for parameter_range in parameter_ranges:
+        step = parameter_steps[len(parameter_lists)]
+        if step == 0:
+            parameter_lists.append([parameter_range[0]])
+        else:
+            parameter_lists.append(np.arange(parameter_range[0], parameter_range[1], step))
 
-        for combo in allCombos:
-            if strategyType.isValid(combo):
-                paramCombos.append(combo)
+    all_combos = list(itertools.product(*parameter_lists))
 
-    numStrats = len(paramCombos)
+    # Only save parameter combos that pass validity test
 
-    if(numStrats) == 0:
+    for combo in all_combos:
+        if strategy.is_valid(combo):
+            parameter_combos.append(combo)
+
+    number_of_combinations = len(parameter_combos)
+
+    if(number_of_combinations) == 0:
         raise ValueError("Could not generate any valid parameter combinations.")
+    
+    print("Number of parameter combinations:", number_of_combinations)
 
-    # Saving param combos
 
-    with open(stratPath, 'w') as file:
-        for combo in paramCombos:
+    # Saving parameter combos in file
+
+    with open(parameter_path, 'w') as file:
+        for combo in parameter_combos:
             for param in combo:
                 file.write(str(param)+" ")
             file.write("\n")
 
+
     # Running the backtesting engine
 
     arguments = [
-        numPrices,
-        pricePath,
-        numStrats,
-        stratPath,
-        strategyType.numParams,
-        stratType,
+        number_of_prices,
+        prices_path,
+        number_of_combinations,
+        parameter_path,
+        strategy.number_of_parameters,
+        strategy,
         lookback,
-        perfPath,
-        equityPath
+        performance_path,
+        equity_path
     ]
 
-    subprocess.run(["./compute"] + [str(a) for a in arguments])
+    subprocess.run(["./compute"] + [str(argument) for argument in arguments])
+
 
     # Annualizing profits
 
     try:
-        performances = np.loadtxt(perfPath).tolist()
+        performances = np.loadtxt(performance_path).tolist()
     except:
         raise RuntimeError("Got no performances from backtesting engine.")
 
-    yearLength = 365 if fullYear else 252
 
-    if numStrats > 1:
-        for p in range(numStrats):
-            performances[p] = (1 + performances[p]) ** (yearLength / btLength) - 1
+    year_length = 365 if is_traded_all_year else 252
+
+    
+    if number_of_combinations > 1:
+        for p in range(number_of_combinations):
+            performances[p] = (1 + performances[p]) ** (year_length / backtest_length) - 1
     else:
-        performances = (1 + performances) ** (yearLength / btLength) - 1
+        performances = (1 + performances) ** (year_length / backtest_length) - 1
+
 
     # Plotting results
 
-    if numStrats > 1:
-        plot(paramSteps, strategyType, stratPath, performances, config)
+    if number_of_combinations > 1:
+        plot(parameter_steps, strategy, parameter_path, performances, config)
     else:
-        print(f"Annualized Profit: {performances:.3f}")
-        showEquityCurve(equityPath, strategyType, config)
+        print(f"Annualized profit: {performances:.3f}")
+        show_equity_curve(equity_path, strategy, config)
 
 
 if __name__ == "__main__":
