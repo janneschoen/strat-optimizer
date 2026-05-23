@@ -54,7 +54,7 @@ python main.py customFile.json
 ### Strategy: Simple Moving Average Crossover
 In this example, we try to find out which parameters of the "SMA Crossover" strategy worked best in the last 2000 days when applied to Bitcoin-USD.
 
-The trading logic of this strategy type is defined in `0_SMA_crossover.c`, and the parameter names and boundaries in `main.py`.
+The trading logic of this strategy type is defined in `01-SMA_crossover.c`, and the parameter names and boundaries in `strategies.json`.
 
 Long and short positions are entered based on the following criteria:
 - Each day: calculate two moving averages: "Slow" and "Fast" (e.g. 20d, 5d)
@@ -154,8 +154,8 @@ A 2D heatmap to display the effect of 2 parameters on performance.
 
 The relationship between 3 parameters and strategy performance is visualised by a 3D heatmap.
 
-## Own Strategy Types
-Adding and testing your own strategies includes two steps: programming the function that generates the trading signal, and defining the strategies properties.
+## Your Own Strategies
+Adding and testing your own strategies includes two steps: programming the function that generates the trading signals in *C*, and defining the strategies properties in *json*.
 
 ### 1. Signal
 This is the core of the strategy - it decides the size and direction of exposure to the asset for each timestamp.
@@ -194,36 +194,27 @@ float (*getSignal[])(unsigned day, strat_t * strategy, float * prices) = {
 ```
 
 ### 2. Defining Properties
-This part is done in Python - it is necessary for validating parameters and displaying names.
-
-#### 2.1 Creating a StrategyType
-
-To the list of strategy types in `main.py`, append your own instance of the `StrategyType` class.
-
-It could look like this:
-```python
-    StrategyType(
-        name = "My Own Strategy",
-        numParams = 3,
-        paramNames = ["Secret Parameter", "Other parameter", "Risk Parameter"],
-        lookbackParam = 1
-    ),
+This part is done in the JSON file that contains the strategy properties - 'strategies.json' by default. It is necessary for validating parameters and displaying names.
+```json
+[
+    {
+        "name": "My Strategy",
+        "parameters": [
+            {"name": "Sun Parameter", "min": 1, "max": 50},
+            {"name": "Red Parameter", "min": 1, "defines_lookback": true},
+            {"name": "Tiger Parameter", "upper_param": 0}
+        ]
+    }
+]
 ```
-`lookbackParam` is the parameter that determines how many timestamps the strategy has to look into the past. In this example, the `Other Parameter` looks furthest into the past. This is important so the program knows the amount of prices a strategy needs.
+The JSON file contains a list of JSON objects, where each object is one strategy. You have to define the name of the strategy, as well as the properties of the parameters.
 
-#### 2.2 Validating Parameters
-So the backtest does not run into errors, the program validates each set of parameters beforehand.
+If a parameter is not allowed to be below or above a certain numeric limit, define it via 'min' or 'max'. In the example, the value of 'Sun Parameter' can not be smaller than 1 or bigger than 50.
 
-The `isValid(self, p)` function is defined in the StrategyType class. `p` is the list of parameters.
+When the value of parameter A can not exceed the value of parameter B, set "upper_param" to the index of B in the properties of parameter A. In the example, 'Tiger Parameter' can not numerically exceed 'Sun Parameter'.
 
-Just check if the name of the instance corresponds to your strategy types name, and return `False` if the parameters are illegal, based on limits or their relationship.
-If your validation does not return `False`, the strategy parameters are deemed valid.
+One parameter has to define the necessary lookback period. In the example, 'Red Parameter' defines the lookback, meaning it dictates the amount of past price data the program grants the signal generator function. If the value is 20, each time the function is called, it receives the last 20 prices of the asset.
 
-```python
-if self.name == "My Own Strategy":
-  if p[0] < 47 or p[1] > 2 * p[2]: # conditions for invalidity
-        return False
-```
 
 ### 3. Done
 You should now be able to define parameter ranges in the `config.json` file and test your strategy as you like.
