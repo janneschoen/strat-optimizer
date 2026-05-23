@@ -62,29 +62,33 @@ Long and short positions are entered based on the following criteria:
   - long when avgPrice(Fast) > avgPrice(Slow), short when opposite
 - Size of position depends on the third parameter, which we fixed to 20% in this example
 ### Configuration
-The relevant part of the config file used in this example:
+The config file used in this example:
 ```json
 {
-    "stratType": 0,
-    "params": [[1, 200], [30, 200], [0.2]],
-    "paramSteps": [3, 3, 0],
+    "strategy_name": "SMA Crossover",
+    "strategies_file": "strategies.json",
 
-    "backtestLength": 2000,
-    "ticker": "BTC-USD",
-    "fullYear": 1,
+    "parameter_ranges": [[1,200], [30,200], [0.2, 0.2]],
+    "parameter_steps": [3, 3, 0],
+    "backtest_length": 2000,
+
+    "asset":{
+        "ticker": "BTC-USD",
+        "is_traded_all_year": true
+    }
 }
 ```
-- `"stratType": 0`: Index of the strategy type - defined in array `strategyTypes` in `main.py` and array of `getSignal()` functions in `backtesting.c`
-- `"params": [[1, 200], ...]`: Testing range of parameters, in format [from, to]
-- `"paramSteps": [3, 3, 0]`: Steps when iterating through each parameter
+- `"strategy_name": "SMA Crossover`: Name of the trading strategy as defined in the 'strategies.json' file.
+- `"parameter_ranges": [[1, 200], ...]`: Testing range of parameters, in format [from, to]
+- `"parameter_steps": [3, 3, 0]`: Steps when iterating through each parameter
     - 3 -> [1, 4, 7, ...]
     - 0 -> fixed parameter
 
-- `"backtestingLength": 2000`: Length of backtest in trading days up to yesterday
+- `"backtesting_length": 2000`: Length of backtest in trading days up to yesterday
 - `"ticker": "BTC-USD"`: Ticker symbol of asset on finance.yahoo.com
-- `"fullYear": 1`: If the asset trades all year
-    - 0: stocks, ETFs
-    - 1: crypto, forex
+- `"is_traded_all_year": true`: If the asset trades 365 days a year
+    - false: stocks, ETFs
+    - true: crypto, forex
 
 ### Results (March 23, 2026)
 The two parameters tested in this example are the length of the "Fast Moving Average" and the "Slow Moving Average".
@@ -115,8 +119,8 @@ In the next step, a test will be run on a specific pair of parameters, generatin
 To do so, enter the desired parameters as the first part of the ranges, and set the steps to 0.
 ```json
 {
-    "params": [[1, 200], [120, 200], [0.2]],
-    "paramSteps": [0, 0, 0],
+    "parameter_ranges": [[1, 200], [120, 200], [0.2]],
+    "parameter_steps": [0, 0, 0],
 }
 ```
 The following output is generated:
