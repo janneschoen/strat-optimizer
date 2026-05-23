@@ -1,18 +1,13 @@
 {
-    "strategy": "SMA Crossover",
+    "strategy_name": "SMA Crossover",
+    "strategies_file": "strategies.json",
+
     "parameter_ranges": [[1,200], [30,200], [0.2]],
     "parameter_steps": [3, 3, 0],
-
     "backtest_length": 2000,
-    "ticker": "BTC-USD",
-    "is_traded_all_year": true,
 
-    "strategy_file": "strategies.json",
-
-    "temp_directory": ".temp",
-    "prices_file": "prices.temp",
-    "parameter_file": "parameters.temp",
-    "results_file": "results.temp",
-    "equity_file": "equity.temp"
-
+    "asset":{
+        "ticker": "BTC-USD",
+        "is_traded_all_year": true
+    }
 }

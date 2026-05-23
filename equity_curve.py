@@ -1,9 +1,10 @@
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
+from config import RunConfig
 
-def show_equity_curve(equity_path, strategy, config):
-    with open(equity_path, "r") as file:
+def show_equity_curve(run: RunConfig):
+    with open(run.equity_path, "r") as file:
         equity_values = [float(equity_value.strip()) for equity_value in file]
 
     norming_factor = equity_values[0]
@@ -13,7 +14,7 @@ def show_equity_curve(equity_path, strategy, config):
     days = list(range(len(equity_values)))
 
     plt.plot(days, equity_values, color='green')
-    plt.title(f"{strategy.name} | {config["ticker"]} | {config["backtest_length"]} d")
+    plt.title(f"{run.strategy.name} | {run.asset.ticker} | {run.backtest_length} d")
     plt.xlabel("Days")
     plt.ylabel("Equity")
     plt.grid(True)
