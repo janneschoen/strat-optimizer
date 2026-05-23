@@ -59,8 +59,9 @@ The trading logic of this strategy type is defined in `01-SMA_crossover.c`, and 
 Long and short positions are entered based on the following criteria:
 - Each day: calculate two moving averages: "Slow" and "Fast" (e.g. 20d, 5d)
 - When these two price averages cross, a long or short position is entered
-  - long when avgPrice(Fast) > avgPrice(Slow), short when opposite
-- Size of position depends on the third parameter, which we fixed to 20% in this example
+  - long when 5-day-average > 20-day-average, short when opposite
+- Size of position depends on the third parameter, which is fixed to 20% in this example
+
 ### Configuration
 The config file used in this example:
 ```json
