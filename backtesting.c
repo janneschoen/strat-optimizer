@@ -2,9 +2,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
 
 #define PROGRESS_INTV 100
 #define BUDGET 10000
+
+#define MAX_KEY_LENGTH 64
+#define MAX_VALUE_LENGTH 64
+#define SEPARATOR ':'
 
 float (*getSignal[])(unsigned day, strat_t * strategy, float * prices) = {
     SMA_crossover_signal,
@@ -13,6 +18,8 @@ float (*getSignal[])(unsigned day, strat_t * strategy, float * prices) = {
 
 void backtest(unsigned stratType, strat_t * strategy, float * prices, unsigned start, unsigned end, float * equityCurve);
 
+
+
 int main(int argc, char *argv[]){
 
     if(argc == 1){
@@ -20,9 +27,66 @@ int main(int argc, char *argv[]){
         exit(0);
     }
 
+    int get_value_from_key(const char * key, char * destination){
+        
+        for(unsigned i = 1; i < argc; i++){
+
+            char argument[MAX_KEY_LENGTH + 1 + MAX_VALUE_LENGTH];
+            strcpy(argument, argv[i]);
+
+            char read_key[MAX_KEY_LENGTH];
+
+            for(unsigned j = 0; j < MAX_KEY_LENGTH; j++){
+
+                if(argument[j] != SEPARATOR){
+                    read_key[j] = argument[j];
+                } else{
+                    read_key[j] = '\0';
+                    if(strcmp(read_key, key) == 0){ // Key match found
+
+                        char read_value[MAX_VALUE_LENGTH];
+                        for(unsigned k = 0; k < MAX_VALUE_LENGTH; k++){
+                            if(argument[j+1+k] != '\0'){
+                                read_value[k] = argument[j+1+k];
+                            } else{
+                                read_value[k] = '\0';
+                                strcpy(destination, read_value);
+                                return 0;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        printf("Error: key '%s' not found in provided data.\n", key);
+        exit(1);
+    }
+
+    // Reading numeric values from given data via keys
+
+    char str_numPrices[MAX_VALUE_LENGTH];
+    get_value_from_key("number_of_prices", str_numPrices);
+    unsigned numPrices = atoi(str_numPrices);
+
+    char str_numStrats[MAX_VALUE_LENGTH];
+    get_value_from_key("number_of_combinations", str_numStrats);
+    unsigned numStrats = atoi(str_numStrats);
+
+    char str_numParams[MAX_VALUE_LENGTH];
+    get_value_from_key("number_of_parameters", str_numParams);
+    unsigned numParams = atoi(str_numParams);
+
+    char str_lookback[MAX_VALUE_LENGTH];
+    get_value_from_key("lookback", str_lookback);
+    unsigned start = atoi(str_lookback);
+
+    char str_stratType[MAX_VALUE_LENGTH];
+    get_value_from_key("strategy_index", str_stratType);
+    unsigned stratType = atoi(str_stratType);
+
+
     // Reading prices from file
 
-    unsigned numPrices = strtoul(argv[1], NULL, 10);
     float prices[numPrices];
 
     FILE * file;
@@ -39,11 +103,9 @@ int main(int argc, char *argv[]){
 
     // Reading parameter combos from file
 
-    unsigned numStrats = strtoul(argv[3], NULL, 10);
     strat_t strategies[numStrats];
 
     file = fopen(argv[4], "r");
-    unsigned numParams = strtoul(argv[5], NULL, 10);
 
     for(unsigned i = 0; i < numStrats; i++){
         for(unsigned j = 0; j < numParams; j++){
@@ -59,9 +121,6 @@ int main(int argc, char *argv[]){
     fclose(file);
 
     // Backtesting each parameter combination
-
-    unsigned stratType = strtoul(argv[6], NULL, 10);
-    unsigned start = strtoul(argv[7], NULL, 10); // required lookback used as start
 
     float equityCurve[numPrices-start];
     for(unsigned i = 0; i < numStrats; i++){
