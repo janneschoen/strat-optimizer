@@ -12,6 +12,11 @@ typedef struct{
 } strategy_config_t;
 
 
+// Function for backtesting a single strategy config
+
+void backtest(unsigned strategy_index, strategy_config_t * strategy, float * prices, unsigned start, unsigned end, float * equity_curve);
+
+
 // Strategy Functions
 
 float signal_SMA_crossover(unsigned day, strategy_config_t * strategy, float * prices);
