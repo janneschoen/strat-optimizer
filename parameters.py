@@ -36,7 +36,7 @@ def generate_parameter_combinations(run: RunConfig) -> (int, List[Tuple[float]])
         raise ValueError("Could not generate any valid parameter combinations.")
     
 
-    # Writing parameter combinations to file
+    # Write parameter combinations to file
 
     with open(run.parameter_path, 'w') as file:
         for combo in parameter_combos:

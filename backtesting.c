@@ -6,7 +6,6 @@
 
 #define BUDGET 10000
 
-
 float (*get_signal[])(unsigned day, strategy_config_t * strategy_config, float * prices) = {
     signal_SMA_crossover,
     signal_RSI,
@@ -14,9 +13,11 @@ float (*get_signal[])(unsigned day, strategy_config_t * strategy_config, float *
 
 // Backtesting logic
 
-void backtest(unsigned strategy_index, strategy_config_t * strategy_config, float * prices, unsigned start, unsigned end, float * equity_curve){
+void backtest(run_config_t run, strategy_config_t * strategy_config, float * prices, float * equity_curve){
     float cash = BUDGET, assets_owned = 0, asset_loans = 0;
     float networth;
+    unsigned start = run.lookback;
+    unsigned end = run.number_of_prices;
 
     for(unsigned i = start; i < end; i++){
         float known_prices[end]; // prices get_signal function is allowed to know at this time
@@ -37,7 +38,7 @@ void backtest(unsigned strategy_index, strategy_config_t * strategy_config, floa
             break;
         }
 
-        float signal = get_signal[strategy_index](i, strategy_config, prices);
+        float signal = get_signal[run.strategy_index](i, strategy_config, prices);
 
         float desired_investment = signal * networth / known_prices[i];
 
@@ -58,7 +59,7 @@ void backtest(unsigned strategy_index, strategy_config_t * strategy_config, floa
 
     float profit = (networth - BUDGET) / BUDGET;
 
-    strategy_config->performance[0] = profit;
+    strategy_config->performance.annual_profit = pow((1 + profit), ((float)run.trading_days / (end-start))) - 1;
 
     for(unsigned i = 0; i < STRAT_STORAGE; i++){
         strategy_config->storage[i] = NAN;

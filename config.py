@@ -6,7 +6,7 @@ import sys, os, json
 @dataclass
 class Asset():
     ticker: str
-    is_traded_all_year: bool
+    trading_days: int
 
 @dataclass
 class RunConfig():
@@ -40,16 +40,13 @@ class RunConfig():
     
     def _calculate_lookback(self) -> int:
 
-        lookback = None
         for i, param in enumerate(self.strategy.parameters):
             if param.defines_lookback:
-                if self.parameter_steps[i]:
-                    lookback = self.parameter_ranges[i][1 if self.parameter_steps[i] else 0]
-                break
+                lookback = self.parameter_ranges[i][1 if self.parameter_steps[i] else 0]
+                if lookback > 0:
+                    return lookback
 
-        if not lookback:
-            raise ValueError(f"Lookback period invalid: {lookback}")
-        return lookback
+        raise ValueError(f"Could not derive the required lookback from given parameters.")
 
 def load_config() -> RunConfig:
     if len(sys.argv) == 1:
@@ -65,7 +62,6 @@ def load_config() -> RunConfig:
     strategies_file = config.get("strategies_file")
     if not strategies_file:
         strategies_file = "strategies.json"
-    print(f"Strategy file: '{strategies_file}'")
     
     with open(strategies_file, 'r') as f:
         strategies = json.load(f)
@@ -88,7 +84,7 @@ def load_config() -> RunConfig:
             )
             break
 
-    print(f"Strategy: '{strategy.name}'")
+    print(f"Strategy: '{strategy.name}' from '{strategies_file}'")
     
     return RunConfig(
         strategy = strategy,
@@ -97,6 +93,6 @@ def load_config() -> RunConfig:
         backtest_length = config["backtest_length"],
         asset = Asset(
             ticker = config["asset"]["ticker"],
-            is_traded_all_year = config["asset"]["is_traded_all_year"]
+            trading_days = 365 if config["asset"]["is_traded_all_year"] else 252
         )
     )

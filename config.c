@@ -62,6 +62,10 @@ run_config_t load_config(int argc, char * argv[]){
     get_value_from_key("strategy_index", str_strategy_index);
     run_config.strategy_index = atoi(str_strategy_index);
 
+    char str_trading_days[MAX_VALUE_LENGTH];
+    get_value_from_key("trading_days", str_trading_days);
+    run_config.trading_days = atoi(str_trading_days);
+
     // Read string values
 
     get_value_from_key("prices_path", run_config.prices_path);

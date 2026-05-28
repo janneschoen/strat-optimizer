@@ -14,6 +14,7 @@ def run_backtesting_engine(run: RunConfig, number_of_prices: int, number_of_comb
 
         "lookback": run.lookback,
         "strategy_index": run.strategy.index,
+        "trading_days": run.asset.trading_days,
 
         "prices_path": run.prices_path,
         "equity_path": run.equity_path,
@@ -21,31 +22,21 @@ def run_backtesting_engine(run: RunConfig, number_of_prices: int, number_of_comb
         "performances_path": run.performances_path
     }
 
-    # Passing data as pseudo-json-object to C engine
+    # Pass data as pseudo-json-object to C engine
 
     arguments = [f"./{C_PROGRAM_NAME}"]
 
-    for pair in backtest_data.items():
-        arguments.append(f"{pair[0]}:{pair[1]}")
+    for key, value in backtest_data.items():
+        arguments.append(f"{key}:{value}")
 
     subprocess.run(arg for arg in arguments)
 
 
-    # Annualizing profits
+    # Read profits from file
 
     try:
         performances = np.loadtxt(run.performances_path).tolist()
     except:
         raise RuntimeError("Got no performances from backtesting engine.")
 
-
-    year_length = 365 if run.asset.is_traded_all_year else 252
-
-    
-    if number_of_combinations > 1:
-        for p in range(number_of_combinations):
-            performances[p] = (1 + performances[p]) ** (year_length / run.backtest_length) - 1
-    else:
-        performances = (1 + performances) ** (year_length / run.backtest_length) - 1
-    
     return performances

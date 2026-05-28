@@ -20,11 +20,11 @@ def main():
 
     number_of_combinations, parameter_combos = generate_parameter_combinations(run)
 
-    # Running the backtesting engine
+    # Run the backtesting engine
 
     performances = run_backtesting_engine(run, number_of_prices, number_of_combinations)
 
-    # Plotting results
+    # Plot results / show equity curve
 
     if number_of_combinations > 1:
         plot(run, performances, parameter_combos)

@@ -5,14 +5,13 @@ import numpy as np
 from config import RunConfig
 from strategies import Strategy
 
+DAYS_PER_YEAR = 365
+
 def download_prices(run: RunConfig) -> int:
 
     number_of_prices = run.backtest_length + run.lookback
 
-    if run.asset.is_traded_all_year:
-        days_to_download = number_of_prices
-    else:
-        days_to_download = int(number_of_prices * (5/3))
+    days_to_download = int(number_of_prices * (DAYS_PER_YEAR / run.asset.trading_days))
 
     day = datetime.now().replace(hour=0,minute=0,second=0,microsecond=0) - td(1)
 

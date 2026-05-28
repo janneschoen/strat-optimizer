@@ -55,7 +55,7 @@ int main(int argc, char * argv[]){
             printf("\r%u / %u", i, run.number_of_combinations);
             fflush(stdout);
         }
-        backtest(run.strategy_index, &combinations[i], prices, run.lookback, run.number_of_prices, equity_curve);
+        backtest(run, &combinations[i], prices, equity_curve);
     }
     printf("\n");
 
@@ -63,7 +63,7 @@ int main(int argc, char * argv[]){
 
     file = fopen(run.performances_path, "w");
     for(unsigned i = 0; i < run.number_of_combinations; i++){
-        fprintf(file, "%f\n", combinations[i].performance[0]);
+        fprintf(file, "%f\n", combinations[i].performance.annual_profit);
     }
     fclose(file);
 
