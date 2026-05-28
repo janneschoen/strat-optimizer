@@ -188,9 +188,9 @@ Also append it to this list of functions in `backtesting.c`:
 
 ```C
 float (*getSignal[])(unsigned day, strat_t * strategy, float * prices) = {
-    goodSignal,
-    mySignal,
-    newSignal
+    signal_1,
+    signa_2,
+    signal_3
 };
 ```
 
@@ -201,20 +201,20 @@ This part is done in the JSON file that contains the strategy properties - 'stra
     {
         "name": "My Strategy",
         "parameters": [
-            {"name": "Sun Parameter", "min": 1, "max": 50},
-            {"name": "Red Parameter", "min": 1, "defines_lookback": true},
-            {"name": "Tiger Parameter", "upper_param": 0}
+            {"name": "Parameter A", "min": 1, "max": 50},
+            {"name": "Parameter B", "min": 1, "defines_lookback": true},
+            {"name": "Parameter C", "upper_param": 0}
         ]
     }
 ]
 ```
 The JSON file contains a list of JSON objects, where each object is one strategy. You have to define the name of the strategy, as well as the properties of the parameters.
 
-If a parameter is not allowed to be below or above a certain numeric limit, define it via 'min' or 'max'. In the example, the value of 'Sun Parameter' can not be smaller than 1 or bigger than 50.
+If a parameter is not allowed to be below or above a certain numeric limit, define it via 'min' or 'max'. In the example, the value of 'Parameter A' can not be smaller than 1 or bigger than 50.
 
-When the value of parameter A can not exceed the value of parameter B, set "upper_param" to the index of B in the properties of parameter A. In the example, 'Tiger Parameter' can not numerically exceed 'Sun Parameter'.
+When the value of a parameter must always be smaller than the value of another, 'upper_param' can be set to the index of the parameter that acts as an upper bound. In the example, 'Parameter C' can not numerically exceed 'Parameter A'.
 
-One parameter has to define the necessary lookback period. In the example, 'Red Parameter' defines the lookback, meaning it dictates the amount of past price data the program grants the signal generator function. If the value is 20, each time the function is called, it receives the last 20 prices of the asset.
+One parameter has to define the necessary lookback period. In the example, 'Parameter B' defines the lookback, meaning it dictates the amount of past price data the program grants the signal generator function. If the value is 20, each time the function is called, it receives the last 20 prices of the asset.
 
 
 ### 3. Done
