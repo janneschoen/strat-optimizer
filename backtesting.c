@@ -4,12 +4,8 @@
 #include <math.h>
 #include <string.h>
 
-#define PROGRESS_INTV 100
 #define BUDGET 10000
 
-#define MAX_KEY_LENGTH 64
-#define MAX_VALUE_LENGTH 64
-#define SEPARATOR ':'
 
 float (*get_signal[])(unsigned day, strategy_config_t * strategy_config, float * prices) = {
     signal_SMA_crossover,
