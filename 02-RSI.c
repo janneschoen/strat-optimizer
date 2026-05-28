@@ -3,42 +3,47 @@
 
 // Strategy Type: Relative Strength Index
 
-float RSI_signal(unsigned day, strat_t * strategy, float * prices){
-    float pnlSums[2] = {0, 0};
-    unsigned numPnl[2] = {0, 0};
+float signal_RSI(unsigned day, strategy_config_t * strategy_config, float * prices){
 
-    unsigned buyingThreshold = strategy->params[0];
-    unsigned sellingThreshold = strategy->params[1];
-    unsigned window = strategy->params[2];
+    float gain_sum = 0;
+    float loss_sum = 0;
 
-    for(unsigned i = day - window; i < day; i++){
+    unsigned number_of_gains = 0;
+    unsigned number_of_losses = 0;
+
+    unsigned buy_threshold = strategy_config->params[0];
+    unsigned sell_threshold = strategy_config->params[1];
+    unsigned window_size = strategy_config->params[2];
+
+    for(unsigned i = day - window_size; i < day; i++){
         float change = prices[i + 1] - prices[i];
         if(change > 0){
-            pnlSums[0] += change;
-            numPnl[0] ++;
+            gain_sum += change;
+            number_of_gains ++;
         } else{
-            pnlSums[1] -= change;
-            numPnl[1] ++;
+            loss_sum -= change;
+            number_of_losses ++;
         }
     }
+    
     float RSI;
-    if(numPnl[0] > 0 && numPnl[1] > 0){
-        float avgGain = (float)pnlSums[0] / numPnl[0];
-        float avgLoss = (float)pnlSums[1] / numPnl[1];
-        RSI = (100.0 / (1.0 + (avgGain / avgLoss)));
+    if(number_of_gains > 0 && number_of_losses > 0){
+        float average_gain = (float)gain_sum / number_of_gains;
+        float average_loss = (float)loss_sum / number_of_losses;
+        RSI = (100.0 / (1.0 + (average_gain / average_loss)));
     } else{
-        if(numPnl[0] + numPnl[1] == 0){
+        if(number_of_gains + number_of_losses == 0){
             RSI = 50;
-        } else if(numPnl[0] == 0){
+        } else if(number_of_gains == 0){
             RSI = 0;
         } else{
             RSI = 100;
         }
     }
 
-    if(RSI < buyingThreshold){
+    if(RSI < buy_threshold){
         return 1;
-    } else if(RSI > sellingThreshold){
+    } else if(RSI > sell_threshold){
         return -1;
     }
     return 0;
