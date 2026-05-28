@@ -11,14 +11,12 @@
 #define MAX_VALUE_LENGTH 64
 #define SEPARATOR ':'
 
-float (*getSignal[])(unsigned day, strat_t * strategy, float * prices) = {
-    SMA_crossover_signal,
-    RSI_signal,
+float (*get_signal[])(unsigned day, strategy_config_t * strategy, float * prices) = {
+    signal_SMA_crossover,
+    signal_RSI,
 };
 
-void backtest(unsigned stratType, strat_t * strategy, float * prices, unsigned start, unsigned end, float * equityCurve);
-
-
+void backtest(unsigned strategy_index, strategy_config_t * strategy, float * prices, unsigned start, unsigned end, float * equity_curve);
 
 int main(int argc, char *argv[]){
 
@@ -64,34 +62,46 @@ int main(int argc, char *argv[]){
 
     // Reading numeric values from given data via keys
 
-    char str_numPrices[MAX_VALUE_LENGTH];
-    get_value_from_key("number_of_prices", str_numPrices);
-    unsigned numPrices = atoi(str_numPrices);
+    char str_number_of_prices[MAX_VALUE_LENGTH];
+    get_value_from_key("number_of_prices", str_number_of_prices);
+    unsigned number_of_prices = atoi(str_number_of_prices);
 
-    char str_numStrats[MAX_VALUE_LENGTH];
-    get_value_from_key("number_of_combinations", str_numStrats);
-    unsigned numStrats = atoi(str_numStrats);
+    char str_number_of_combinations[MAX_VALUE_LENGTH];
+    get_value_from_key("number_of_combinations", str_number_of_combinations);
+    unsigned number_of_combinations = atoi(str_number_of_combinations);
 
-    char str_numParams[MAX_VALUE_LENGTH];
-    get_value_from_key("number_of_parameters", str_numParams);
-    unsigned numParams = atoi(str_numParams);
+    char str_number_of_parameters[MAX_VALUE_LENGTH];
+    get_value_from_key("number_of_parameters", str_number_of_parameters);
+    unsigned number_of_parameters = atoi(str_number_of_parameters);
 
     char str_lookback[MAX_VALUE_LENGTH];
     get_value_from_key("lookback", str_lookback);
     unsigned start = atoi(str_lookback);
 
-    char str_stratType[MAX_VALUE_LENGTH];
-    get_value_from_key("strategy_index", str_stratType);
-    unsigned stratType = atoi(str_stratType);
+    char str_strategy_index[MAX_VALUE_LENGTH];
+    get_value_from_key("strategy_index", str_strategy_index);
+    unsigned strategy_index = atoi(str_strategy_index);
+
+    char prices_path[MAX_VALUE_LENGTH];
+    get_value_from_key("prices_path", prices_path);
+
+    char parameter_path[MAX_VALUE_LENGTH];
+    get_value_from_key("parameter_path", parameter_path);
+
+    char equity_path[MAX_VALUE_LENGTH];
+    get_value_from_key("equity_path", equity_path);
+
+    char performances_path[MAX_VALUE_LENGTH];
+    get_value_from_key("performances_path", performances_path);
 
 
     // Reading prices from file
 
-    float prices[numPrices];
+    float prices[number_of_prices];
 
     FILE * file;
-    file = fopen(argv[2], "r");
-    for(unsigned i = 0; i < numPrices; i++){
+    file = fopen(prices_path, "r");
+    for(unsigned i = 0; i < number_of_prices; i++){
         if (fscanf(file, "%f", &prices[i]) != 1) {
             printf("Error: Prices could not be properly read. ");
             printf("Possible reason: not enough prices available for chosen timeframe.\n");
@@ -103,48 +113,48 @@ int main(int argc, char *argv[]){
 
     // Reading parameter combos from file
 
-    strat_t strategies[numStrats];
+    strategy_config_t combinations[number_of_combinations];
 
-    file = fopen(argv[4], "r");
+    file = fopen(parameter_path, "r");
 
-    for(unsigned i = 0; i < numStrats; i++){
-        for(unsigned j = 0; j < numParams; j++){
+    for(unsigned i = 0; i < number_of_combinations; i++){
+        for(unsigned j = 0; j < number_of_parameters; j++){
             float param;
             if (fscanf(file, "%f", &param) != 1) {
                 printf("Error: Parameter combinations could not be properly read.\n");
                 fclose(file);
                 exit(1);
             }
-            strategies[i].params[j] = param;
+            combinations[i].params[j] = param;
         }
     }
     fclose(file);
 
     // Backtesting each parameter combination
 
-    float equityCurve[numPrices-start];
-    for(unsigned i = 0; i < numStrats; i++){
+    float equity_curve[number_of_prices-start];
+    for(unsigned i = 0; i < number_of_combinations; i++){
         if(i % PROGRESS_INTV == 0){
-            printf("\r%u / %u", i, numStrats);
+            printf("\r%u / %u", i, number_of_combinations);
             fflush(stdout);
         }
-        backtest(stratType, &strategies[i], prices, start, numPrices, equityCurve);
+        backtest(strategy_index, &combinations[i], prices, start, number_of_prices, equity_curve);
     }
     printf("\n");
 
     // Saving performances
 
-    file = fopen(argv[8], "w");
-    for(unsigned i = 0; i < numStrats; i++){
-        fprintf(file, "%f\n", strategies[i].performance[0]);
+    file = fopen(performances_path, "w");
+    for(unsigned i = 0; i < number_of_combinations; i++){
+        fprintf(file, "%f\n", combinations[i].performance[0]);
     }
     fclose(file);
 
     // Saving equity curve for single test
-    if(numStrats == 1){
-        file = fopen(argv[9], "w");
-        for(unsigned i = 0; i < numPrices-start; i++){
-            fprintf(file, "%f\n", equityCurve[i]);
+    if(number_of_combinations == 1){
+        file = fopen(equity_path, "w");
+        for(unsigned i = 0; i < number_of_prices - start; i++){
+            fprintf(file, "%f\n", equity_curve[i]);
         }
         fclose(file);
     }
@@ -154,52 +164,53 @@ int main(int argc, char *argv[]){
 
 // Backtesting logic
 
-void backtest(unsigned stratType, strat_t * strategy, float * prices, unsigned start, unsigned end, float * equityCurve){
-    float cash = BUDGET, assetsOwned = 0, assetLoans = 0;
+void backtest(unsigned strategy_index, strategy_config_t * strategy_config, float * prices, unsigned start, unsigned end, float * equity_curve){
+    float cash = BUDGET, assets_owned = 0, asset_loans = 0;
     float networth;
 
     for(unsigned i = start; i < end; i++){
-        float knownPrices[end];
-        // prices genSignal function is allowed to know at this time
+        float known_prices[end]; // prices genSignal function is allowed to know at this time
+
         for(unsigned j = 0; j < end; j++){
             if(j <= i){
-                knownPrices[j] = prices[j];
+                known_prices[j] = prices[j];
             } else{
-                knownPrices[j] = NAN;
+                known_prices[j] = NAN;
             }
         }
 
-        networth = (assetsOwned - assetLoans) * knownPrices[i] + cash;
-        equityCurve[i-start] = networth;
+        networth = (assets_owned - asset_loans) * known_prices[i] + cash;
+        equity_curve[i - start] = networth;
 
         if(networth <= 0){
             networth = 0;
             break;
         }
 
-        float signal = getSignal[stratType](i, strategy, prices);
+        float signal = get_signal[strategy_index](i, strategy_config, prices);
 
-        float desInvestment = signal * networth / knownPrices[i];
+        float desired_investment = signal * networth / known_prices[i];
 
-        if(desInvestment > 0){ // entering long position
-            cash -= (assetLoans * knownPrices[i]); // covering shorts
-            assetLoans = 0;
-            cash -= (desInvestment - assetsOwned) * knownPrices[i]; // buying 
-            assetsOwned = desInvestment;
-        } else if(desInvestment < 0){ // entering short position
-            desInvestment = fabs(desInvestment);
-            cash += (assetsOwned * knownPrices[i]); // closing longs
-            assetsOwned = 0;
-            cash += (desInvestment - assetLoans) * knownPrices[i]; // selling
-            assetLoans = desInvestment;
+        if(desired_investment > 0){ // entering long position
+            cash -= (asset_loans * known_prices[i]); // covering shorts
+            asset_loans = 0;
+            cash -= (desired_investment - assets_owned) * known_prices[i]; // buying 
+            assets_owned = desired_investment;
+
+        } else if(desired_investment < 0){ // entering short position
+            desired_investment = fabs(desired_investment);
+            cash += (assets_owned * known_prices[i]); // closing longs
+            assets_owned = 0;
+            cash += (desired_investment - asset_loans) * known_prices[i]; // selling
+            asset_loans = desired_investment;
         }
     }
 
     float profit = (networth - BUDGET) / BUDGET;
 
-    strategy->performance[0] = profit;
+    strategy_config->performance[0] = profit;
 
     for(unsigned i = 0; i < STRAT_STORAGE; i++){
-        strategy->storage[i] = NAN;
+        strategy_config->storage[i] = NAN;
     }
 }

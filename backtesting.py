@@ -30,8 +30,6 @@ def run_backtesting_engine(run: RunConfig, number_of_prices: int, number_of_comb
 
     subprocess.run(arg for arg in arguments)
 
-    exit()
-
 
     # Annualizing profits
 
