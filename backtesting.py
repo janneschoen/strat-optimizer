@@ -31,11 +31,10 @@ def run_backtesting_engine(run: RunConfig, number_of_prices: int, number_of_comb
 
     subprocess.run(arg for arg in arguments)
 
-
     # Read profits from file
 
     try:
-        performances = np.loadtxt(run.performances_path).tolist()
+        performances = np.loadtxt(run.performances_path, delimiter=',').tolist()
     except:
         raise RuntimeError("Got no performances from backtesting engine.")
 

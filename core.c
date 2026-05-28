@@ -63,7 +63,11 @@ int main(int argc, char * argv[]){
 
     file = fopen(run.performances_path, "w");
     for(unsigned i = 0; i < run.number_of_combinations; i++){
-        fprintf(file, "%f\n", combinations[i].performance.annual_profit);
+        fprintf(
+            file, "%f, %f\n",
+            combinations[i].performance.annual_profit,
+            combinations[i].performance.sharpe_ratio
+        );
     }
     fclose(file);
 

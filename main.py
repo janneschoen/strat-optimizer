@@ -26,10 +26,21 @@ def main():
 
     # Plot results / show equity curve
 
+    ANNUAL_PROFIT = 0
+    SHARPE_RATIO = 1
+
     if number_of_combinations > 1:
-        plot(run, performances, parameter_combos)
+
+        annual_profits = [p[ANNUAL_PROFIT] for p in performances]
+        sharpe_ratios = [p[SHARPE_RATIO] for p in performances]
+
+        plot(run, annual_profits, parameter_combos, metric = "Annual Profit")
+        plot(run, sharpe_ratios, parameter_combos, metric = "Sharpe Ratio")
     else:
-        print(f"Annualized profit: {performances:.3f}")
+    
+        print(f"Annualized profit: {performances[ANNUAL_PROFIT]:.3f}")
+        print(f"Sharpe ratio: {performances[SHARPE_RATIO]:.3f}")
+    
         show_equity_curve(run)
 
 

@@ -5,6 +5,7 @@
 #include <string.h>
 
 #define BUDGET 10000
+#define RISK_FREE_RATE 0
 
 float (*get_signal[])(unsigned day, strategy_config_t * strategy_config, float * prices) = {
     signal_SMA_crossover,
@@ -35,6 +36,9 @@ void backtest(run_config_t run, strategy_config_t * strategy_config, float * pri
 
         if(networth <= 0){
             networth = 0;
+            for(unsigned j = i; j < end; j++){
+                equity_curve[j] = 0;
+            }
             break;
         }
 
@@ -57,6 +61,9 @@ void backtest(run_config_t run, strategy_config_t * strategy_config, float * pri
         }
     }
 
+
+    // Annualize profit
+
     float profit = (networth - BUDGET) / BUDGET;
 
     strategy_config->performance.annual_profit = pow((1 + profit), ((float)run.trading_days / (end-start))) - 1;
@@ -64,4 +71,28 @@ void backtest(run_config_t run, strategy_config_t * strategy_config, float * pri
     for(unsigned i = 0; i < STRAT_STORAGE; i++){
         strategy_config->storage[i] = NAN;
     }
+
+
+    // Calculate sharpe ratio
+
+    unsigned number_of_returns = end - start - 1;
+
+    float daily_returns[number_of_returns];
+
+    float sum_daily_returns = 0;
+    for(unsigned i = 0; i < number_of_returns; i++){
+        daily_returns[i] = (equity_curve[i + 1] - equity_curve[i]) / equity_curve[i];
+        sum_daily_returns += daily_returns[i];
+    }
+    float mean_daily_return = sum_daily_returns / number_of_returns;
+
+    float sum_squared_deviations = 0;
+    for(unsigned i = 0; i < number_of_returns; i++){
+        sum_squared_deviations += pow(daily_returns[i] - mean_daily_return, 2);
+    }
+
+    float standard_deviation = pow(sum_squared_deviations / number_of_returns, 0.5);
+
+    float sharpe_ratio = (mean_daily_return - RISK_FREE_RATE) / standard_deviation * pow(run.trading_days, 0.5);
+    strategy_config->performance.sharpe_ratio = sharpe_ratio;
 }

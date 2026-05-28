@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from strategies import Strategy
 from strategies import ParameterConfig
-import sys, os, json
+import sys, json, os
 
 @dataclass
 class Asset():
@@ -85,8 +85,8 @@ def load_config() -> RunConfig:
             break
 
     print(f"Strategy: '{strategy.name}' from '{strategies_file}'")
-    
-    return RunConfig(
+
+    run_config = RunConfig(
         strategy = strategy,
         parameter_ranges = config["parameter_ranges"],
         parameter_steps = config["parameter_steps"],
@@ -96,3 +96,7 @@ def load_config() -> RunConfig:
             trading_days = 365 if config["asset"]["is_traded_all_year"] else 252
         )
     )
+
+    os.makedirs(os.path.dirname(run_config.temp_folder), exist_ok=True)
+
+    return run_config

@@ -3,7 +3,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 from config import RunConfig
 
-def plot(run: RunConfig, performances: List[float], parameter_combos: List[Tuple[float]]):
+def plot(run: RunConfig, performances: List[float], parameter_combos: List[Tuple[float]], metric: str):
 
     parameter_names = [param.name for param in run.strategy.parameters]
 
@@ -28,7 +28,7 @@ def plot(run: RunConfig, performances: List[float], parameter_combos: List[Tuple
         scatter = ax.scatter(*data, c=performances, cmap='viridis')
 
         cbar = plt.colorbar(scatter)
-        cbar.set_label("Performance")
+        cbar.set_label(metric)
 
         ax.set_title(plot_title)
         ax.set_xlabel(parameter_names[visual_parameters[0]])
@@ -41,7 +41,7 @@ def plot(run: RunConfig, performances: List[float], parameter_combos: List[Tuple
 
         scatter = plt.scatter(*data, c=performances, cmap='viridis')
 
-        plt.colorbar(label="Performance")
+        plt.colorbar(label=metric)
         plt.title(plot_title)
         plt.xlabel(parameter_names[visual_parameters[0]])
         plt.ylabel(parameter_names[visual_parameters[1]])
@@ -52,7 +52,7 @@ def plot(run: RunConfig, performances: List[float], parameter_combos: List[Tuple
         plt.scatter(*data, performances, color='black', marker='o')
         plt.title(plot_title)
         plt.xlabel(parameter_names[visual_parameters[0]])
-        plt.ylabel("Performance")
+        plt.ylabel(metric)
         plt.grid(True)
 
         a, b = np.polyfit(data[0], perf, 1)

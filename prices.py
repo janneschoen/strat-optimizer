@@ -15,7 +15,6 @@ def download_prices(run: RunConfig) -> int:
 
     day = datetime.now().replace(hour=0,minute=0,second=0,microsecond=0) - td(1)
 
-
     try:
         price_data = (yf.download(
             tickers = run.asset.ticker,

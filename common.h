@@ -12,7 +12,7 @@ typedef struct{
 } performance_t;
 
 typedef struct{
-    float params[MAX_PARAMS]; // parameters of strategy object
+    float params[MAX_PARAMS]; // single configuration of parameters for strategy
     performance_t performance;
     float storage[STRAT_STORAGE]; // use case individual to strategy
 } strategy_config_t;
@@ -43,7 +43,7 @@ run_config_t load_config(int argc, char * argv[]);
 void backtest(run_config_t run, strategy_config_t * strategy, float * prices, float * equity_curve);
 
 
-// Strategy Functions to generate trading signals
+// Strategy functions to generate trading signals
 
 float signal_SMA_crossover(unsigned day, strategy_config_t * strategy, float * prices);
 float signal_RSI(unsigned day, strategy_config_t * strategy, float * prices);
