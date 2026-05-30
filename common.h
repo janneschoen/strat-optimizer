@@ -18,11 +18,14 @@ typedef struct{
 } strategy_config_t;
 
 typedef struct{
+    unsigned start;
+    unsigned end;
+    int test_index;
+
     unsigned number_of_prices;
     unsigned number_of_parameters;
     unsigned number_of_combinations;
 
-    unsigned lookback;
     unsigned strategy_index;
     unsigned trading_days;
 

@@ -7,20 +7,19 @@ def plot(run: RunConfig, performances: List[float], parameter_combos: List[Tuple
 
     parameter_names = [param.name for param in run.strategy.parameters]
 
-    parameter_combos = np.loadtxt(run.parameter_path)
-
-    number_of_parameters = parameter_combos.shape[1]
-
     number_of_fixed_parameters = run.parameter_steps.count(0)
 
     visual_parameters = [p for p in range(run.strategy.number_of_parameters) if run.parameter_steps[p]]
 
     dimension = run.strategy.number_of_parameters + 1 - number_of_fixed_parameters
 
-    plot_title = f"{run.strategy.name} | {run.asset.ticker} | {run.backtest_length} d"
+    plot_title = f"{run.strategy.name} | {run.asset.ticker} | {int(run.backtest_length * (1.0 - run.test_size))} d"
+
+    data = [
+        [combo[p] for combo in parameter_combos] for p in visual_parameters
+    ]
 
     if dimension == 4:
-        data = [parameter_combos[:,p] for p in visual_parameters]
 
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
@@ -37,8 +36,6 @@ def plot(run: RunConfig, performances: List[float], parameter_combos: List[Tuple
 
     elif dimension == 3:
 
-        data = [parameter_combos[:,p] for p in visual_parameters]
-
         scatter = plt.scatter(*data, c=performances, cmap='viridis')
 
         plt.colorbar(label=metric)
@@ -47,7 +44,6 @@ def plot(run: RunConfig, performances: List[float], parameter_combos: List[Tuple
         plt.ylabel(parameter_names[visual_parameters[1]])
 
     elif dimension == 2:
-        data = [parameter_combos[:,p] for p in visual_parameters]
 
         plt.scatter(*data, performances, color='black', marker='o')
         plt.title(plot_title)

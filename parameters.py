@@ -34,14 +34,5 @@ def generate_parameter_combinations(run: RunConfig) -> (int, List[Tuple[float]])
 
     if(number_of_combinations) == 0:
         raise ValueError("Could not generate any valid parameter combinations.")
-    
 
-    # Write parameter combinations to file
-
-    with open(run.parameter_path, 'w') as file:
-        for combo in parameter_combos:
-            for param in combo:
-                file.write(str(param)+" ")
-            file.write("\n")
-    
     return number_of_combinations, parameter_combos

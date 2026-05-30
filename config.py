@@ -3,6 +3,8 @@ from strategies import Strategy
 from strategies import ParameterConfig
 import sys, json, os
 
+DEFAULT_CONFIG_FILE = "config.json"
+
 @dataclass
 class Asset():
     ticker: str
@@ -20,6 +22,7 @@ class RunConfig():
     # Backtest settings
     backtest_length: int
     asset: Asset
+    test_size: float
 
     # File paths
 
@@ -50,7 +53,7 @@ class RunConfig():
 
 def load_config() -> RunConfig:
     if len(sys.argv) == 1:
-        config_file = "config.json"
+        config_file = DEFAULT_CONFIG_FILE
     else:
         config_file = sys.argv[1]
     
@@ -91,6 +94,7 @@ def load_config() -> RunConfig:
         parameter_ranges = config["parameter_ranges"],
         parameter_steps = config["parameter_steps"],
         backtest_length = config["backtest_length"],
+        test_size = config["test_size"],
         asset = Asset(
             ticker = config["asset"]["ticker"],
             trading_days = 365 if config["asset"]["is_traded_all_year"] else 252

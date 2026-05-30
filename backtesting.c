@@ -17,8 +17,8 @@ float (*get_signal[])(unsigned day, strategy_config_t * strategy_config, float *
 void backtest(run_config_t run, strategy_config_t * strategy_config, float * prices, float * equity_curve){
     float cash = BUDGET, assets_owned = 0, asset_loans = 0;
     float networth;
-    unsigned start = run.lookback;
-    unsigned end = run.number_of_prices;
+    unsigned start = run.start;
+    unsigned end = run.end;
 
     for(unsigned i = start; i < end; i++){
         float known_prices[end]; // prices get_signal function is allowed to know at this time

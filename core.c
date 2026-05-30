@@ -30,9 +30,9 @@ int main(int argc, char * argv[]){
 
     // Reading parameter combos from file
 
-    strategy_config_t combinations[run.number_of_combinations];
-
     file = fopen(run.parameter_path, "r");
+
+    strategy_config_t combinations[run.number_of_combinations];
 
     for(unsigned i = 0; i < run.number_of_combinations; i++){
         for(unsigned j = 0; j < run.number_of_parameters; j++){
@@ -49,7 +49,7 @@ int main(int argc, char * argv[]){
 
     // Backtesting each parameter combination
 
-    float equity_curve[run.number_of_prices - run.lookback];
+    float equity_curve[run.end - run.start];
     for(unsigned i = 0; i < run.number_of_combinations; i++){
         if(i % PROGRESS_INTV == 0){
             printf("\r%u / %u", i, run.number_of_combinations);
@@ -75,7 +75,7 @@ int main(int argc, char * argv[]){
 
     if(run.number_of_combinations == 1){
         file = fopen(run.equity_path, "w");
-        for(unsigned i = 0; i < run.number_of_prices - run.lookback; i++){
+        for(unsigned i = 0; i < run.end - run.start; i++){
             fprintf(file, "%f\n", equity_curve[i]);
         }
         fclose(file);

@@ -54,9 +54,13 @@ run_config_t load_config(int argc, char * argv[]){
     get_value_from_key("number_of_parameters", str_number_of_parameters);
     run_config.number_of_parameters = atoi(str_number_of_parameters);
 
-    char str_lookback[MAX_VALUE_LENGTH];
-    get_value_from_key("lookback", str_lookback);
-    run_config.lookback = atoi(str_lookback);
+    char str_start[MAX_VALUE_LENGTH];
+    get_value_from_key("start", str_start);
+    run_config.start = atoi(str_start);
+
+    char str_end[MAX_VALUE_LENGTH];
+    get_value_from_key("end", str_end);
+    run_config.end = atoi(str_end);
 
     char str_strategy_index[MAX_VALUE_LENGTH];
     get_value_from_key("strategy_index", str_strategy_index);
