@@ -20,21 +20,22 @@ void backtest(run_config_t run, strategy_config_t * strategy_config, float * pri
     unsigned start = run.start;
     unsigned end = run.end;
 
-    for(unsigned i = start; i < end; i++){
-        float known_prices[end]; // prices get_signal function is allowed to know at this time
-
-        for(unsigned j = 0; j < end; j++){
-            if(j <= i){
-                known_prices[j] = prices[j];
-            } else{
-                known_prices[j] = NAN;
-            }
+    float known_prices[end];
+    for(unsigned i = 0; i < end; i++){
+        if(i < start){
+            known_prices[i] = prices[i]; // Define past prices
+        } else{
+            known_prices[i] = NAN; // Hide future prices to avoid lookahead
         }
+    }
+
+    for(unsigned i = start; i < end; i++){
+        known_prices[i] = prices[i]; // Add price of timestamp to array of known prices
 
         networth = (assets_owned - asset_loans) * known_prices[i] + cash;
         equity_curve[i - start] = networth;
 
-        if(networth <= 0){
+        if(networth <= 0){ // Case of wipeout
             networth = 0;
             for(unsigned j = i; j < end; j++){
                 equity_curve[j] = 0;
@@ -46,17 +47,17 @@ void backtest(run_config_t run, strategy_config_t * strategy_config, float * pri
 
         float desired_investment = signal * networth / known_prices[i];
 
-        if(desired_investment > 0){ // entering long position
-            cash -= (asset_loans * known_prices[i]); // covering shorts
+        if(desired_investment > 0){ // Entering long position
+            cash -= (asset_loans * known_prices[i]); // Covering borrowed assets
             asset_loans = 0;
-            cash -= (desired_investment - assets_owned) * known_prices[i]; // buying 
+            cash -= (desired_investment - assets_owned) * known_prices[i]; // Buying 
             assets_owned = desired_investment;
 
-        } else if(desired_investment < 0){ // entering short position
+        } else if(desired_investment < 0){ // Entering short position
             desired_investment = fabs(desired_investment);
-            cash += (assets_owned * known_prices[i]); // closing longs
+            cash += (assets_owned * known_prices[i]); // Selling
             assets_owned = 0;
-            cash += (desired_investment - asset_loans) * known_prices[i]; // selling
+            cash += (desired_investment - asset_loans) * known_prices[i]; // Selling borrowed assets
             asset_loans = desired_investment;
         }
     }

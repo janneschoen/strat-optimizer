@@ -20,7 +20,7 @@ float signal_SMA_crossover(unsigned day, strategy_config_t * strategy_config, fl
     float fast_SMA = get_average_price(prices, day - fast_average_length, day);
     float slow_SMA = get_average_price(prices, day - slow_average_length, day);
 
-    int signal = fast_SMA > slow_SMA ? 1 : -1;
+    int signal = fast_SMA > slow_SMA ? 1 : -1; // Check crossover
     int last_signal = strategy_config->storage[0];
 
     float inventory_size = strategy_config->params[2];
