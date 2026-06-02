@@ -57,21 +57,15 @@ def main():
     print(f"{'Testing':10} {test_performance.sharpe_ratio:>15.4f} {test_performance.annual_profit:>15.4f}")
 
 
-    # Plot results / show equity curve
+    # Plot results and equity curve of test
 
-    if number_of_combinations > 1:
+    annual_profits = [p.annual_profit for p in performances]
+    sharpe_ratios = [p.sharpe_ratio for p in performances]
 
-        annual_profits = [p.annual_profit for p in performances]
-        sharpe_ratios = [p.sharpe_ratio for p in performances]
+    plot(run, annual_profits, parameter_combos, metric = "Annual Profit")
+    plot(run, sharpe_ratios, parameter_combos, metric = "Sharpe Ratio")
 
-        plot(run, annual_profits, parameter_combos, metric = "Annual Profit")
-        plot(run, sharpe_ratios, parameter_combos, metric = "Sharpe Ratio")
-    else:
-    
-        print(f"Annualized profit: {performances.annual_profit:.3f}")
-        print(f"Sharpe ratio: {performance.sharpe_ratio:.3f}")
-    
-        show_equity_curve(run)
+    show_equity_curve(run)
 
 
 if __name__ == "__main__":

@@ -66,7 +66,7 @@ def run_backtesting_engine(run: RunConfig, number_of_prices: int, combinations: 
     for key, value in backtest_data.items():
         arguments.append(f"{key}:{value}")
 
-    subprocess.run(arg for arg in arguments)
+    subprocess.run(arguments)
 
 
     # Read performances from file

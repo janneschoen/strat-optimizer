@@ -13,7 +13,7 @@ def plot(run: RunConfig, performances: List[float], parameter_combos: List[Tuple
 
     dimension = run.strategy.number_of_parameters + 1 - number_of_fixed_parameters
 
-    plot_title = f"{run.strategy.name} | {run.asset.ticker} | {int(run.backtest_length * (1.0 - run.test_size))} d"
+    plot_title = f"{run.strategy.name} | {run.asset.ticker} | first {int(run.backtest_length * (1.0 - run.test_size))} d"
 
     data = [
         [combo[p] for combo in parameter_combos] for p in visual_parameters
@@ -51,7 +51,7 @@ def plot(run: RunConfig, performances: List[float], parameter_combos: List[Tuple
         plt.ylabel(metric)
         plt.grid(True)
 
-        a, b = np.polyfit(data[0], perf, 1)
+        a, b = np.polyfit(data[0], performances, 1)
         lineX = np.linspace(data[0][0], data[0][-1])
         lineY = a * lineX + b
         plt.plot(lineX, lineY, color='blue', label='Regression Line')

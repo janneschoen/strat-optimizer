@@ -6,7 +6,7 @@ from config import RunConfig
 def show_equity_curve(run: RunConfig):
     with open(run.equity_path, "r") as file:
         equity_values = [float(equity_value.strip()) for equity_value in file]
-
+    
     norming_factor = equity_values[0]
     for i in range(len(equity_values)):
         equity_values[i] /= norming_factor
@@ -14,7 +14,7 @@ def show_equity_curve(run: RunConfig):
     days = list(range(len(equity_values)))
 
     plt.plot(days, equity_values, color='green')
-    plt.title(f"{run.strategy.name} | {run.asset.ticker} | {run.backtest_length} d")
+    plt.title(f"{run.strategy.name} | {run.asset.ticker} | last {run.backtest_length * run.test_size} d")
     plt.xlabel("Days")
     plt.ylabel("Equity")
     plt.grid(True)
