@@ -40,7 +40,7 @@ def main():
 
     # select the combination with the highest Sharpe ratio
     best_performance = performances[0]
-    best_combination = None
+    best_combination  = parameter_combos[0]
 
     for p in range(number_of_combinations):
         perf = performances[p]
