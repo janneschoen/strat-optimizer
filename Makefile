@@ -4,7 +4,7 @@ FILES := $(wildcard *.c)
 OUTPUT = compute
 
 CC = gcc
-CFLAGS = -Wall -g
+CFLAGS = -Wall -g -fopenmp
 
 $(OUTPUT): $(FILES)
 	$(CC) $(CFLAGS) -o $@ $^ -lm

@@ -38,7 +38,7 @@ void backtest(run_config_t run, strategy_config_t * strategy_config, float * pri
         if(networth <= 0){ // Case of wipeout
             networth = 0;
             for(unsigned j = i; j < end; j++){
-                equity_curve[j] = 0;
+                equity_curve[j - start] = 0;
             }
             break;
         }

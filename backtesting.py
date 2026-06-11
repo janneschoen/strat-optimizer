@@ -72,24 +72,30 @@ def run_backtesting_engine(run: RunConfig, number_of_prices: int, combinations: 
     # Read performances from file
 
     try:
-        raw_performances = np.loadtxt(run.performances_path, delimiter=',').tolist()
+        raw = np.loadtxt(run.performances_path, delimiter=',')
     except:
         raise RuntimeError("Got no performances from backtesting engine.")
-    
+
+    # np.loadtxt returns 1D array for single row, 2D for multiple rows
+    if raw.ndim == 1:
+        raw = [raw.tolist()]
+    else:
+        raw = raw.tolist()
+
     if test_mode:
         return [
             Performance(
-                annual_profit = raw_performances[ANNUAL_PROFIT],
-                sharpe_ratio = raw_performances[SHARPE_RATIO]
+                annual_profit = raw[0][ANNUAL_PROFIT],
+                sharpe_ratio = raw[0][SHARPE_RATIO]
             )
         ]
 
     performances = []
-    for performance in raw_performances:
+    for row in raw:
         performances.append(
             Performance(
-                annual_profit = performance[ANNUAL_PROFIT],
-                sharpe_ratio = performance[SHARPE_RATIO]
+                annual_profit = row[ANNUAL_PROFIT],
+                sharpe_ratio = row[SHARPE_RATIO]
             )
         )
 
