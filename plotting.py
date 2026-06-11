@@ -1,62 +1,83 @@
+"""
+plotting.py — Visualise the grid-search results
+
+Dispatches to the appropriate plot based on the number of
+free (non-fixed) parameters:
+
+  1 free parameter  → 2-D scatter plot with linear regression
+  2 free parameters → 2-D heatmap (colour = performance metric)
+  3 free parameters → 3-D scatter / heatmap
+
+Fixed parameters (step = 0) are excluded from the visualisation.
+"""
+
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
+from mpl_toolkits.mplot3d import Axes3D   # noqa: F401 (registers 3-D projection)
 import numpy as np
 from config import RunConfig
 
-def plot(run: RunConfig, performances: List[float], parameter_combos: List[Tuple[float]], metric: str):
 
-    parameter_names = [param.name for param in run.strategy.parameters]
+def plot(run:           RunConfig,
+         performances:  list,
+         parameter_combos: list,
+         metric:        str):
+    """
+    Render a figure showing 'metric' as a function of the free
+    strategy parameters.
+    """
 
-    number_of_fixed_parameters = run.parameter_steps.count(0)
+    param_names = [p.name for p in run.strategy.parameters]
 
-    visual_parameters = [p for p in range(run.strategy.number_of_parameters) if run.parameter_steps[p]]
+    # which parameters actually vary in this run?
+    free_idx = [i for i in range(run.strategy.number_of_parameters)
+                if run.parameter_steps[i] != 0]
 
-    dimension = run.strategy.number_of_parameters + 1 - number_of_fixed_parameters
+    dim = len(free_idx) + 1   # +1 for the performance axis
 
-    plot_title = f"{run.strategy.name} | {run.asset.ticker} | first {int(run.backtest_length * (1.0 - run.test_size))} d"
+    title = (f"{run.strategy.name} | {run.asset.ticker} | "
+             f"first {int(run.backtest_length * (1.0 - run.test_size))} d")
 
-    data = [
-        [combo[p] for combo in parameter_combos] for p in visual_parameters
-    ]
+    # extract data columns for the free parameters
+    data = [[combo[i] for combo in parameter_combos] for i in free_idx]
 
-    if dimension == 4:
-
+    if dim == 4:
+        # ---- 3-D scatter (3 free parameters) -------------------
         fig = plt.figure()
-        ax = fig.add_subplot(111, projection='3d')
-
-        scatter = ax.scatter(*data, c=performances, cmap='viridis')
-
-        cbar = plt.colorbar(scatter)
+        ax  = fig.add_subplot(111, projection='3d')
+        sc  = ax.scatter(*data, c=performances, cmap='viridis')
+        cbar = plt.colorbar(sc)
         cbar.set_label(metric)
+        ax.set_title(title)
+        ax.set_xlabel(param_names[free_idx[0]])
+        ax.set_ylabel(param_names[free_idx[1]])
+        ax.set_zlabel(param_names[free_idx[2]])
 
-        ax.set_title(plot_title)
-        ax.set_xlabel(parameter_names[visual_parameters[0]])
-        ax.set_ylabel(parameter_names[visual_parameters[1]])
-        ax.set_zlabel(parameter_names[visual_parameters[2]])
+    elif dim == 3:
+        # ---- 2-D heatmap (2 free parameters) -------------------
+        sc = plt.scatter(*data, c=performances, cmap='viridis')
+        plt.colorbar(sc, label=metric)
+        plt.title(title)
+        plt.xlabel(param_names[free_idx[0]])
+        plt.ylabel(param_names[free_idx[1]])
 
-    elif dimension == 3:
-
-        scatter = plt.scatter(*data, c=performances, cmap='viridis')
-
-        plt.colorbar(label=metric)
-        plt.title(plot_title)
-        plt.xlabel(parameter_names[visual_parameters[0]])
-        plt.ylabel(parameter_names[visual_parameters[1]])
-
-    elif dimension == 2:
-
-        plt.scatter(*data, performances, color='black', marker='o')
-        plt.title(plot_title)
-        plt.xlabel(parameter_names[visual_parameters[0]])
+    elif dim == 2:
+        # ---- 2-D scatter (1 free parameter) --------------------
+        plt.scatter(data[0], performances, color='black', marker='o')
+        plt.title(title)
+        plt.xlabel(param_names[free_idx[0]])
         plt.ylabel(metric)
         plt.grid(True)
 
+        # linear trend line
         a, b = np.polyfit(data[0], performances, 1)
-        lineX = np.linspace(data[0][0], data[0][-1])
-        lineY = a * lineX + b
-        plt.plot(lineX, lineY, color='blue', label='Regression Line')
+        x_line = np.linspace(data[0][0], data[0][-1], 100)
+        plt.plot(x_line, a * x_line + b, color='blue',
+                 label='Linear fit')
+        plt.legend()
+
     else:
-        print("Only 1-3 parameters supported for visualisation.")
+        print("Only 1–3 free parameters are supported for "
+              "visualisation.")
         return
 
     plt.show()

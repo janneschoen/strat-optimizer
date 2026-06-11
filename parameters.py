@@ -1,38 +1,53 @@
-from config import RunConfig
-import itertools, numpy as np
+"""
+parameters.py — Grid-search parameter combination generator
 
-def generate_parameter_combinations(run: RunConfig) -> (int, List[Tuple[float]]):
+Builds a Cartesian product of the parameter ranges, then filters
+through the strategy's constraint validator (is_valid) to discard
+impossible combinations (e.g. Fast SMA ≥ Slow SMA).
+
+A step of 0 means the parameter is fixed at its range[0] value.
+"""
+
+from config import RunConfig
+import itertools
+import numpy as np
+
+
+def generate_parameter_combinations(run: RunConfig):
+    """
+    Returns (number_of_combinations, list_of_tuples).
+
+    Each tuple is one valid parameter combination to backtest.
+    """
 
     if len(run.parameter_steps) != len(run.parameter_ranges):
-        raise ValueError(f"Got {len(run.parameter_ranges)} parameters but {len(run.parameter_steps)} steps.")
+        raise ValueError(
+            f"Got {len(run.parameter_ranges)} parameter ranges "
+            f"but {len(run.parameter_steps)} steps."
+        )
 
+    # build per-parameter candidate lists
+    param_lists = []
 
-    # Generate cartesian product by multiplying lists of parameters
-
-    parameter_lists = []
-
-    for parameter_range in run.parameter_ranges:
-
-        step = run.parameter_steps[len(parameter_lists)]
+    for idx, rng in enumerate(run.parameter_ranges):
+        step = run.parameter_steps[idx]
         if step == 0:
-            parameter_lists.append([parameter_range[0]])
+            param_lists.append([rng[0]])          # fixed value
         else:
-            parameter_lists.append(np.arange(parameter_range[0], parameter_range[1], step))
+            # np.arange is half-open: [rng[0], rng[1])
+            param_lists.append(
+                np.arange(rng[0], rng[1], step).tolist()
+            )
 
-    all_combos = list(itertools.product(*parameter_lists))
+    all_combos = list(itertools.product(*param_lists))
 
+    # filter through strategy constraints
+    valid = [c for c in all_combos if run.strategy.is_valid(c)]
 
-    # Save valid parameter combos
+    if not valid:
+        raise ValueError(
+            "No valid parameter combinations after applying "
+            "strategy constraints."
+        )
 
-    parameter_combos = []
-
-    for combo in all_combos:
-        if run.strategy.is_valid(combo):
-            parameter_combos.append(combo)
-
-    number_of_combinations = len(parameter_combos)
-
-    if(number_of_combinations) == 0:
-        raise ValueError("Could not generate any valid parameter combinations.")
-
-    return number_of_combinations, parameter_combos
+    return len(valid), valid
