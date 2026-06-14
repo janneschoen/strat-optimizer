@@ -9,7 +9,7 @@ to highlight the overall trend.
 
 import matplotlib.pyplot as plt
 import numpy as np
-from config import RunConfig
+from .config import RunConfig
 
 
 def show_equity_curve(run: RunConfig):

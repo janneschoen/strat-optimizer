@@ -14,10 +14,10 @@ historical prices the C engine needs before it can start trading.
 """
 
 from dataclasses import dataclass
-from strategies   import Strategy, ParameterConfig
+from .strategies import Strategy, ParameterConfig
 import sys, json, os
 
-DEFAULT_CONFIG_FILE = "config.json"
+DEFAULT_CONFIG_FILE = "configs/config.json"
 
 
 @dataclass
@@ -70,9 +70,11 @@ class RunConfig:
         """
         for i, param in enumerate(self.strategy.parameters):
             if param.defines_lookback:
-                val = (self.parameter_ranges[i][1]
-                       if self.parameter_steps[i]
-                       else self.parameter_ranges[i][0])
+                rng = self.parameter_ranges[i]
+                if len(rng) < 2 or self.parameter_steps[i] == 0:
+                    val = rng[0]
+                else:
+                    val = rng[1]
                 if val > 0:
                     return int(val)
 
@@ -92,7 +94,7 @@ def load_config() -> RunConfig:
     with open(config_file) as f:
         config = json.load(f)
 
-    strategies_file = config.get("strategies_file", "strategies.json")
+    strategies_file = config.get("strategies_file", "configs/strategies.json")
 
     with open(strategies_file) as f:
         strategies = json.load(f)

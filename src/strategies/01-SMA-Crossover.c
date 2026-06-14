@@ -21,6 +21,7 @@
  */
 
 #include "common.h"
+#include <math.h>
 #include <stdio.h>
 
 /* Arithmetic mean of prices[from .. to-1] */
@@ -43,7 +44,7 @@ float signal_SMA_crossover(unsigned day,
     float slow_sma = sma(prices, day - slow_len, day);
 
     int direction   = (fast_sma > slow_sma) ? 1 : -1;
-    int prev_dir    = (int)strat->storage[0];
+    int prev_dir    = isnan(strat->storage[0]) ? 0 : (int)strat->storage[0];
     float alloc     = strat->params[2];
 
     if(direction != prev_dir){

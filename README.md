@@ -135,12 +135,12 @@ pip install -r requirements.txt
 
 ## Quick Start
 
-### 1. Create `config.json`
+### 1. Create `configs/config.json`
 
 ```json
 {
     "strategy_name": "SMA Crossover",
-    "strategies_file": "strategies.json",
+    "strategies_file": "configs/strategies.json",
 
     "parameter_ranges": [[1, 200], [30, 200], [0.2, 0.2]],
     "parameter_steps":  [3, 3, 0],
@@ -157,8 +157,8 @@ pip install -r requirements.txt
 ### 2. Run
 
 ```bash
-python main.py                    # uses config.json
-python main.py my_config.json     # custom config file
+python -m strat_optimizer                    # uses configs/config.json
+python -m strat_optimizer my_config.json     # custom config file
 ```
 
 ### 3. Output
@@ -167,8 +167,8 @@ The program prints:
 
 ```
 Best parameters:
-  Fast SMA Length: 1.0
-  Slow SMA Length: 120.0
+  Fast SMA Length: 1
+  Slow SMA Length: 120
   Position Sizing: 0.2
 
             Sharpe Ratio  Annual Profit
@@ -191,7 +191,7 @@ Followed by interactive Matplotlib figures:
 | `strategy_name` | string | Name matching an entry in `strategies.json` |
 | `strategies_file` | string | Path to the strategy definitions file |
 | `parameter_ranges` | `[[low, high], ...]` | One `[low, high]` pair per strategy parameter |
-| `parameter_steps` | `[int, ...]` | Grid step size per parameter; `0` = fixed at `range[0]` |
+| `parameter_steps` | `[int or float, ...]` | Grid step size per parameter; `0` = fixed at `range[0]` |
 | `backtest_length` | int | Number of **trading days** to test (from yesterday backwards) |
 | `test_size` | float | Fraction of data held out for walk‑forward testing `[0, 1]` |
 | `asset.ticker` | string | Yahoo Finance ticker (e.g. `BTC-USD`, `AAPL`) |
@@ -402,7 +402,7 @@ generation.  Any additional validation logic belongs in the C signal function.
 
 ```bash
 make              # recompile with the new .c file
-python main.py    # run with a config that references "My Strategy"
+python -m strat_optimizer    # run with a config that references "My Strategy"
 ```
 
 ---
@@ -470,25 +470,31 @@ overhead (< 1 % of runtime).  OpenMP scaling is near‑linear on machines with
 
 ```
 strat-optimizer/
-├── main.py                  # Entry point — orchestrates the full pipeline
-├── config.py                # JSON → RunConfig dataclass
-├── parameters.py            # Cartesian product grid with constraint filtering
-├── prices.py                # Yahoo Finance downloader
-├── backtesting.py           # Python ↔ C bridge (subprocess + temp files)
-├── strategies.py            # Strategy metadata & parameter validation
-├── plotting.py              # 2‑D/3‑D visualisation dispatch
-├── equity_curve.py          # Equity curve plot with linear trend
+├── strat_optimizer/         # Python package
+│   ├── __init__.py
+│   ├── __main__.py          # Entry point for `python -m strat_optimizer`
+│   ├── main.py              # Pipeline orchestrator
+│   ├── config.py            # JSON → RunConfig dataclass
+│   ├── parameters.py        # Cartesian product grid with constraint filtering
+│   ├── prices.py            # Yahoo Finance downloader
+│   ├── backtesting.py       # Python ↔ C bridge (subprocess + temp files)
+│   ├── strategies.py        # Strategy metadata & parameter validation
+│   ├── plotting.py          # 2‑D/3‑D visualisation dispatch
+│   └── equity_curve.py      # Equity curve plot with linear trend
 │
-├── common.h                 # Shared C types: performance_t, strategy_config_t, run_config_t
-├── config.c                 # CLI key:value parser (populates run_config_t)
-├── backtesting.c            # Core simulation loop + signal dispatch table
-├── core.c                   # Main driver: load data, run backtests, write results
-├── 01-SMA-Crossover.c       # Strategy: Simple Moving Average crossover
-├── 02-RSI.c                 # Strategy: Relative Strength Index
+├── src/                     # C engine
+│   ├── common.h             # Shared C types: performance_t, strategy_config_t, run_config_t
+│   ├── config.c             # CLI key:value parser (populates run_config_t)
+│   ├── backtesting.c        # Core simulation loop + signal dispatch table
+│   ├── core.c               # Main driver: load data, run backtests, write results
+│   └── strategies/
+│       ├── 01-SMA-Crossover.c  # Strategy: Simple Moving Average crossover
+│       └── 02-RSI.c            # Strategy: Relative Strength Index
 │
-├── strategies.json          # Strategy definitions (names, parameter constraints)
-├── example.json             # Example run configuration
-├── config.json              # Active run configuration (user‑provided)
+├── configs/                 # JSON configuration
+│   ├── strategies.json      # Strategy definitions (names, parameter constraints)
+│   ├── example.json         # Example run configuration
+│   └── config.json          # Active run configuration (user‑provided, gitignored)
 ├── requirements.txt         # Python dependencies
 ├── Makefile                 # C build (GCC + OpenMP)
 │

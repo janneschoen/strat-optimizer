@@ -14,7 +14,7 @@ Fixed parameters (step = 0) are excluded from the visualisation.
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D   # noqa: F401 (registers 3-D projection)
 import numpy as np
-from config import RunConfig
+from .config import RunConfig
 
 
 def plot(run:           RunConfig,

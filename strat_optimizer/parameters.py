@@ -8,7 +8,7 @@ impossible combinations (e.g. Fast SMA ≥ Slow SMA).
 A step of 0 means the parameter is fixed at its range[0] value.
 """
 
-from config import RunConfig
+from .config import RunConfig
 import itertools
 import numpy as np
 

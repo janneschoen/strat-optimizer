@@ -1,10 +1,10 @@
 
-FILES := $(wildcard *.c)
+FILES := $(wildcard src/*.c src/strategies/*.c)
 
 OUTPUT = compute
 
 CC = gcc
-CFLAGS = -Wall -g -fopenmp
+CFLAGS = -Wall -g -fopenmp -Isrc
 
 $(OUTPUT): $(FILES)
 	$(CC) $(CFLAGS) -o $@ $^ -lm

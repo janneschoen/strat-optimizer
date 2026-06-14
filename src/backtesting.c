@@ -55,6 +55,11 @@ void backtest(run_config_t run,
     float asset_loans  = 0.0f;   // units borrowed (short position)
     float networth;
 
+    /* reset strategy-local storage before this run */
+    for(unsigned i = 0; i < STRAT_STORAGE; i++){
+        strategy_config->storage[i] = NAN;
+    }
+
     unsigned start = run.start;
     unsigned end   = run.end;
 
@@ -123,11 +128,6 @@ void backtest(run_config_t run,
     strategy_config->performance.annual_profit =
         powf(1.0f + profit,
              ((float)run.trading_days / (end - start))) - 1.0f;
-
-    /* reset strategy-local storage for the next combination */
-    for(unsigned i = 0; i < STRAT_STORAGE; i++){
-        strategy_config->storage[i] = NAN;
-    }
 
     /* ---- annualized Sharpe ratio ---- */
     unsigned number_of_returns = end - start - 1;

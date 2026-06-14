@@ -14,13 +14,13 @@ Pipeline:
        - equity curve of the best combination on the test set
 """
 
-from prices import download_prices
-from plotting import plot
-from equity_curve import show_equity_curve
-from strategies import Strategy
-from config import load_config
-from parameters import generate_parameter_combinations
-from backtesting import run_backtesting_engine
+from .prices import download_prices
+from .plotting import plot
+from .equity_curve import show_equity_curve
+from .strategies import Strategy
+from .config import load_config
+from .parameters import generate_parameter_combinations
+from .backtesting import run_backtesting_engine
 
 def main():
 

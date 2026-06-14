@@ -13,7 +13,7 @@ Communication is entirely file-based (no sockets, no pipes) so
 the two processes are fully decoupled and debuggable independently.
 """
 
-from config import RunConfig
+from .config import RunConfig
 from dataclasses import dataclass
 import subprocess
 import numpy as np

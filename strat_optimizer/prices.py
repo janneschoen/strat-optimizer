@@ -13,7 +13,7 @@ temp file that the C engine reads.
 import yfinance as yf
 from datetime import datetime, timedelta as td
 import numpy as np
-from config import RunConfig
+from .config import RunConfig
 
 DAYS_PER_YEAR = 365
 

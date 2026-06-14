@@ -3,4 +3,6 @@ compute
 .venv
 .temp
 __pycache__/
-config.json
+configs/config.json
+*.pyc
+*.egg-info/
