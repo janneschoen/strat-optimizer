@@ -413,28 +413,28 @@ The plotting module auto‑detects the number of **free** parameters (those with
 `parameter_steps[i] ≠ 0`) and chooses the appropriate visualisation.
 
 ### 1 free parameter → 2‑D scatter + linear fit
-
+<img width="931" height="472" alt="Fig1" src="https://github.com/user-attachments/assets/ae525f26-43ce-4fbc-86f8-bffc9f8b922e" />
 
 Each point is one backtest.  The blue line is an ordinary least‑squares linear
-fit.  Here, Fast SMA Length is swept from 1 to 199 (Slow SMA fixed at 120),
-and Sharpe ratio peaks at the shortest window.
+fit.  Here, Buying Threshold of the RSI strategy is tested from 30 to 60 (Selling Threshold fixed at a higher value),
+and a positive correlation between annual profit and the parameter is observed within the test.
 
 ### 2 free parameters → 2‑D heatmap
-
+<img width="931" height="472" alt="Fig2" src="https://github.com/user-attachments/assets/f1d63c1f-e8da-4975-b083-45bc5f0f1502" />
 
 Colour encodes the performance metric.  The triangle shape reflects the
 `upper_param` constraint (Fast SMA < Slow SMA).  Brighter points near the
 bottom edge indicate short fast‑SMA windows performed best in this window.
 
 ### 3 free parameters → 3‑D scatter
-
+<img width="931" height="472" alt="Fig3" src="https://github.com/user-attachments/assets/dced04f6-cc1d-4132-9385-cbd9ccb49663" />
 
 Each point is one combination; colour encodes the performance metric (here
 Sharpe ratio for an RSI strategy on BTC‑USD).  Rotate and zoom in Matplotlib
 for a better angle.
 
 ### Equity curve (single‑combination or test run)
-
+<img width="931" height="472" alt="Fig_Equity" src="https://github.com/user-attachments/assets/f4130ad6-6e92-418b-8260-3ad8cdeaeaec" />
 
 Green = portfolio value over time (normalised to start at 1.0).  Black =
 linear regression trend line.  Shown here is the test‑phase walk‑forward run
