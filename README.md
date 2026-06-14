@@ -430,7 +430,7 @@ bottom edge indicate short fast‑SMA windows performed best in this window.
 <img width="931" height="472" alt="Fig3" src="https://github.com/user-attachments/assets/dced04f6-cc1d-4132-9385-cbd9ccb49663" />
 
 Each point is one combination; colour encodes the performance metric (here
-Sharpe ratio for an RSI strategy on BTC‑USD).  Rotate and zoom in Matplotlib
+annual profit for the SMA Crossover strategy on BTC‑USD).  Rotate and zoom in Matplotlib
 for a better angle.
 
 ### Equity curve (single‑combination or test run)
