@@ -135,10 +135,20 @@ void backtest(run_config_t run,
 
     float sum_daily_returns = 0.0f;
     for(unsigned i = 0; i < number_of_returns; i++){
+        if(equity_curve[i] == 0){
+            strategy_config->performance.sharpe_ratio = -1;
+            return;
+        }
         daily_returns[i] = (equity_curve[i + 1] - equity_curve[i])
                            / equity_curve[i];
         sum_daily_returns += daily_returns[i];
     }
+
+    if(sum_daily_returns == 0){
+        strategy_config->performance.sharpe_ratio = 0;
+        return;
+    }
+
     float mean_daily_return = sum_daily_returns / number_of_returns;
 
     float sum_squared_deviations = 0.0f;
