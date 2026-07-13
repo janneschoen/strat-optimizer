@@ -99,7 +99,7 @@ void backtest(run_config_t run,
 
         /* query the strategy for today's desired exposure */
         float signal = get_signal[run.strategy_index](
-                            i, strategy_config, prices);
+                            i, strategy_config, known_prices);
 
         /* target position size = signal × net worth, in asset units */
         float desired_investment = signal * networth / known_prices[i];
