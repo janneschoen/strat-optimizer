@@ -41,20 +41,29 @@ otherwise.
 | Layer          | Language | Role                                                    |
 |----------------|----------|---------------------------------------------------------|
 | Orchestrator   | Python   | Config parsing, data download, grid generation, plotting |
-| Backtest engine | C        | Simulation loop, signal dispatch, metric computation     |
+| Backtest engine | C        | Simulation loop, signal dispatch, metric computation (loaded as shared library via ctypes) |
 
 The Python side never touches trading logic; the C side never touches JSON.
-They communicate exclusively through plain‑text temp files in `.temp/` —
-no sockets, no pipes, no serialisation formats.  This keeps the two
-processes fully decoupled and independently debuggable.
+They communicate through a **shared library** — the C engine is compiled as
+`libengine.so`, loaded directly into the Python process via `ctypes`, and
+called as a regular function.  All data flows through numpy arrays in
+shared memory — no subprocess, no temp files, no serialisation overhead.
 
 ### IPC model
 
 ```
-config.json  →  Python  →  .temp/parameters.temp     →  C engine
-                           .temp/prices.temp          →  C engine
-                           ←  .temp/performances.temp
-                           ←  .temp/equity.temp
+config.json  →  Python  →  numpy float32 arrays
+                                │
+             ctypes.CDLL(        ▼
+               "libengine.so") →  engine_run(engine_args_t *)
+                                    │
+                                    │  OpenMP-parallel backtest() loop
+                                    │
+                                    ▼
+                           ←  performances[]  (annual_profit, sharpe_ratio)
+                           ←  equity_curve[]  (single-combo only)
+
+No files, no subprocess — raw pointers into the same memory.
 ```
 
 ### Parallelism
@@ -102,7 +111,7 @@ $$
 where $\bar{r}$ is the sample mean of daily returns and $\sigma_r$ is
 the population standard deviation.
 
-Both metrics are computed in C and written to disk as `annual_profit,
+Both metrics are computed in C and returned in-memory as `annual_profit,
 sharpe_ratio` per combination.
 
 ---
@@ -258,7 +267,7 @@ config.json
 ┌─────────────────────────────────────────────────────────┐
 │ 2. Download prices  (prices.py → yfinance)              │
 │    • Fetch (backtest_length + lookback) days of data     │
-│    • Write as newline‑delimited floats to .temp/         │
+│    • Store as numpy float32 array in memory              │
 └─────────────────────────────────────────────────────────┘
     │
     ▼
@@ -266,17 +275,18 @@ config.json
 │ 3. Generate parameter grid  (parameters.py)              │
 │    • Cartesian product of per‑parameter ranges           │
 │    • Filter through strategy.is_valid() constraints      │
-│    • Write combinations to .temp/parameters.temp         │
+│    • Flatten into numpy float32 array                    │
 └─────────────────────────────────────────────────────────┘
     │
     ▼
 ┌─────────────────────────────────────────────────────────┐
 │ 4. Train  (C engine, first 1−test_size of data)          │
-│    • Spawn ./compute with key:value CLI args             │
+│    • Call engine_run() via ctypes (in-process)           │
+│    • Pass price array + grid via float* pointers         │
 │    • Each combination → backtest() → performance_t       │
-│    • Single combo: save equity curve to .temp/           │
+│    • Single combo: equity curve returned in buffer       │
 │    • Multiple combos: OpenMP parallel, equity discarded  │
-│    • Read back performances from .temp/                  │
+│    • Read results from numpy output arrays               │
 └─────────────────────────────────────────────────────────┘
     │
     ▼
@@ -289,7 +299,7 @@ config.json
 ┌─────────────────────────────────────────────────────────┐
 │ 6. Test  (C engine, walk‑forward on last test_size)      │
 │    • Run best combination on held‑out data               │
-│    • Save equity curve for plotting                      │
+│    • Return equity curve in numpy array for plotting     │
 └─────────────────────────────────────────────────────────┘
     │
     ▼
@@ -477,32 +487,30 @@ strat-optimizer/
 │   ├── config.py            # JSON → RunConfig dataclass
 │   ├── parameters.py        # Cartesian product grid with constraint filtering
 │   ├── prices.py            # Yahoo Finance downloader
-│   ├── backtesting.py       # Python ↔ C bridge (subprocess + temp files)
+│   ├── backtesting.py       # Python ↔ C bridge (ctypes + shared library)
 │   ├── strategies.py        # Strategy metadata & parameter validation
 │   ├── plotting.py          # 2‑D/3‑D visualisation dispatch
 │   └── equity_curve.py      # Equity curve plot with linear trend
 │
 ├── src/                     # C engine
 │   ├── common.h             # Shared C types: performance_t, strategy_config_t, run_config_t
+│   ├── engine.h             # Public API: engine_args_t struct + engine_run() signature
+│   ├── engine.c             # Shared-library entry point: receives data via pointers, runs grid
 │   ├── config.c             # CLI key:value parser (populates run_config_t)
 │   ├── backtesting.c        # Core simulation loop + signal dispatch table
-│   ├── core.c               # Main driver: load data, run backtests, write results
+│   ├── core.c               # Standalone CLI driver (for debugging; not used by Python)
 │   └── strategies/
 │       ├── 01-SMA-Crossover.c  # Strategy: Simple Moving Average crossover
 │       └── 02-RSI.c            # Strategy: Relative Strength Index
 │
+├── libengine.so             # Compiled shared library (ctypes entry point for Python)
+├── compute                  # Standalone CLI binary (for manual debugging)
 ├── configs/                 # JSON configuration
 │   ├── strategies.json      # Strategy definitions (names, parameter constraints)
 │   ├── example.json         # Example run configuration
 │   └── config.json          # Active run configuration (user‑provided, gitignored)
 ├── requirements.txt         # Python dependencies
-├── Makefile                 # C build (GCC + OpenMP)
-│
-└── .temp/                   # IPC temp files (auto‑created, gitignored)
-    ├── prices.temp
-    ├── parameters.temp
-    ├── performances.temp
-    └── equity.temp
+└── Makefile                 # C build (GCC + OpenMP)
 ```
 
 ---
