@@ -9,11 +9,13 @@
  *    - the backtesting engine          (backtesting.c)
  *    - the CLI argument parser         (config.c)
  *    - the main driver                 (core.c)
+ *    - the shared-library entry point  (engine.c)
  *
- *  The Python orchestrator (main.py → backtesting.py) spawns the compiled
- *  'compute' binary and passes all runtime parameters via key:value CLI
- *  arguments.  The C side never touches JSON — the Python side handles
- *  all I/O marshalling.
+ *  The Python orchestrator (main.py → backtesting.py) loads the compiled
+ *  libengine.so via ctypes and calls engine_run() in-process.  All data
+ *  flows through numpy arrays in shared memory — no subprocess, no temp
+ *  files.  The standalone 'compute' binary (core.c) is kept for manual
+ *  debugging only.
  */
 
 #define MAX_PARAMS      3    // hard cap on strategy parameters (visualisation limit)

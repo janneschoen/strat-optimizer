@@ -75,6 +75,7 @@ void engine_run(engine_args_t *args)
          * zero data races.  Progress is printed inside a
          * critical section.
          */
+        unsigned completed = 0;
         #pragma omp parallel for schedule(dynamic)
         for (unsigned i = 0; i < n_combos; i++) {
             float equity_curve[days];
@@ -82,7 +83,6 @@ void engine_run(engine_args_t *args)
 
             #pragma omp critical
             {
-                static unsigned completed = 0;
                 completed++;
                 if (completed % PROGRESS_INTV == 0
                     || completed == n_combos) {
