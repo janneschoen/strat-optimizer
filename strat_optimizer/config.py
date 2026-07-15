@@ -44,6 +44,7 @@ class RunConfig:
 
     def __post_init__(self):
         self.lookback = self._calculate_lookback()
+        self._config_path = ""   # set by load_config()
 
     def _calculate_lookback(self) -> int:
         """
@@ -77,7 +78,6 @@ def load_config() -> RunConfig:
     strategies definition file.  Build and return a RunConfig.
     """
     config_file = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_CONFIG_FILE
-    print(f"Config file: '{config_file}'")
 
     with open(config_file) as f:
         config = json.load(f)
@@ -113,11 +113,9 @@ def load_config() -> RunConfig:
             f"'{strategies_file}'."
         )
 
-    print(f"Strategy: '{strategy.name}' from '{strategies_file}'")
-
     trading_days = 365 if config["asset"]["is_traded_all_year"] else 252
 
-    return RunConfig(
+    run_config = RunConfig(
         strategy          = strategy,
         parameter_ranges  = config["parameter_ranges"],
         parameter_steps   = config["parameter_steps"],
@@ -128,3 +126,5 @@ def load_config() -> RunConfig:
             trading_days = trading_days,
         ),
     )
+    run_config._config_path = config_file
+    return run_config

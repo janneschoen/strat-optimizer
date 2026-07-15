@@ -23,7 +23,7 @@ def download_prices(run: RunConfig):
     Download *open* prices for the configured ticker, covering
     (backtest_length + lookback) trading days up to yesterday.
 
-    Returns (number_of_prices, numpy_array_of_floats).
+    Returns (number_of_prices, numpy_array_of_floats, first_date, last_date).
     """
 
     number_of_prices = run.backtest_length + run.lookback
@@ -50,10 +50,15 @@ def download_prices(run: RunConfig):
             f"Could not download prices for {run.asset.ticker}: {e}"
         )
 
-    # sort by date, extract just the price floats
-    prices = [price_dict[d] for d in sorted(price_dict.keys())]
+    # sort by date, extract the prices
+    sorted_dates = sorted(price_dict.keys())
+    prices = [price_dict[d] for d in sorted_dates]
 
     # trim to exactly the required number, convert to float32 for C
     prices = np.array(prices[-number_of_prices:], dtype=np.float32)
 
-    return number_of_prices, prices
+    # the date range of the trimmed series
+    first_date = sorted_dates[-number_of_prices]
+    last_date  = sorted_dates[-1]
+
+    return number_of_prices, prices, first_date, last_date

@@ -9,13 +9,24 @@ A step of 0 means the parameter is fixed at its range[0] value.
 """
 
 from .config import RunConfig
+from dataclasses import dataclass
 import itertools
 import numpy as np
 
 
+@dataclass
+class GridSummary:
+    """Metadata about the generated parameter grid."""
+    total_combinations:   int
+    valid_combinations:   int
+    filtered_out:         int
+    free_params:          list   # [(name, range_lo, range_hi, step), ...]
+    fixed_params:         list   # [(name, value), ...]
+
+
 def generate_parameter_combinations(run: RunConfig):
     """
-    Returns (number_of_combinations, list_of_tuples).
+    Returns (number_of_combinations, list_of_tuples, GridSummary).
 
     Each tuple is one valid parameter combination to backtest.
     """
@@ -28,16 +39,21 @@ def generate_parameter_combinations(run: RunConfig):
 
     # build per-parameter candidate lists
     param_lists = []
+    free_params = []
+    fixed_params = []
 
     for idx, rng in enumerate(run.parameter_ranges):
+        name = run.strategy.parameters[idx].name
         step = run.parameter_steps[idx]
         if step == 0:
             param_lists.append([rng[0]])          # fixed value
+            fixed_params.append((name, rng[0]))
         else:
             # np.arange is half-open: [rng[0], rng[1])
             param_lists.append(
                 np.arange(rng[0], rng[1], step).tolist()
             )
+            free_params.append((name, rng[0], rng[1], step))
 
     all_combos = list(itertools.product(*param_lists))
 
@@ -50,4 +66,12 @@ def generate_parameter_combinations(run: RunConfig):
             "strategy constraints."
         )
 
-    return len(valid), valid
+    summary = GridSummary(
+        total_combinations=len(all_combos),
+        valid_combinations=len(valid),
+        filtered_out=len(all_combos) - len(valid),
+        free_params=free_params,
+        fixed_params=fixed_params,
+    )
+
+    return len(valid), valid, summary

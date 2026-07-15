@@ -86,7 +86,7 @@ void engine_run(engine_args_t *args)
                 completed++;
                 if (completed % PROGRESS_INTV == 0
                     || completed == n_combos) {
-                    printf("\r%u / %u", completed, n_combos);
+                    printf("\r%u / %u\033[K", completed, n_combos);
                     fflush(stdout);
                 }
             }
