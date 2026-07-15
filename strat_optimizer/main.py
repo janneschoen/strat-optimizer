@@ -168,13 +168,13 @@ def main():
     t_train = time.perf_counter() - t4
 
     total_days_simulated = number_of_combinations * training_days
+    throughput = total_days_simulated / t_train if t_train > 0 else 0
     console.print(
         "\r  [bold]Training[/] on {td:,} days with {nc:,} combinations"
         " … [green]done[/]  [dim]({tt:.1f}s, {sim:,} days simulated,"
-        " {:,.0f} d/s)[/]"
+        " {tp:,.0f} d/s)[/]"
         .format(td=training_days, nc=number_of_combinations,
-                tt=t_train, sim=total_days_simulated,
-                total_days_simulated / t_train if t_train > 0 else 0))
+                tt=t_train, sim=total_days_simulated, tp=throughput))
 
     # select the combination with the highest Sharpe ratio
     best_performance = performances[0]
