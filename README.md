@@ -172,21 +172,77 @@ python -m strat_optimizer my_config.json     # custom config file
 
 ### 3. Output
 
-The program prints:
+The program uses `rich` for formatted terminal output.  Here is what a
+run looks like with the example config above:
 
 ```
-Best parameters:
-  Fast SMA Length: 1
-  Slow SMA Length: 120
-  Position Sizing: 0.2
 
-            Sharpe Ratio  Annual Profit
-Training           2.1431         0.3840
-Testing            1.8712         0.3127
+╭──────────────────────────────────────────╮
+│  Strat‑Optimizer  ·  Grid‑search         │
+│  backtesting engine                      │
+╰──────────────────────────────────────────╯
+
+╭─ Configuration ─────────────────────────╮
+│ Config file         configs/config.json │
+│ Strategy            SMA Crossover       │
+│ Asset               BTC-USD  (Crypto/   │
+│                     Forex (365 d/y))     │
+│ Backtest length     2,000 trading days  │
+│ Train / test split  60% / 40%           │
+│ Lookback            200 days            │
+╰─────────────────────────────────────────╯
+
+  Downloading prices … done  (1.2s)
+    2022-05-14 → 2025-01-12  │  2,200 prices  │  2,000 usable trading days
+
+╭─ Parameter Grid ────────────────────────╮
+│ Fast SMA Length    [1 … 200]  step=3   │
+│                    →  67 values         │
+│ Slow SMA Length    [30 … 200]  step=3  │
+│                    →  57 values         │
+│ Position Sizing   0.2                   │
+│ (fixed)                                 │
+│                                         │
+│ Combinations       1,910 valid          │
+│ combinations  (3,819 total, 1,909       │
+│ pruned by constraints)                  │
+╰─────────────────────────────────────────╯
+
+  Training on 1,200 days with 1,910 combinations … done  (18.3s, 2,292,000 days simulated, 125,246 d/s)
+  Testing  on 800 days (walk‑forward) … done  (0.6s)
+
+╭─ Best Parameters ───────────────────────╮
+│ Fast SMA Length    1                    │
+│ Slow SMA Length    120                  │
+│ Position Sizing    0.2                  │
+╰─────────────────────────────────────────╯
+
+╭─ Performance ───────────────────────────────────────────────────────────╮
+│           Sharpe Ratio  Annual Profit  B&H Sharpe  B&H Profit           │
+│ Training        2.1431       +38.40%      0.8124     +12.15%           │
+│ Testing         1.8712       +31.27%      0.7501      +9.83%           │
+│                                                                         │
+│ Δ (train →                                                              │
+│ test)          -0.2719       -7.13 pp                                   │
+╰─────────────────────────────────────────────────────────────────────────╯
+
+╭─ Timing ────────────────────────────────╮
+│ Config loading              0.0s        │
+│ Price download              1.2s        │
+│ Grid generation             0.0s        │
+│ Training phase             18.3s    88% │
+│ Testing phase               0.6s     3% │
+│                                          │
+│ Total                      20.8s         │
+╰─────────────────────────────────────────╯
+
+  Opening matplotlib figures …
+  Done.
+
 ```
 
-Followed by interactive Matplotlib figures:
-- Heatmap of Sharpe ratio / annual profit vs parameters (training)
+After the text output, interactive Matplotlib figures open:
+- Heatmap of Sharpe ratio / annual profit vs parameters (training window)
 - Equity curve of the best combination (test window)
 
 ---
