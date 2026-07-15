@@ -42,6 +42,9 @@ class RunConfig:
     asset:           Asset
     test_size:       float   # fraction of data held out [0, 1]
 
+    # visualisation
+    show_plots:      bool    # open matplotlib figures at end of run
+
     def __post_init__(self):
         self.lookback = self._calculate_lookback()
         self._config_path = ""   # set by load_config()
@@ -121,6 +124,7 @@ def load_config() -> RunConfig:
         parameter_steps   = config["parameter_steps"],
         backtest_length   = config["backtest_length"],
         test_size         = config["test_size"],
+        show_plots        = config.get("show_plots", True),
         asset=Asset(
             ticker       = config["asset"]["ticker"],
             trading_days = trading_days,

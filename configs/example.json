@@ -7,6 +7,8 @@
     "backtest_length": 2000,
     "test_size": 0.4,
 
+    "show_plots": true,
+
     "asset":{
         "ticker": "BTC-USD",
         "is_traded_all_year": true

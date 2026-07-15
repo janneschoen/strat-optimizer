@@ -330,17 +330,21 @@ def main():
     # ═══════════════════════════════════════════════════════════════
     # 8. VISUALISE (matplotlib — opens figures)
     # ═══════════════════════════════════════════════════════════════
-    console.print()
-    console.print("  [dim]Opening matplotlib figures …[/]")
+    if run.show_plots:
+        console.print()
+        console.print("  [dim]Opening matplotlib figures …[/]")
 
-    annual_profits = [p.annual_profit for p in performances]
-    sharpe_ratios  = [p.sharpe_ratio  for p in performances]
+        annual_profits = [p.annual_profit for p in performances]
+        sharpe_ratios  = [p.sharpe_ratio  for p in performances]
 
-    plot(run, annual_profits, parameter_combos, metric="Annual Profit")
-    plot(run, sharpe_ratios,  parameter_combos, metric="Sharpe Ratio")
-    show_equity_curve(run, equity_curve)
+        plot(run, annual_profits, parameter_combos, metric="Annual Profit")
+        plot(run, sharpe_ratios,  parameter_combos, metric="Sharpe Ratio")
+        show_equity_curve(run, equity_curve)
 
-    console.print("  [dim]Done.[/]")
+        console.print("  [dim]Done.[/]")
+    else:
+        console.print()
+        console.print("  [dim]Visualisation disabled (show_plots = false).[/]")
     console.print()
 
 
