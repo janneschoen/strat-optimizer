@@ -63,7 +63,7 @@ void engine_run(engine_args_t *args)
             memcpy(args->equity_curve, equity_curve,
                    days * sizeof(float));
         }
-        printf("\r1 / 1\n");
+
 
     } else {
         /*
@@ -91,7 +91,8 @@ void engine_run(engine_args_t *args)
                 }
             }
         }
-        printf("\n");
+        printf("\r\033[K");
+        fflush(stdout);
     }
 
     /* ---- write performance metrics to the output array ---------- */
