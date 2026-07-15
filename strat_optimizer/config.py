@@ -15,7 +15,8 @@ historical prices the C engine needs before it can start trading.
 
 from dataclasses import dataclass
 from .strategies import Strategy, ParameterConfig
-import sys, json, os
+import sys, json
+
 
 DEFAULT_CONFIG_FILE = "configs/config.json"
 
@@ -41,20 +42,7 @@ class RunConfig:
     asset:           Asset
     test_size:       float   # fraction of data held out [0, 1]
 
-    # temp-file paths (IPC with the C engine)
-    temp_folder:       str = ".temp"
-    prices_file:       str = "prices.temp"
-    parameter_file:    str = "parameters.temp"
-    performances_file: str = "performances.temp"
-    equity_file:       str = "equity.temp"
-
     def __post_init__(self):
-        self.temp_folder += '/'
-        self.prices_path       = self.temp_folder + self.prices_file
-        self.parameter_path    = self.temp_folder + self.parameter_file
-        self.performances_path = self.temp_folder + self.performances_file
-        self.equity_path       = self.temp_folder + self.equity_file
-
         self.lookback = self._calculate_lookback()
 
     def _calculate_lookback(self) -> int:
@@ -129,7 +117,7 @@ def load_config() -> RunConfig:
 
     trading_days = 365 if config["asset"]["is_traded_all_year"] else 252
 
-    run_config = RunConfig(
+    return RunConfig(
         strategy          = strategy,
         parameter_ranges  = config["parameter_ranges"],
         parameter_steps   = config["parameter_steps"],
@@ -140,7 +128,3 @@ def load_config() -> RunConfig:
             trading_days = trading_days,
         ),
     )
-
-    os.makedirs(os.path.dirname(run_config.temp_folder), exist_ok=True)
-
-    return run_config

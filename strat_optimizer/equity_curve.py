@@ -1,10 +1,9 @@
 """
-equity_curve.py — Plot the equity curve of a single-parameter run
+equity_curve.py — Plot the equity curve
 
-The C engine only saves an equity curve when number_of_combinations==1.
-This module reads that curve from the temp file, normalises it so the
-initial portfolio value is 1.0, and overlays a linear regression line
-to highlight the overall trend.
+Receives the equity curve array directly from the C engine (no file
+I/O).  Normalises so the initial portfolio value is 1.0 and overlays
+a linear regression trend line.
 """
 
 import matplotlib.pyplot as plt
@@ -12,18 +11,15 @@ import numpy as np
 from .config import RunConfig
 
 
-def show_equity_curve(run: RunConfig):
+def show_equity_curve(run: RunConfig, equity: np.ndarray):
     """
-    Read the equity curve written by the C engine and plot it
-    against time, normalised to start at 1.0.
+    Plot the equity curve, normalised to start at 1.0, with a
+    linear regression to highlight the overall trend.
     """
-
-    with open(run.equity_path, "r") as f:
-        equity = [float(line.strip()) for line in f]
 
     # normalise to an initial value of 1.0
     norm = equity[0]
-    equity = [v / norm for v in equity]
+    equity = equity / norm
 
     days = list(range(len(equity)))
 

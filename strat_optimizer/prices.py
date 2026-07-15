@@ -6,8 +6,8 @@ number of trading days is always available.  For assets that trade
 365 days/year (crypto, forex) the conversion is 1:1; for equities
 (≈252 trading days/year) we inflate the calendar window accordingly.
 
-Writes the price series as plain-text floats (one per line) to the
-temp file that the C engine reads.
+Returns a numpy float32 array that the C engine reads directly
+(no temp files).
 """
 
 import yfinance as yf
@@ -18,12 +18,12 @@ from .config import RunConfig
 DAYS_PER_YEAR = 365
 
 
-def download_prices(run: RunConfig) -> int:
+def download_prices(run: RunConfig):
     """
     Download *open* prices for the configured ticker, covering
     (backtest_length + lookback) trading days up to yesterday.
 
-    Returns the number of prices written to disk.
+    Returns (number_of_prices, numpy_array_of_floats).
     """
 
     number_of_prices = run.backtest_length + run.lookback
@@ -53,11 +53,7 @@ def download_prices(run: RunConfig) -> int:
     # sort by date, extract just the price floats
     prices = [price_dict[d] for d in sorted(price_dict.keys())]
 
-    # trim to exactly the required number
-    prices = prices[-number_of_prices:]
+    # trim to exactly the required number, convert to float32 for C
+    prices = np.array(prices[-number_of_prices:], dtype=np.float32)
 
-    with open(run.prices_path, 'w') as f:
-        for price in prices:
-            f.write(f"{price}\n")
-
-    return number_of_prices
+    return number_of_prices, prices
