@@ -24,9 +24,10 @@ from .strategies import Strategy
 from .config import load_config
 from .parameters import generate_parameter_combinations
 from .backtesting import run_backtesting_engine
-from rich.console import Console
+from rich.console import Console, Group
 from rich.table import Table
 from rich.panel import Panel
+from rich.text import Text
 from rich import box
 import sys
 import time
@@ -330,16 +331,19 @@ def main():
                    best_performance.volatility) * 100),
     )
 
-    console.print("  [bold]Strategy Performance[/]", style="bright_blue")
-    console.print(perf_table)
-
-    # total return (separate line — doesn't fit in the main table)
-    console.print(
-        "  [dim]Total return — Training: {tr:.2%}  "
-        "Testing: {te:.2%}[/]"
+    total_ret_line = Text(
+        "Total return — Training: {tr:.2%}  "
+        "Testing: {te:.2%}"
         .format(tr=best_performance.total_return,
-                te=test_performance.total_return)
+                te=test_performance.total_return),
+        style="dim",
     )
+
+    console.print(Panel(
+        Group(perf_table, total_ret_line),
+        title="[bold]Strategy Performance[/]",
+        border_style="bright_blue",
+    ))
 
     # ---- buy & hold benchmark table -------------------------------
     bh_table = Table(box=box.SIMPLE_HEAVY,
