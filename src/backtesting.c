@@ -139,6 +139,16 @@ void backtest(run_config_t run,
         cash -= traded_volume * run.transaction_cost;
     }  /* end of daily loop */
 
+    /*
+     * Recompute final net worth: the value captured at the top of
+     * the last iteration was pre-trade.  We now mark to market
+     * using the last day's price and the post-trade cash/positions.
+     * If the portfolio wiped out (networth == 0) we skip this step.
+     */
+    if (networth > 0.0f) {
+        networth = (assets_owned - asset_loans) * prices[end - 1] + cash;
+    }
+
     /* ---- annualized profit (CAGR) ---- */
     float profit = (networth - BUDGET) / BUDGET;
     strategy_config->performance.annual_profit =
