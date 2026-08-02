@@ -83,7 +83,8 @@ int main(int argc, char *argv[])
 
     /* ---- allocate outputs --------------------------------------- */
     float *performances =
-        malloc(run.number_of_combinations * 2 * sizeof(float));
+        malloc(run.number_of_combinations
+               * NUM_PERFORMANCE_METRICS * sizeof(float));
     float *equity_curve = NULL;
 
     if (run.number_of_combinations == 1) {
@@ -141,8 +142,16 @@ int main(int argc, char *argv[])
         return 1;
     }
     for (unsigned i = 0; i < run.number_of_combinations; i++) {
-        fprintf(file, "%f, %f\n",
-                performances[i * 2], performances[i * 2 + 1]);
+        unsigned base = i * NUM_PERFORMANCE_METRICS;
+        fprintf(file,
+                "%f, %f, %f, %f, %f, %f, %f\n",
+                performances[base + 0],
+                performances[base + 1],
+                performances[base + 2],
+                performances[base + 3],
+                performances[base + 4],
+                performances[base + 5],
+                performances[base + 6]);
     }
     fclose(file);
 

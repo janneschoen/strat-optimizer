@@ -38,10 +38,17 @@ _lib.engine_run.restype  = None
 
 # ---- data types ----------------------------------------------------
 
+NUM_METRICS = 7   # must match NUM_PERFORMANCE_METRICS in common.h
+
 @dataclass
 class Performance:
-    sharpe_ratio:  float
     annual_profit: float
+    sharpe_ratio:  float
+    total_return:  float
+    max_drawdown:  float
+    sortino_ratio: float
+    calmar_ratio:  float
+    volatility:    float
 
 
 # ---- public API ----------------------------------------------------
@@ -84,7 +91,7 @@ def run_backtesting_engine(
     param_grid = np.array(combinations, dtype=np.float32).ravel()
 
     # ---- allocate output buffers -----------------------------------
-    performances_out = np.zeros(n_combos * 2, dtype=np.float32)
+    performances_out = np.zeros(n_combos * NUM_METRICS, dtype=np.float32)
     equity_out       = np.zeros(n_days,    dtype=np.float32)
 
     # ---- populate the args struct ----------------------------------
@@ -108,9 +115,15 @@ def run_backtesting_engine(
     # ---- unpack performances ---------------------------------------
     perfs = []
     for i in range(n_combos):
+        base = i * NUM_METRICS
         perfs.append(Performance(
-            annual_profit = float(performances_out[i * 2]),
-            sharpe_ratio  = float(performances_out[i * 2 + 1]),
+            annual_profit = float(performances_out[base + 0]),
+            sharpe_ratio  = float(performances_out[base + 1]),
+            total_return  = float(performances_out[base + 2]),
+            max_drawdown  = float(performances_out[base + 3]),
+            sortino_ratio = float(performances_out[base + 4]),
+            calmar_ratio  = float(performances_out[base + 5]),
+            volatility    = float(performances_out[base + 6]),
         ))
 
     return perfs, equity_out

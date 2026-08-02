@@ -149,44 +149,116 @@ void backtest(run_config_t run,
         networth = (assets_owned - asset_loans) * prices[end - 1] + cash;
     }
 
-    /* ---- annualized profit (CAGR) ---- */
-    float profit = (networth - BUDGET) / BUDGET;
-    strategy_config->performance.annual_profit =
-        powf(1.0f + profit,
-             ((float)run.trading_days / (end - start))) - 1.0f;
+    unsigned n_days   = end - start;
+    float total_return = (networth - BUDGET) / BUDGET;
 
-    /* ---- annualized Sharpe ratio ---- */
-    unsigned number_of_returns = end - start - 1;
+    /* ---- annualized profit (CAGR) ---- */
+    if (networth > 0.0f) {
+        strategy_config->performance.annual_profit =
+            powf(1.0f + total_return,
+                 ((float)run.trading_days / n_days)) - 1.0f;
+    } else {
+        strategy_config->performance.annual_profit = -1.0f;
+    }
+    strategy_config->performance.total_return = total_return;
+
+    /* ---- daily-return-based statistics ---- */
+    unsigned number_of_returns = n_days - 1;
     float daily_returns[number_of_returns];
 
-    float sum_daily_returns = 0.0f;
-    for(unsigned i = 0; i < number_of_returns; i++){
-        if(equity_curve[i] == 0){
-            strategy_config->performance.sharpe_ratio = -1;
+    float sum_daily_returns   = 0.0f;
+    float sum_sq_returns      = 0.0f;   // for volatility
+    float sum_sq_downside     = 0.0f;   // for Sortino
+    float peak                = equity_curve[0];
+    float max_dd              = 0.0f;
+
+    for (unsigned i = 0; i < number_of_returns; i++) {
+        if (equity_curve[i] == 0.0f) {
+            /* portfolio wiped out — sentinel values */
+            strategy_config->performance.sharpe_ratio  = -1.0f;
+            strategy_config->performance.sortino_ratio = -1.0f;
+            strategy_config->performance.volatility    = -1.0f;
+            strategy_config->performance.max_drawdown  = -1.0f;
+            strategy_config->performance.calmar_ratio  = -1.0f;
             return;
         }
+
         daily_returns[i] = (equity_curve[i + 1] - equity_curve[i])
                            / equity_curve[i];
-        sum_daily_returns += daily_returns[i];
+        float dr = daily_returns[i];
+
+        sum_daily_returns += dr;
+        sum_sq_returns    += dr * dr;
+
+        if (dr < 0.0f) {
+            sum_sq_downside += dr * dr;
+        }
+
+        /* running max drawdown */
+        if (equity_curve[i] > peak)
+            peak = equity_curve[i];
+        float dd = (equity_curve[i] - peak) / peak;
+        if (dd < max_dd)
+            max_dd = dd;
     }
 
-    if(sum_daily_returns == 0){
-        strategy_config->performance.sharpe_ratio = 0;
+    /* check the last equity point for drawdown */
+    if (equity_curve[number_of_returns] > peak)
+        peak = equity_curve[number_of_returns];
+    {
+        float dd = (equity_curve[number_of_returns] - peak)
+                   / peak;
+        if (dd < max_dd)
+            max_dd = dd;
+    }
+    strategy_config->performance.max_drawdown = max_dd;
+
+    /* guard: flat equity curve or single data point */
+    if (number_of_returns == 0 || sum_daily_returns == 0.0f) {
+        strategy_config->performance.sharpe_ratio  = 0.0f;
+        strategy_config->performance.sortino_ratio = 0.0f;
+        strategy_config->performance.volatility    = 0.0f;
+        strategy_config->performance.calmar_ratio  = 0.0f;
         return;
     }
 
-    float mean_daily_return = sum_daily_returns / number_of_returns;
+    float mean_daily = sum_daily_returns / number_of_returns;
 
-    float sum_squared_deviations = 0.0f;
-    for(unsigned i = 0; i < number_of_returns; i++){
-        float dev = daily_returns[i] - mean_daily_return;
-        sum_squared_deviations += dev * dev;
+    /* variance = E[r²] − E[r]²  (single-pass) */
+    float variance = sum_sq_returns / number_of_returns
+                     - mean_daily * mean_daily;
+    if (variance < 0.0f) variance = 0.0f;   // fp rounding guard
+    float std_daily = sqrtf(variance);
+
+    float ann_factor = sqrtf((float)run.trading_days);
+
+    /* annualized volatility */
+    strategy_config->performance.volatility = std_daily * ann_factor;
+
+    /* Sharpe ratio */
+    if (std_daily > 0.0f) {
+        strategy_config->performance.sharpe_ratio =
+            (mean_daily - RISK_FREE_RATE) / std_daily * ann_factor;
+    } else {
+        strategy_config->performance.sharpe_ratio = 0.0f;
     }
-    float std_daily = sqrtf(sum_squared_deviations / number_of_returns);
 
-    /* annualize: Sharpe = μ_daily / σ_daily × √trading_days         */
-    strategy_config->performance.sharpe_ratio =
-        (mean_daily_return - RISK_FREE_RATE)
-        / std_daily
-        * sqrtf((float)run.trading_days);
+    /* Sortino ratio (downside deviation) */
+    float downside_variance = sum_sq_downside / number_of_returns;
+    float downside_dev = sqrtf(downside_variance);
+    if (downside_dev > 0.0f) {
+        strategy_config->performance.sortino_ratio =
+            (mean_daily - RISK_FREE_RATE) / downside_dev * ann_factor;
+    } else {
+        strategy_config->performance.sortino_ratio = 0.0f;
+    }
+
+    /* Calmar ratio */
+    if (max_dd < 0.0f) {
+        strategy_config->performance.calmar_ratio =
+            strategy_config->performance.annual_profit
+            / fabsf(max_dd);
+    } else {
+        strategy_config->performance.calmar_ratio = 0.0f;
+    }
 }

@@ -254,58 +254,115 @@ def main():
     bh_train_sh, bh_train_ap = _bh(train_prices)
     bh_test_sh,  bh_test_ap  = _bh(test_prices)
 
-    # performance comparison table
+    # ---- strategy performance table -------------------------------
     perf_table = Table(box=box.SIMPLE_HEAVY,
                        border_style="dim",
                        title_style="bold",
                        header_style="bold dim")
     perf_table.add_column("", style="dim", width=10)
-    perf_table.add_column("Sharpe Ratio", justify="right", width=13)
-    perf_table.add_column("Annual Profit", justify="right", width=13)
-    perf_table.add_column("B&H Sharpe", justify="right", width=13)
-    perf_table.add_column("B&H Profit", justify="right", width=13)
+    perf_table.add_column("Sharpe",   justify="right", width=7)
+    perf_table.add_column("Sortino",  justify="right", width=7)
+    perf_table.add_column("Ann.Prof", justify="right", width=8)
+    perf_table.add_column("Max DD",   justify="right", width=8)
+    perf_table.add_column("Calmar",   justify="right", width=7)
+    perf_table.add_column("Vol.",     justify="right", width=7)
+
+    def _perf_row(label, p, sharpe_fmt, ratio_fmt, pct_fmt):
+        return [
+            label,
+            sharpe_fmt.format(p.sharpe_ratio),
+            ratio_fmt.format(p.sortino_ratio),
+            pct_fmt.format(p.annual_profit),
+            pct_fmt.format(p.max_drawdown),
+            ratio_fmt.format(p.calmar_ratio),
+            pct_fmt.format(p.volatility),
+        ]
 
     perf_table.add_row(
-        "[bold]Training[/]",
+        * _perf_row(
+            "[bold]Training[/]",
+            best_performance,
+            "[bold bright_cyan]{:.4f}[/]",
+            "{:+.4f}",
+            "{:+.2%}",
+        )
+    )
+    perf_table.add_row(
+        * _perf_row(
+            "[bold]Testing[/]",
+            test_performance,
+            ("[bold bright_green]{:.4f}[/]"
+             if test_performance.sharpe_ratio > 0
+             else "[bold red]{:.4f}[/]"),
+            ("{:+.4f}"
+             if test_performance.annual_profit > 0
+             else "[red]{:+.4f}[/]"),
+            ("{:+.2%}"
+             if test_performance.annual_profit > 0
+             else "[red]{:+.2%}[/]"),
+        )
+    )
 
-        "[bold bright_cyan]{:.4f}[/]"
-        .format(best_performance.sharpe_ratio),
-        "{:+.2%}".format(best_performance.annual_profit),
+    # deltas
+    def _delta(a, b):
+        return a - b
+
+    perf_table.add_section()
+    perf_table.add_row(
+        "[dim]Δ train→test[/]",
+        "[dim]{:+.4f}[/]".format(
+            _delta(test_performance.sharpe_ratio,
+                   best_performance.sharpe_ratio)),
+        "[dim]{:+.4f}[/]".format(
+            _delta(test_performance.sortino_ratio,
+                   best_performance.sortino_ratio)),
+        "[dim]{:+.1f}pp[/]".format(
+            _delta(test_performance.annual_profit,
+                   best_performance.annual_profit) * 100),
+        "[dim]{:+.1f}pp[/]".format(
+            _delta(test_performance.max_drawdown,
+                   best_performance.max_drawdown) * 100),
+        "[dim]{:+.4f}[/]".format(
+            _delta(test_performance.calmar_ratio,
+                   best_performance.calmar_ratio)),
+        "[dim]{:+.1f}pp[/]".format(
+            _delta(test_performance.volatility,
+                   best_performance.volatility) * 100),
+    )
+
+    console.print("  [bold]Strategy Performance[/]", style="bright_blue")
+    console.print(perf_table)
+
+    # total return (separate line — doesn't fit in the main table)
+    console.print(
+        "  [dim]Total return — Training: {tr:.2%}  "
+        "Testing: {te:.2%}[/]"
+        .format(tr=best_performance.total_return,
+                te=test_performance.total_return)
+    )
+
+    # ---- buy & hold benchmark table -------------------------------
+    bh_table = Table(box=box.SIMPLE_HEAVY,
+                     border_style="dim",
+                     title_style="bold",
+                     header_style="bold dim")
+    bh_table.add_column("", style="dim", width=10)
+    bh_table.add_column("Sharpe",   justify="right")
+    bh_table.add_column("Ann. Profit", justify="right")
+    bh_table.add_row(
+        "[bold]Training[/]",
         "[dim]{:.4f}[/]".format(bh_train_sh),
         "[dim]{:+.2%}[/]".format(bh_train_ap),
     )
-    perf_table.add_row(
+    bh_table.add_row(
         "[bold]Testing[/]",
-
-        ("[bold bright_green]{:.4f}[/]"
-         if test_performance.sharpe_ratio > 0
-         else "[bold red]{:.4f}[/]")
-        .format(test_performance.sharpe_ratio),
-        ("[bright_green]{:+.2%}[/]"
-         if test_performance.annual_profit > 0
-         else "[red]{:+.2%}[/]")
-        .format(test_performance.annual_profit),
         "[dim]{:.4f}[/]".format(bh_test_sh),
         "[dim]{:+.2%}[/]".format(bh_test_ap),
     )
 
-    # Absolute drops from training to testing
-    sharpe_drop = (test_performance.sharpe_ratio
-                   - best_performance.sharpe_ratio)
-    profit_drop = test_performance.annual_profit \
-                  - best_performance.annual_profit
-
-    perf_table.add_section()
-    perf_table.add_row(
-        "[dim]Δ (train → test)[/]",
-        "[dim]{:+.4f}[/]".format(sharpe_drop),
-        "[dim]{:+.2f} pp[/]".format(profit_drop * 100),
-        "",
-        "",
-    )
-
-    console.print(Panel(perf_table, title="[bold]Performance",
-                        border_style="bright_blue"))
+    console.print(Panel(bh_table,
+                        title="[bold]Buy & Hold Benchmark",
+                        border_style="dim"))
 
     # ═══════════════════════════════════════════════════════════════
     # 7. TIMING SUMMARY
@@ -340,9 +397,13 @@ def main():
 
         annual_profits = [p.annual_profit for p in performances]
         sharpe_ratios  = [p.sharpe_ratio  for p in performances]
+        sortino_ratios = [p.sortino_ratio for p in performances]
+        max_drawdowns  = [p.max_drawdown  for p in performances]
 
         plot(run, annual_profits, parameter_combos, metric="Annual Profit")
         plot(run, sharpe_ratios,  parameter_combos, metric="Sharpe Ratio")
+        plot(run, sortino_ratios, parameter_combos, metric="Sortino Ratio")
+        plot(run, max_drawdowns,  parameter_combos, metric="Max Drawdown")
         show_equity_curve(run, equity_curve)
 
         console.print("  [dim]Done.[/]")

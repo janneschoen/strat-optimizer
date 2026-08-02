@@ -22,17 +22,23 @@
 #define STRAT_STORAGE   1    // per-combination scratch slots for stateful strategies
 #define MAX_VALUE_LENGTH 64  // max length of a single CLI key or value string
 
+#define NUM_PERFORMANCE_METRICS 7  // floats per combo in the output array
 
 /* ------------------------------------------------------------------ */
 /*  performance_t                                                     */
 /*                                                                     */
-/*  Describes the risk/reward outcome of a single backtest run.        */
-/*  Both metrics are annualized so results across different time       */
+/*  Risk/reward outcome of a single backtest run.  All ratio /        */
+/*  return metrics are annualized so results across different time     */
 /*  horizons are directly comparable.                                  */
 /* ------------------------------------------------------------------ */
 typedef struct {
-    float sharpe_ratio;    // annualized Sharpe: (μ_daily − RF) / σ_daily × √252
-    float annual_profit;   // CAGR: (final / initial)^(252/days) − 1
+    float sharpe_ratio;    // annualized Sharpe: (μ − RF) / σ × √td
+    float annual_profit;   // CAGR: (final / initial)^(td/days) − 1
+    float total_return;    // simple period return: (final − init) / init
+    float max_drawdown;    // worst peak-to-trough decline (negative)
+    float sortino_ratio;   // annualized Sortino: (μ − RF) / σ_down × √td
+    float calmar_ratio;    // annual_profit / |max_drawdown|
+    float volatility;      // annualized std dev of daily returns
 } performance_t;
 
 

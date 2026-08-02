@@ -98,9 +98,14 @@ void engine_run(engine_args_t *args)
 
     /* ---- write performance metrics to the output array ---------- */
     for (unsigned i = 0; i < n_combos; i++) {
-        args->performances[i * 2]     =
-            combinations[i].performance.annual_profit;
-        args->performances[i * 2 + 1] =
-            combinations[i].performance.sharpe_ratio;
+        unsigned base = i * NUM_PERFORMANCE_METRICS;
+        performance_t *p = &combinations[i].performance;
+        args->performances[base + 0] = p->annual_profit;
+        args->performances[base + 1] = p->sharpe_ratio;
+        args->performances[base + 2] = p->total_return;
+        args->performances[base + 3] = p->max_drawdown;
+        args->performances[base + 4] = p->sortino_ratio;
+        args->performances[base + 5] = p->calmar_ratio;
+        args->performances[base + 6] = p->volatility;
     }
 }

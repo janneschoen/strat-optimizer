@@ -12,7 +12,7 @@
 typedef struct {
     float   *prices;           /* in:  price series [n_prices]              */
     float   *param_grid;       /* in:  flat grid [n_combos * n_params]      */
-    float   *performances;     /* out: [annual_profit, sharpe] × n_combos   */
+    float   *performances;     /* out: NUM_PERFORMANCE_METRICS × n_combos   */
     float   *equity_curve;     /* out: equity curve [end-start], NULL ok    */
     unsigned n_prices;
     unsigned n_combos;
