@@ -69,6 +69,7 @@ typedef struct {
 
     unsigned strategy_index;           // index into get_signal[] table
     unsigned trading_days;             // 252 (equities) or 365 (crypto)
+    float    transaction_cost;         // fraction of traded value (0 = disabled)
 
     char prices_path[MAX_VALUE_LENGTH];
     char parameter_path[MAX_VALUE_LENGTH];

@@ -102,17 +102,18 @@ int main(int argc, char *argv[])
 
     /* ---- delegate to the shared engine -------------------------- */
     engine_args_t args = {
-        .prices         = prices,
-        .param_grid     = param_grid,
-        .performances   = performances,
-        .equity_curve   = equity_curve,
-        .n_prices       = run.number_of_prices,
-        .n_combos       = run.number_of_combinations,
-        .n_params       = run.number_of_parameters,
-        .strategy_index = run.strategy_index,
-        .start          = run.start,
-        .end            = run.end,
-        .trading_days   = run.trading_days,
+        .prices            = prices,
+        .param_grid        = param_grid,
+        .performances      = performances,
+        .equity_curve      = equity_curve,
+        .n_prices          = run.number_of_prices,
+        .n_combos          = run.number_of_combinations,
+        .n_params          = run.number_of_parameters,
+        .strategy_index    = run.strategy_index,
+        .start             = run.start,
+        .end               = run.end,
+        .trading_days      = run.trading_days,
+        .transaction_cost  = run.transaction_cost,
     };
 
     engine_run(&args);

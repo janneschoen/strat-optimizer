@@ -21,6 +21,7 @@ typedef struct {
     unsigned start;            /* first tradable day                        */
     unsigned end;              /* one past the last tradable day            */
     unsigned trading_days;     /* 252 (equities) or 365 (crypto)            */
+    float    transaction_cost; /* fraction of traded value (0 = disabled)   */
 } engine_args_t;
 
 /*

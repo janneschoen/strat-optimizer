@@ -42,6 +42,9 @@ class RunConfig:
     asset:           Asset
     test_size:       float   # fraction of data held out [0, 1]
 
+    # costs
+    transaction_cost: float   # fraction of traded value (0 = disabled)
+
     # visualisation
     show_plots:      bool    # open matplotlib figures at end of run
 
@@ -125,6 +128,7 @@ def load_config() -> RunConfig:
         backtest_length   = config["backtest_length"],
         test_size         = config["test_size"],
         show_plots        = config.get("show_plots", True),
+        transaction_cost  = config.get("transaction_cost", 0.0),
         asset=Asset(
             ticker       = config["asset"]["ticker"],
             trading_days = trading_days,

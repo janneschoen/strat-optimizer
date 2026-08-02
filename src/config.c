@@ -59,6 +59,7 @@ run_config_t load_config(int argc, char * argv[]){
     }
 
     run_config_t run_config;
+    memset(&run_config, 0, sizeof(run_config));
 
     /* ---- numeric fields ------------------------------------------ */
     char buf[MAX_VALUE_LENGTH];

@@ -104,23 +104,39 @@ void backtest(run_config_t run,
         /* target position size = signal × net worth, in asset units */
         float desired_investment = signal * networth / known_prices[i];
 
+        float traded_volume = 0.0f;
+
         if(desired_investment > 0){
             /* ---- enter / adjust long position ---- */
-            cash  -= (asset_loans * known_prices[i]);  // cover shorts
+            float cover_vol = asset_loans * known_prices[i];
+            cash  -= cover_vol;                        // cover shorts
+            traded_volume += fabsf(cover_vol);
             asset_loans = 0;
-            cash  -= (desired_investment - assets_owned)
-                     * known_prices[i];                 // buy the delta
+
+            float buy_vol = (desired_investment - assets_owned)
+                            * known_prices[i];
+            cash  -= buy_vol;                          // buy the delta
+            traded_volume += fabsf(buy_vol);
             assets_owned = desired_investment;
 
         } else if(desired_investment < 0){
             /* ---- enter / adjust short position ---- */
-            desired_investment = fabs(desired_investment);
-            cash  += (assets_owned * known_prices[i]); // sell longs
+            desired_investment = fabsf(desired_investment);
+
+            float sell_vol = assets_owned * known_prices[i];
+            cash  += sell_vol;                         // sell longs
+            traded_volume += fabsf(sell_vol);
             assets_owned = 0;
-            cash  += (desired_investment - asset_loans)
-                     * known_prices[i];                 // borrow & sell
+
+            float short_vol = (desired_investment - asset_loans)
+                              * known_prices[i];
+            cash  += short_vol;                        // borrow & sell
+            traded_volume += fabsf(short_vol);
             asset_loans = desired_investment;
         }
+
+        /* deduct transaction cost */
+        cash -= traded_volume * run.transaction_cost;
     }  /* end of daily loop */
 
     /* ---- annualized profit (CAGR) ---- */

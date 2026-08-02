@@ -30,6 +30,7 @@ class EngineArgs(ctypes.Structure):
         ("start",          ctypes.c_uint),
         ("end",            ctypes.c_uint),
         ("trading_days",   ctypes.c_uint),
+        ("transaction_cost", ctypes.c_float),
     ]
 
 _lib.engine_run.argtypes = [ctypes.POINTER(EngineArgs)]
@@ -98,7 +99,8 @@ def run_backtesting_engine(
     args.strategy_index = run.strategy.index
     args.start          = start
     args.end            = end
-    args.trading_days   = run.asset.trading_days
+    args.trading_days     = run.asset.trading_days
+    args.transaction_cost = run.transaction_cost
 
     # ---- call the C engine -----------------------------------------
     _lib.engine_run(ctypes.byref(args))

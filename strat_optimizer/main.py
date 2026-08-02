@@ -75,6 +75,10 @@ def main():
                           .format(t=1.0 - run.test_size, v=run.test_size))
     config_table.add_row("Lookback",            "{lb} days"
                           .format(lb=run.lookback))
+    config_table.add_row("Transaction cost",    "{:.2%}"
+                          .format(run.transaction_cost)
+                          if run.transaction_cost > 0
+                          else "[dim]none[/]")
 
     console.print(Panel(config_table, title="[bold]Configuration",
                         border_style="bright_blue"))

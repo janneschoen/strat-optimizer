@@ -48,6 +48,7 @@ void engine_run(engine_args_t *args)
     run.number_of_combinations = n_combos;
     run.strategy_index       = args->strategy_index;
     run.trading_days         = args->trading_days;
+    run.transaction_cost     = args->transaction_cost;
     /* file-path fields are unused by backtest() — leave zeroed */
 
     /* ---- backtest every combination ----------------------------- */
