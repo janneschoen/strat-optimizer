@@ -80,7 +80,7 @@ are needed outside the progress counter.
 - **Grid search** over arbitrary parameter ranges with configurable step sizes
 - **Constraint‑aware filtering** — invalid combinations (e.g. Fast SMA ≥ Slow SMA) are pruned before simulation
 - **Walk‑forward validation** — train/test split with the test window held out until after selection
-- **Two performance metrics** per combination (both annualised for comparability across horizons)
+- **Seven performance metrics** per combination (all annualised for comparability across horizons)
 - **Equity curve generation** for single‑combination runs
 - **Visualisations for 1–3 free parameters:** scatter + linear fit, 2‑D heatmap, 3‑D scatter
 - **Extensible strategy framework** — add a C signal function + a JSON metadata entry
@@ -91,7 +91,9 @@ are needed outside the progress counter.
 
 Let $P_0, P_1, \dots, P_T$ be the portfolio value at each time step, with
 $T$ trading days simulated and $Y$ trading days per year (252 for
-equities, 365 for crypto/forex).
+equities, 365 for crypto/forex).  Let
+$r_t = \frac{P_t - P_{t-1}}{P_{t-1}}$ be the daily return at time $t$.
+Risk‑free rate $R_f = 0$ throughout.
 
 ### Annualised Profit (CAGR)
 
@@ -99,10 +101,13 @@ $$
 \text{CAGR} = \left(\frac{P_T}{P_0}\right)^{Y/T} - 1
 $$
 
-### Annualised Sharpe Ratio
+### Total Return
 
-Let $r_t = \frac{P_t - P_{t-1}}{P_{t-1}}$ be the daily return at time $t$.
-With risk‑free rate $R_f = 0$:
+$$
+\text{Total Return} = \frac{P_T - P_0}{P_0}
+$$
+
+### Annualised Sharpe Ratio
 
 $$
 \text{Sharpe} = \frac{\bar{r}}{\sigma_r} \cdot \sqrt{Y}
@@ -111,8 +116,38 @@ $$
 where $\bar{r}$ is the sample mean of daily returns and $\sigma_r$ is
 the population standard deviation.
 
-Both metrics are computed in C and returned in-memory as `annual_profit,
-sharpe_ratio` per combination.
+### Annualised Sortino Ratio
+
+$$
+\text{Sortino} = \frac{\bar{r}}{\sigma_{\text{down}}} \cdot \sqrt{Y}
+$$
+
+where $\sigma_{\text{down}}$ is the standard deviation of negative daily
+returns only — upside volatility is not penalised.
+
+### Max Drawdown
+
+$$
+\text{MDD} = \min_{0 \le i \le T} \left(\frac{P_i - \max_{0 \le j \le i} P_j}{\max_{0 \le j \le i} P_j}\right)
+$$
+
+The worst peak‑to‑trough decline over the simulation horizon, expressed
+as a negative number.
+
+### Calmar Ratio
+
+$$
+\text{Calmar} = \frac{\text{CAGR}}{|\text{MDD}|}
+$$
+
+### Annualised Volatility
+
+$$
+\text{Volatility} = \sigma_r \cdot \sqrt{Y}
+$$
+
+All seven metrics are computed in C and returned in‑memory per
+combination via the `performance_t` struct.
 
 ---
 
@@ -217,14 +252,21 @@ run looks like with the example config above:
 │ Position Sizing    0.2                  │
 ╰─────────────────────────────────────────╯
 
-╭─ Performance ───────────────────────────────────────────────────────────╮
-│           Sharpe Ratio  Annual Profit  B&H Sharpe  B&H Profit           │
-│ Training        2.1431       +38.40%      0.8124     +12.15%           │
-│ Testing         1.8712       +31.27%      0.7501      +9.83%           │
-│                                                                         │
-│ Δ (train →                                                              │
-│ test)          -0.2719       -7.13 pp                                   │
-╰─────────────────────────────────────────────────────────────────────────╯
+╭─ Strategy Performance ──────────────────────────────────────────────────────╮
+│           Sharpe  Sortino  Ann.Prof   Max DD   Calmar    Vol.              │
+│ Training  2.1431  +2.0105  +38.40%   -18.23%   +2.1062   12.45%           │
+│ Testing   1.8712  +1.7533  +31.27%   -16.89%   +1.8514   10.92%           │
+│                                                                             │
+│ Δ train→  -0.2719  -0.2572   -7.1pp    +1.3pp   -0.2548   -1.5pp          │
+│ test                                                                        │
+│ Total return — Training: 45.12%  Testing: 32.80%                            │
+╰─────────────────────────────────────────────────────────────────────────────╯
+
+╭─ Buy & Hold Benchmark ───────────────────────────────────────────────────────╮
+│           Sharpe   Ann. Profit                                              │
+│ Training  0.8124      +12.15%                                               │
+│ Testing   0.7501       +9.83%                                               │
+╰─────────────────────────────────────────────────────────────────────────────╯
 
 ╭─ Timing ────────────────────────────────╮
 │ Config loading              0.0s        │
@@ -262,6 +304,7 @@ After the text output, interactive Matplotlib figures open:
 | `asset.ticker` | string | Yahoo Finance ticker (e.g. `BTC-USD`, `AAPL`) |
 | `asset.is_traded_all_year` | bool | `true` for crypto/forex (365 d/y), `false` for equities (252 d/y) |
 | `transaction_cost` | float | Fraction of traded value deducted per rebalance (default `0.0`).  E.g. `0.001` = 10 bps |
+| `show_plots` | bool | Whether to open interactive Matplotlib figures after the run (default `true`) |
 
 ### `strategies.json`
 
