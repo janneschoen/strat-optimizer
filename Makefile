@@ -6,7 +6,7 @@ OUTPUT = compute
 LIBRARY = libengine.so
 
 CC = gcc
-CFLAGS = -Wall -g -fopenmp -Isrc
+CFLAGS = -Wall -O2 -march=native -fopenmp -Isrc
 
 $(OUTPUT): $(FILES)
 	$(CC) $(CFLAGS) -o $@ $^ -lm
