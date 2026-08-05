@@ -53,7 +53,7 @@ void backtest(run_config_t run,
     float cash         = BUDGET;
     float assets_owned = 0.0f;   // units of the asset held long
     float asset_loans  = 0.0f;   // units borrowed (short position)
-    float networth;
+    float networth = 0.0f;
 
     /* reset strategy-local storage before this run */
     for(unsigned i = 0; i < STRAT_STORAGE; i++){

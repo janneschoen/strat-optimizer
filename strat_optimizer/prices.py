@@ -28,10 +28,12 @@ def download_prices(run: RunConfig):
 
     number_of_prices = run.backtest_length + run.lookback
 
-    # calendar days needed to guarantee enough trading days
+    # calendar days needed to guarantee enough trading days.
+    # The ratio accounts for weekends; +15 adds a safety buffer for
+    # market holidays so we never fall short of the required count.
     calendar_days = int(
         number_of_prices * (DAYS_PER_YEAR / run.asset.trading_days)
-    )
+    ) + 15
 
     yesterday = datetime.now().replace(
         hour=0, minute=0, second=0, microsecond=0) - td(days=1)
