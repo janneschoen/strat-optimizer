@@ -261,6 +261,7 @@ After the text output, interactive Matplotlib figures open:
 | `test_size` | float | Fraction of data held out for walk‑forward testing `[0, 1]` |
 | `asset.ticker` | string | Yahoo Finance ticker (e.g. `BTC-USD`, `AAPL`) |
 | `asset.is_traded_all_year` | bool | `true` for crypto/forex (365 d/y), `false` for equities (252 d/y) |
+| `transaction_cost` | float | Fraction of traded value deducted per rebalance (default `0.0`).  E.g. `0.001` = 10 bps |
 
 ### `strategies.json`
 
@@ -409,7 +410,7 @@ float signal_MyStrategy(unsigned            day,
 | **Return type** | `float ∈ [−1.0, 1.0]` — fraction of net worth to allocate. Positive = long, negative = short. |
 | **Price data** | `prices[i]` for `i ≤ day` is real; `prices[i]` for `i > day` is garbage.  Do **not** peek forward. |
 | **State** | Use `strat->storage[]` for day‑to‑day state.  The engine zeroes it between combinations with NAN. |
-| **Cost model** | No transaction costs, no slippage.  Rebalancing is frictionless. |
+| **Cost model** | Transaction costs are deducted from cash on each rebalance (see `transaction_cost` in config).  No slippage. |
 | **Wipeout** | If net worth drops to ≤ 0, the engine stops simulating and zeros the remainder of the equity curve. |
 
 ### 2. Register the Function
@@ -511,22 +512,28 @@ the optimisation never saw.
 
 ## Performance
 
-Throughput is strategy‑dependent — a simple SMA crossover evaluates faster
-than an RSI with a 200‑day window.  Representative numbers (consumer laptop,
-~1340 events/s on `sysbench cpu run`):
+Benchmarked on an Intel i7-10610U (4C/8T, 1.8 GHz base, 4.9 GHz boost),
+~1340 events/s on `sysbench cpu run`.  Compiled with `gcc -O2 -march=native
+-fopenmp`.  All runs use BTC‑USD with a 60/40 train/test split, so training
+days = 60 % of the backtest window.
 
-| Scenario | Combinations | Backtest days | Total days simulated | Wall time | Throughput |
-|----------|-------------|---------------|---------------------|-----------|------------|
-| SMA Crossover, BTC‑USD | 2,166 | 2,000 | 4.3 M | ~20 s | ~217k days/s |
+| Strategy | Combos | Training days | Days simulated | Wall time | Throughput |
+|----------|--------|--------------|---------------|-----------|------------|
+| SMA Crossover | 2,166 | 1,200 | 2.6 M | 0.07 s | ~38 M d/s |
+| RSI | 1,280 | 1,200 | 1.5 M | 0.04 s | ~42 M d/s |
 
-The C engine is the bottleneck; the Python layer contributes negligible
-overhead (< 1 % of runtime).  OpenMP scaling is near‑linear on machines with
-≤ 8 physical cores for typical grid sizes.
+Numbers are median of 5 consecutive runs after one warm‑up call.  The
+Python layer (config parsing, data download, grid generation, plotting)
+contributes negligible overhead — over 99 % of total runtime is spent
+in the C engine during grid search.
+
+OpenMP scaling is near‑linear on machines with ≤ 8 physical cores for
+typical grid sizes.
 
 ### What affects simulation speed
 
 - **Lookback length** — longer windows mean more SMA/RSI computation per day
-- **Strategy complexity** — simple arithmetic vs iterative indicators
+- **Strategy complexity** — simple arithmetic (SMA) vs iterative indicators (RSI)
 - **Grid density** — doubling the number of combinations roughly doubles runtime
 - **Price series length** — linear in the number of days simulated
 
@@ -573,10 +580,6 @@ strat-optimizer/
 
 ## Ideas
 
-- **Transaction costs.** A fixed fee or basis‑point spread per trade would
-  penalise high‑turnover strategies and bring backtest results closer to
-  reality.  Simpler to add than it sounds — just deduct from `cash` on
-  each rebalance in `backtesting.c`.
 - **Multi‑asset.** Run the same strategy (or different ones) across several
   tickers and combine the equity curves into a portfolio.  Most of the
   plumbing is already there — the C engine just needs a loop over assets.
