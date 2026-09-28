@@ -54,6 +54,19 @@ def download_prices(run: RunConfig):
 
     # sort by date, extract the prices
     sorted_dates = sorted(price_dict.keys())
+
+    if len(sorted_dates) == 0:
+        raise RuntimeError(
+            f"No price data returned for {run.asset.ticker}."
+        )
+    if len(sorted_dates) < number_of_prices:
+        raise RuntimeError(
+            f"Only {len(sorted_dates)} prices available for "
+            f"{run.asset.ticker}, but {number_of_prices} were requested "
+            f"({run.backtest_length} backtest + {run.lookback} lookback). "
+            f"Reduce backtest_length or pick an asset with more history."
+        )
+
     prices = [price_dict[d] for d in sorted_dates]
 
     # trim to exactly the required number, convert to float32 for C

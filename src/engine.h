@@ -9,6 +9,8 @@
 #ifndef ENGINE_H
 #define ENGINE_H
 
+#include <stddef.h>
+
 typedef struct {
     float   *prices;           /* in:  price series [n_prices]              */
     float   *param_grid;       /* in:  flat grid [n_combos * n_params]      */
@@ -17,7 +19,7 @@ typedef struct {
     unsigned n_prices;
     unsigned n_combos;
     unsigned n_params;
-    unsigned strategy_index;   /* index into get_signal[] dispatch table    */
+    const char *strategy_name; /* in:  registered strategy name             */
     unsigned start;            /* first tradable day                        */
     unsigned end;              /* one past the last tradable day            */
     unsigned trading_days;     /* 252 (equities) or 365 (crypto)            */
@@ -35,5 +37,15 @@ typedef struct {
  *  performance metrics are written.
  */
 void engine_run(engine_args_t *args);
+
+/*
+ *  ABI introspection — lets the Python bridge (backtesting.py) verify
+ *  that its ctypes mirror matches this struct and the engine constants
+ *  in common.h.  A mismatch is turned into a loud Python error instead
+ *  of silent memory corruption.
+ */
+size_t   engine_args_sizeof(void);
+unsigned engine_num_metrics(void);
+unsigned engine_max_params(void);
 
 #endif

@@ -1,10 +1,11 @@
 /*
  *  config.c — CLI argument parser for the backtest engine
  *
- *  The Python orchestration layer (backtesting.py) spawns this
- *  program with key:value arguments:
+ *  The standalone debugging driver (core.c) calls this with
+ *  key:value arguments:
  *
- *      ./compute start:300 end:2100 number_of_prices:3300 ...
+ *      ./engine-cli start:300 end:2100 number_of_prices:3300 \
+ *                   strategy_name:"SMA Crossover" ...
  *
  *  This parser extracts each key and populates a run_config_t.
  *  It is intentionally minimal — no external libraries, no JSON.
@@ -79,11 +80,20 @@ run_config_t load_config(int argc, char * argv[]){
     get_value_from_key("end",                    buf);
     run_config.end                    = (unsigned)atoi(buf);
 
-    get_value_from_key("strategy_index",         buf);
-    run_config.strategy_index         = (unsigned)atoi(buf);
-
     get_value_from_key("trading_days",           buf);
     run_config.trading_days           = (unsigned)atoi(buf);
+
+    get_value_from_key("transaction_cost",       buf);
+    run_config.transaction_cost       = (float)atof(buf);
+
+    /* ---- strategy: resolve by name, not position ----------------- */
+    get_value_from_key("strategy_name",          run_config.strategy_name);
+    run_config.signal_fn = strategy_lookup(run_config.strategy_name);
+    if (run_config.signal_fn == NULL) {
+        printf("Error: unknown strategy '%s'.\n",
+               run_config.strategy_name);
+        exit(1);
+    }
 
     /* ---- string (path) fields ------------------------------------ */
     get_value_from_key("prices_path",       run_config.prices_path);

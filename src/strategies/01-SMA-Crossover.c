@@ -7,8 +7,9 @@
  *    When the fast SMA crosses below the slow  → go short.
  *
  *    Only acts on crossover events — holds the position until the
- *    next crossover.  Position size is controlled by params[2],
- *    a fixed fraction of net worth (e.g. 0.2 = 20 %).
+ *    next crossover by returning SIGNAL_HOLD between events.
+ *    Position size is controlled by params[2], a fixed fraction of
+ *    net worth (e.g. 0.2 = 20 %).
  *
  *  Parameters:
  *    params[0]  Fast SMA window length  (must be < params[1])
@@ -16,8 +17,8 @@
  *    params[2]  Position size fraction  ∈ [0, 1]
  *
  *  State:
- *    storage[0] stores the previous crossover direction so we can
- *    detect reversals.  Reset to NAN by the engine between runs.
+ *    storage[0] stores the current regime direction.  Reset to NAN
+ *    by the engine between runs.
  */
 
 #include "common.h"
@@ -52,5 +53,5 @@ float signal_SMA_crossover(unsigned day,
         return alloc * (float)direction;   // enter position on crossover
     }
 
-    return 0.0f;   // no crossover today — hold
+    return SIGNAL_HOLD;   // no crossover today — keep the position
 }

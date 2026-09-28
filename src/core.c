@@ -6,7 +6,7 @@
  *  results back to disk.
  *
  *  This binary exists for debugging — you can run it manually:
- *      ./compute start:200 end:1200 number_of_prices:3000 ...
+ *      ./engine-cli start:200 end:1200 number_of_prices:3000 ...
  *
  *  In normal use, Python calls engine_run() directly through the
  *  shared library (libengine.so), bypassing this CLI wrapper.
@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
         .n_prices          = run.number_of_prices,
         .n_combos          = run.number_of_combinations,
         .n_params          = run.number_of_parameters,
-        .strategy_index    = run.strategy_index,
+        .strategy_name     = run.strategy_name,
         .start             = run.start,
         .end               = run.end,
         .trading_days      = run.trading_days,

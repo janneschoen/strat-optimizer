@@ -69,9 +69,10 @@ No files, no subprocess — raw pointers into the same memory.
 ### Parallelism
 
 When evaluating multiple parameter combinations, the C engine parallelises
-with OpenMP (`schedule(dynamic)`).  Each thread declares its own equity
-curve on the stack — there are zero shared mutable buffers, so no locks
-are needed outside the progress counter.
+with OpenMP (`schedule(dynamic)`).  Each thread allocates its own equity
+buffer on the heap (not the stack, so long backtests are safe) — there
+are zero shared mutable buffers, so no locks are needed outside the
+progress counter.
 
 ---
 
@@ -83,7 +84,7 @@ are needed outside the progress counter.
 - **Seven performance metrics** per combination (all annualised for comparability across horizons)
 - **Equity curve generation** for single‑combination runs
 - **Visualisations for 1–3 free parameters:** scatter + linear fit, 2‑D heatmap, 3‑D scatter
-- **Extensible strategy framework** — add a C signal function + a JSON metadata entry
+- **Extensible strategy framework** — add a C signal function, register it by name, and add a JSON metadata entry; dispatch can never be broken by reordering
 
 ---
 
@@ -159,6 +160,7 @@ git clone https://github.com/janneschoen/strat-optimizer.git
 cd strat-optimizer
 
 # 2. Build the C engine (requires GCC with OpenMP)
+#    `make` builds both libengine.so (used by Python) and engine-cli
 make
 
 # 3. Create and activate a virtual environment
@@ -168,6 +170,10 @@ source .venv/bin/activate          # Linux / macOS
 
 # 4. Install Python dependencies
 pip install -r requirements.txt
+
+# 5. (optional) install test dependencies and run the suite
+pip install -r requirements-dev.txt
+pytest
 ```
 
 **Dependencies:**
@@ -297,7 +303,7 @@ After the text output, interactive Matplotlib figures open:
 |-----|------|-------------|
 | `strategy_name` | string | Name matching an entry in `strategies.json` |
 | `strategies_file` | string | Path to the strategy definitions file |
-| `parameter_ranges` | `[[low, high], ...]` | One `[low, high]` pair per strategy parameter |
+| `parameter_ranges` | `[[low, high], ...]` | One `[low, high]` pair per strategy parameter — the single source of the numeric search space (the high end is exclusive, like `np.arange`) |
 | `parameter_steps` | `[int or float, ...]` | Grid step size per parameter; `0` = fixed at `range[0]` |
 | `backtest_length` | int | Number of **trading days** to test (from yesterday backwards) |
 | `test_size` | float | Fraction of data held out for walk‑forward testing `[0, 1]` |
@@ -320,10 +326,13 @@ Each parameter descriptor:
 | Key | Type | Required | Description |
 |-----|------|----------|-------------|
 | `name` | string | yes | Display name (appears on plot axes) |
-| `min` | float | no | Lower bound (inclusive) |
-| `max` | float | no | Upper bound (inclusive) |
-| `upper_param` | int | no | Index of a parameter this value must be **strictly less than** |
+| `upper_param` | int | no | Index of a parameter this value must be **strictly less than** (e.g. Fast SMA < Slow SMA) |
 | `defines_lookback` | bool | no | Exactly one parameter per strategy must have this; its maximum value determines how many historical prices the signal function receives |
+
+Numeric bounds are **not** declared here — the search space is fully
+defined by `parameter_ranges` / `parameter_steps` in the run config.
+`strategies.json` only carries structural metadata (names, relational
+constraints, the lookback parameter).
 
 **Example** (`strategies.json`):
 
@@ -332,17 +341,17 @@ Each parameter descriptor:
     {
         "name": "SMA Crossover",
         "parameters": [
-            {"name": "Fast SMA Length", "min": 1, "upper_param": 1},
-            {"name": "Slow SMA Length", "min": 1, "defines_lookback": true},
-            {"name": "Position Sizing", "min": 0, "max": 1}
+            {"name": "Fast SMA Length", "upper_param": 1},
+            {"name": "Slow SMA Length", "defines_lookback": true},
+            {"name": "Position Sizing"}
         ]
     },
     {
         "name": "RSI",
         "parameters": [
-            {"name": "Buying Threshold",  "min": 0, "max": 100, "upper_param": 1},
-            {"name": "Selling Threshold", "min": 0, "max": 100},
-            {"name": "Window Size",       "min": 1, "defines_lookback": true}
+            {"name": "Buying Threshold",  "upper_param": 1},
+            {"name": "Selling Threshold"},
+            {"name": "Window Size",       "defines_lookback": true}
         ]
     }
 ]
@@ -414,8 +423,8 @@ config.json
 
 ## Writing a Strategy
 
-Adding a new strategy requires two steps: a C signal function and a JSON
-metadata entry.
+Adding a new strategy requires three steps: a C signal function, a
+registry entry (by name), and a JSON metadata entry.
 
 ### 1. Signal Function (C)
 
@@ -436,13 +445,17 @@ float signal_MyStrategy(unsigned            day,
     //   strat->storage[0]   (up to STRAT_STORAGE slots)
     //   Reset to NAN by the engine between runs.
     //
-    // Access historical prices:
-    //   prices[day], prices[day - 1], ...  (raw, no lookahead guard)
+    // Access historical prices (lookahead-safe):
+    //   prices[day], prices[day - 1], ... are real;
+    //   prices[i] for i > day is NAN.  Do not peek forward.
 
-    // Return exposure ∈ [−1.0, +1.0]:
-    //   +1 = 100 % long    0 = flat    −1 = 100 % short
+    // Return one of:
+    //   > 0            target long exposure, fraction of net worth
+    //   < 0            target short exposure, fraction of net worth
+    //   SIGNAL_HOLD    keep the current position unchanged
+    //   SIGNAL_FLAT    close any open position and stay in cash
 
-    return 0.0f;
+    return SIGNAL_HOLD;
 }
 ```
 
@@ -450,9 +463,9 @@ float signal_MyStrategy(unsigned            day,
 
 | Aspect | Rule |
 |--------|------|
-| **Return type** | `float ∈ [−1.0, 1.0]` — fraction of net worth to allocate. Positive = long, negative = short. |
-| **Price data** | `prices[i]` for `i ≤ day` is real; `prices[i]` for `i > day` is garbage.  Do **not** peek forward. |
-| **State** | Use `strat->storage[]` for day‑to‑day state.  The engine zeroes it between combinations with NAN. |
+| **Return value** | An exposure (`float`), `SIGNAL_HOLD` (0.0), or `SIGNAL_FLAT` (NaN). `SIGNAL_HOLD` is *not* the same as flat — the engine leaves the current position open. |
+| **Price data** | `prices[i]` for `i ≤ day` is real; `prices[i]` for `i > day` is `NAN`.  Do **not** peek forward. |
+| **State** | Use `strat->storage[]` for day‑to‑day state.  The engine resets it to NAN between combinations. |
 | **Cost model** | Transaction costs are deducted from cash on each rebalance (see `transaction_cost` in config).  No slippage. |
 | **Wipeout** | If net worth drops to ≤ 0, the engine stops simulating and zeros the remainder of the equity curve. |
 
@@ -466,20 +479,20 @@ float signal_MyStrategy(unsigned day,
                         float * prices);
 ```
 
-Add it to the dispatch table in `backtesting.c`:
+Append a registry entry in `backtesting.c`:
 
 ```c
-float (*get_signal[])(unsigned day,
-                      strategy_config_t * strategy_config,
-                      float * prices) = {
-    signal_SMA_crossover,
-    signal_RSI,
-    signal_MyStrategy,      // ← append here
+static const strategy_entry_t STRATEGY_REGISTRY[] = {
+    { "SMA Crossover", signal_SMA_crossover },
+    { "RSI",           signal_RSI },
+    { "My Strategy",   signal_MyStrategy },   // ← append here
 };
 ```
 
-The index in this array must match the strategy's position in
-`strategies.json`.
+The registry key must match both `config.strategy_name` and the `name`
+in `strategies.json`.  Order does **not** matter — the engine dispatches
+by name via `strategy_lookup()`, so the table and the JSON can evolve
+independently.
 
 ### 3. Define Properties (JSON)
 
@@ -489,24 +502,27 @@ Add an entry to `strategies.json`:
 {
     "name": "My Strategy",
     "parameters": [
-        {"name": "Param A", "min": 1, "upper_param": 1},
-        {"name": "Param B", "min": 1, "defines_lookback": true},
-        {"name": "Param C", "min": 0, "max": 1}
+        {"name": "Param A", "upper_param": 1},
+        {"name": "Param B", "defines_lookback": true},
+        {"name": "Param C"}
     ]
 }
 ```
+
+The numeric search space (and therefore `Param A`'s lower bound) comes
+from `parameter_ranges` / `parameter_steps` in the run config.
 
 **Constraints you can express:**
 
 | Constraint | JSON key | Example |
 |------------|----------|---------|
-| Lower bound | `"min"` | Param A ≥ 1 |
-| Upper bound | `"max"` | Param C ≤ 1 |
 | Must be less than another param | `"upper_param"` | Param A < Param B |
 | Defines required lookback | `"defines_lookback"` | The engine provides at least `max(Param B)` historical prices |
 
-Only `min`, `max`, and `upper_param` constraints are enforced during grid
-generation.  Any additional validation logic belongs in the C signal function.
+`upper_param` is enforced during grid generation; any additional
+validation logic belongs in the C signal function.  A strategy may define
+at most `MAX_PARAMS` (3) parameters — enough for the 3‑D visualisations —
+and the Python layer rejects anything larger before it reaches C.
 
 ### 4. Build & Run
 
@@ -594,7 +610,7 @@ strat-optimizer/
 │   ├── parameters.py        # Cartesian product grid with constraint filtering
 │   ├── prices.py            # Yahoo Finance downloader
 │   ├── backtesting.py       # Python ↔ C bridge (ctypes + shared library)
-│   ├── strategies.py        # Strategy metadata & parameter validation
+│   ├── strategy.py          # Strategy metadata & parameter validation
 │   ├── plotting.py          # 2‑D/3‑D visualisation dispatch
 │   └── equity_curve.py      # Equity curve plot with linear trend
 │
@@ -603,19 +619,21 @@ strat-optimizer/
 │   ├── engine.h             # Public API: engine_args_t struct + engine_run() signature
 │   ├── engine.c             # Shared-library entry point: receives data via pointers, runs grid
 │   ├── config.c             # CLI key:value parser (populates run_config_t)
-│   ├── backtesting.c        # Core simulation loop + signal dispatch table
+│   ├── backtesting.c        # Core simulation loop + name-based strategy registry
 │   ├── core.c               # Standalone CLI driver (for debugging; not used by Python)
 │   └── strategies/
 │       ├── 01-SMA-Crossover.c  # Strategy: Simple Moving Average crossover
 │       └── 02-RSI.c            # Strategy: Relative Strength Index
 │
 ├── libengine.so             # Compiled shared library (ctypes entry point for Python)
-├── compute                  # Standalone CLI binary (for manual debugging)
+├── engine-cli               # Standalone CLI binary (for manual debugging)
 ├── configs/                 # JSON configuration
-│   ├── strategies.json      # Strategy definitions (names, parameter constraints)
+│   ├── strategies.json      # Strategy definitions (names, relational constraints)
 │   ├── example.json         # Example run configuration
 │   └── config.json          # Active run configuration (user‑provided, gitignored)
+├── tests/                   # Pytest suite (grid, config, engine, downloader)
 ├── requirements.txt         # Python dependencies
+├── requirements-dev.txt     # Test dependencies (pytest)
 └── Makefile                 # C build (GCC + OpenMP)
 ```
 

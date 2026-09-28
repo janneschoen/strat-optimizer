@@ -5,7 +5,8 @@
  *    Compute the RSI over a configurable lookback window.
  *    If RSI drops below the buy threshold   → go long  (oversold).
  *    If RSI rises above the sell threshold  → go short (overbought).
- *    Otherwise stay flat.
+ *    Otherwise return SIGNAL_FLAT so the engine closes any position
+ *    (this is a genuine "be in cash" instruction, not "hold").
  *
  *    Unlike SMA Crossover, this strategy does not track state
  *    between days — each day's signal is independent.
@@ -71,5 +72,5 @@ float signal_RSI(unsigned day,
 
     if(rsi < (float)buy_thresh)   return  1.0f;
     if(rsi > (float)sell_thresh)  return -1.0f;
-    return 0.0f;                   // inside the neutral zone
+    return SIGNAL_FLAT;            // inside the neutral zone — go flat
 }

@@ -2,11 +2,12 @@
 config.py — Load and validate a run configuration from JSON
 
 Reads two JSON files:
-  1. The run config   (default: config.json)
+  1. The run config   (default: configs/config.json)
      - strategy name, parameter ranges & steps, backtest length,
        test split, asset ticker
-  2. The strategy definitions file  (default: strategies.json)
-     - metadata for each strategy: parameter names, constraints
+  2. The strategy definitions file  (default: configs/strategies.json)
+     - metadata for each strategy: parameter names, relational
+       constraints, and the lookback-defining parameter
 
 Produces a RunConfig dataclass that the rest of the pipeline
 consumes.  Also derives the lookback — the minimum number of
@@ -14,7 +15,7 @@ historical prices the C engine needs before it can start trading.
 """
 
 from dataclasses import dataclass
-from .strategies import Strategy, ParameterConfig
+from .strategy import Strategy, ParameterConfig
 import sys, json
 
 
@@ -33,7 +34,7 @@ class RunConfig:
 
     strategy: Strategy
 
-    # grid-search parameters
+    # grid-search parameters — the single source of numeric bounds
     parameter_ranges: list   # [[lo, hi], ...]  one per parameter
     parameter_steps:  list   # step size; 0 = fixed at range[0]
 
@@ -49,6 +50,22 @@ class RunConfig:
     show_plots:      bool    # open matplotlib figures at end of run
 
     def __post_init__(self):
+        # Fail early and clearly if the grid does not line up with the
+        # strategy, instead of an IndexError deep in lookback derivation.
+        n_params = self.strategy.number_of_parameters
+        if len(self.parameter_ranges) != n_params:
+            raise ValueError(
+                f"Strategy '{self.strategy.name}' has {n_params} "
+                f"parameters but {len(self.parameter_ranges)} ranges "
+                f"were configured."
+            )
+        if len(self.parameter_steps) != n_params:
+            raise ValueError(
+                f"Strategy '{self.strategy.name}' has {n_params} "
+                f"parameters but {len(self.parameter_steps)} steps "
+                f"were configured."
+            )
+
         self.lookback = self._calculate_lookback()
         self._config_path = ""   # set by load_config()
 
@@ -61,7 +78,8 @@ class RunConfig:
 
         If the step for that parameter is 0 (fixed), the lookback
         is the fixed value itself; otherwise it is the upper bound
-        of its range.
+        of its range (np.arange is half-open, so this may be one
+        step larger than the largest generated value — harmless).
         """
         for i, param in enumerate(self.strategy.parameters):
             if param.defines_lookback:
@@ -78,12 +96,17 @@ class RunConfig:
         )
 
 
-def load_config() -> RunConfig:
+def load_config(config_file: str = None) -> RunConfig:
     """
-    Read the config JSON (CLI argument or config.json) and the
-    strategies definition file.  Build and return a RunConfig.
+    Read the config JSON and the strategies definition file.  Build
+    and return a RunConfig.
+
+    If *config_file* is omitted, the first CLI argument is used, or
+    DEFAULT_CONFIG_FILE when no argument was given.
     """
-    config_file = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_CONFIG_FILE
+    if config_file is None:
+        config_file = (sys.argv[1] if len(sys.argv) > 1
+                       else DEFAULT_CONFIG_FILE)
 
     with open(config_file) as f:
         config = json.load(f)
@@ -95,20 +118,17 @@ def load_config() -> RunConfig:
 
     # match the strategy name to its definition
     strategy = None
-    for i, s in enumerate(strategies):
+    for s in strategies:
         if s["name"] == config["strategy_name"]:
             params = []
             for p in s["parameters"]:
                 params.append(ParameterConfig(
                     name             = p["name"],
-                    min              = p.get("min"),
-                    max              = p.get("max"),
                     upper_param      = p.get("upper_param"),
                     defines_lookback = p.get("defines_lookback", False),
                 ))
             strategy = Strategy(
                 name       = s["name"],
-                index      = i,
                 parameters = params,
             )
             break

@@ -7,6 +7,7 @@ serialisation overhead.
 """
 
 from .config import RunConfig
+from .strategy import MAX_PARAMS
 from dataclasses import dataclass
 from pathlib import Path
 import ctypes
@@ -14,31 +15,65 @@ import numpy as np
 
 # ---- load the shared library ---------------------------------------
 _LIB_PATH = Path(__file__).parent.parent / "libengine.so"
-_lib = ctypes.CDLL(str(_LIB_PATH))
+try:
+    _lib = ctypes.CDLL(str(_LIB_PATH))
+except OSError as e:
+    raise RuntimeError(
+        f"Could not load the C engine at '{_LIB_PATH}'. "
+        f"Build it first with `make`. ({e})"
+    )
 
 
 class EngineArgs(ctypes.Structure):
+    # NOTE: this must mirror engine_args_t in src/engine.h exactly.
+    # The size check below catches layout drift; field order must
+    # still be kept in sync by hand.
     _fields_ = [
-        ("prices",         ctypes.POINTER(ctypes.c_float)),
-        ("param_grid",     ctypes.POINTER(ctypes.c_float)),
-        ("performances",   ctypes.POINTER(ctypes.c_float)),
-        ("equity_curve",   ctypes.POINTER(ctypes.c_float)),
-        ("n_prices",       ctypes.c_uint),
-        ("n_combos",       ctypes.c_uint),
-        ("n_params",       ctypes.c_uint),
-        ("strategy_index", ctypes.c_uint),
-        ("start",          ctypes.c_uint),
-        ("end",            ctypes.c_uint),
-        ("trading_days",   ctypes.c_uint),
+        ("prices",           ctypes.POINTER(ctypes.c_float)),
+        ("param_grid",       ctypes.POINTER(ctypes.c_float)),
+        ("performances",     ctypes.POINTER(ctypes.c_float)),
+        ("equity_curve",     ctypes.POINTER(ctypes.c_float)),
+        ("n_prices",         ctypes.c_uint),
+        ("n_combos",         ctypes.c_uint),
+        ("n_params",         ctypes.c_uint),
+        ("strategy_name",    ctypes.c_char_p),
+        ("start",            ctypes.c_uint),
+        ("end",              ctypes.c_uint),
+        ("trading_days",     ctypes.c_uint),
         ("transaction_cost", ctypes.c_float),
     ]
 
 _lib.engine_run.argtypes = [ctypes.POINTER(EngineArgs)]
 _lib.engine_run.restype  = None
+_lib.engine_args_sizeof.restype = ctypes.c_size_t
+_lib.engine_num_metrics.restype = ctypes.c_uint
+_lib.engine_max_params.restype  = ctypes.c_uint
 
-# ---- data types ----------------------------------------------------
+# ---- ABI / contract checks -----------------------------------------
+# A stale libengine.so would otherwise be an invisible source of wrong
+# results, so fail loudly at import time.
+_expected_size = ctypes.sizeof(EngineArgs)
+_engine_size   = _lib.engine_args_sizeof()
+if _expected_size != _engine_size:
+    raise RuntimeError(
+        f"EngineArgs layout mismatch: ctypes={_expected_size} bytes, "
+        f"C engine={_engine_size} bytes. Rebuild with `make`."
+    )
 
-NUM_METRICS = 7   # must match NUM_PERFORMANCE_METRICS in common.h
+# The single source of truth for the metric stride is the C engine.
+NUM_METRICS = int(_lib.engine_num_metrics())
+if NUM_METRICS != 7:
+    raise RuntimeError(
+        f"Expected 7 performance metrics per combination, "
+        f"but the engine reports {NUM_METRICS}. Update Performance below."
+    )
+
+if int(_lib.engine_max_params()) != MAX_PARAMS:
+    raise RuntimeError(
+        "MAX_PARAMS mismatch between strat_optimizer/strategy.py "
+        "and src/common.h."
+    )
+
 
 @dataclass
 class Performance:
@@ -87,12 +122,22 @@ def run_backtesting_engine(
     n_params = run.strategy.number_of_parameters
     n_days   = end - start
 
+    if n_params > MAX_PARAMS:
+        raise ValueError(
+            f"Strategy '{run.strategy.name}' has {n_params} parameters, "
+            f"but the engine supports at most {MAX_PARAMS}."
+        )
+
     # ---- build the flat parameter grid -----------------------------
     param_grid = np.array(combinations, dtype=np.float32).ravel()
 
     # ---- allocate output buffers -----------------------------------
     performances_out = np.zeros(n_combos * NUM_METRICS, dtype=np.float32)
-    equity_out       = np.zeros(n_days,    dtype=np.float32)
+    equity_out       = np.zeros(n_days, dtype=np.float32)
+
+    # Keep the encoded name alive for the duration of the call: ctypes
+    # stores only the pointer in the struct.
+    strategy_name = run.strategy.name.encode("utf-8")
 
     # ---- populate the args struct ----------------------------------
     args = EngineArgs()
@@ -103,7 +148,7 @@ def run_backtesting_engine(
     args.n_prices       = number_of_prices
     args.n_combos       = n_combos
     args.n_params       = n_params
-    args.strategy_index = run.strategy.index
+    args.strategy_name  = strategy_name
     args.start          = start
     args.end            = end
     args.trading_days     = run.asset.trading_days
